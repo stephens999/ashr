@@ -18,6 +18,15 @@ comp_sd.default = function(m){
   stop("method comp_sd not written for this class")
 }
 
+#second moments
+comp_mean2 = function(m){
+  UseMethod("comp_mean2")
+}
+comp_mean2.default = function(m){
+  comp_sd(m)^2 + comp_mean(m)^2
+}
+
+
 #return the overall mean of the mixture
 mixmean = function(m){
   UseMethod("mixmean")
@@ -26,7 +35,23 @@ mixmean.default = function(m){
   sum(m$pi * comp_mean(m))
 }
 
-#standard deviations
+#return the overall second moment of the mixture
+mixmean2 = function(m){
+  UseMethod("mixmean2")
+}
+mixmean2.default = function(m){
+  sum(m$pi * comp_mean2(m))
+}
+
+#return the overall sd of the mixture
+mixsd = function(m){
+  UseMethod("mixsd")
+}
+mixsd.default = function(m){
+  sqrt(mixmean2(m)-mixmean(m)^2)
+}
+
+#means
 comp_mean = function(m){
   UseMethod("comp_mean")
 }
@@ -75,12 +100,23 @@ dens.default = function(x,y){
   return (x$pi %*% compdens(x, y))
 }
 
-#find log likelihood of data in y
-LogLik = function(x,y){
+#find log likelihood of data in x for mixture in m
+LogLik = function(m,x){
   UseMethod("LogLik")
 }
-LogLik.default = function(x,y){
-  sum(dens(x,y))
+LogLik.default = function(m,x){
+  sum(log(dens(m,x)))
+}
+
+#find log likelihood of data in x, when 
+#the mixture m is convolved with a normal with sd s
+#s is an n vector
+#x is an n vector
+LogLik_conv = function(m,x,s){
+  UseMethod("LogLik_conv")
+}
+LogLik_conv.default = function(m,x,s){
+  sum(log(dens_conv(m,x,s)))
 }
 
 #compute the density of the components of the mixture m
@@ -154,6 +190,32 @@ postmean.default = function(m,betahat,sebetahat){
   colSums(comppostprob(m,betahat,sebetahat) * comp_postmean(m,betahat,sebetahat))
 }
 
+#output posterior mean-squared value for beta for prior mixture m,
+#given observations betahat, sebetahat
+postmean2 = function(m, betahat,sebetahat){
+  UseMethod("postmean2")
+}
+postmean2.default = function(m,betahat,sebetahat){
+  colSums(comppostprob(m,betahat,sebetahat) * comp_postmean2(m,betahat,sebetahat))
+}
+
+#output posterior sd for beta for prior mixture m,
+#given observations betahat, sebetahat
+postsd = function(m, betahat,sebetahat){
+  UseMethod("postsd")
+}
+postsd.default = function(m,betahat,sebetahat){
+  sqrt(postmean2(m,betahat,sebetahat)-postmean(m,betahat,sebetahat)^2)
+}
+
+#output posterior mean-squared value for beta for prior mixture m,
+#given observations betahat, sebetahat
+comp_postmean2 = function(m, betahat,sebetahat){
+  UseMethod("comp_postmean2")
+}
+comp_postmean2.default = function(m,betahat,sebetahat){
+  comp_postsd(m,betahat,sebetahat)^2 + comp_postmean(m,betahat,sebetahat)^2
+}
 
 
 #output posterior mean for beta for each component of prior mixture m,
@@ -165,6 +227,14 @@ comp_postmean.default = function(m,betahat,sebetahat){
   stop("method comp_postmean not written for this class")
 }
 
+#output posterior sd for beta for each component of prior mixture m,
+#given observations betahat, sebetahat
+comp_postsd = function(m, betahat,sebetahat){
+  UseMethod("comp_postsd")
+}
+comp_postsd.default = function(m,betahat,sebetahat){
+  stop("method comp_postsd not written for this class")
+}
 
 #find nice limits of mixture m for plotting
 min_lim = function(m){
@@ -268,6 +338,13 @@ comp_postmean.normalmix = function(m,betahat,sebetahat){
   t(tmp)
 }
 
+#return posterior mean for each component of prior m, given observations betahat and sebetahat
+#input, m is a mixture with k components
+#betahat, sebetahat are n vectors
+#output is a k by n matrix
+comp_postsd.normalmix = function(m,betahat,sebetahat){
+  t(sqrt(outer(sebetahat^2,m$sd^2,FUN="*")/outer(sebetahat^2,m$sd^2,FUN="+")))
+}
 
 
 ############################### METHODS FOR unimix class ###########################
@@ -290,6 +367,8 @@ comp_sd.unimix = function(m){
 comp_mean.unimix = function(m){
   (m$a+m$b)/2
 }
+
+
 
 compdens.unimix = function(x,y,log=FALSE){
   k=ncomp(x)
@@ -379,4 +458,12 @@ comp_postmean.unimix = function(m,betahat,sebetahat){
 #   )
 }
 
+#not yet implemented!
+#just returns 0s for now
+comp_postsd.unimix = function(m,betahat,sebetahat){
+  print("Warning: Posterior SDs not yet implemented for uniform components")
+  k= ncomp(m)
+  n=length(betahat)
+  return(matrix(0,nrow=k,ncol=n)) 
+}
 

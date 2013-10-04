@@ -1,7 +1,9 @@
 #TODO: Add nullcheck for VB?
 #Separate out the optimization over sigma from the EM algorithm
 
-
+#ash.repodir = scan(".ash.repodir.txt",what=character()) 
+#source(file.path(ash.repodir, "/Rcode/mix.R"))
+#source("mix.R")
 
 #return the KL-divergence between 2 dirichlet distributions
 #p,q are the vectors of dirichlet parameters of same lengths
@@ -244,25 +246,29 @@ autoselect.sigmaavec = function(betahat,sebetahat){
   return(2^((-npoint):0) * sigmaamax)
 }
 
-
-
-#main adaptive shrinkage function
-#takes a vector of betahats and ses;
-#fits a mixture of normals to it
-# and returns posteriors
-#INPUT: betahat (p vector); sebetahat (p vector of standard errors)
-#mixcompdist: distribution of components in mixture ("normal", "uniform" or "halfuniform")
-#df: degrees of freedome used to compute sebetahat
-#randomstart: bool, indicating whether to initialize EM randomly
-#usePointMass: bool, indicating whether to use a point mass at zero as one of components for a mixture distribution
-#onlylogLR (= FALSE) : bool, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, localfdr...
-#localfdr (=TRUE) : bool,  indicating whether to compute localfdr and q-value
-#auto (=FALSE): bool, whether to try to select the sigmaavec vector automatically (beta functionality)
-#sigma.est: bool, whether to estimate sigma rather than fixing (Beta version)
-#nc: number of components to use (only relevant when sigma.est=TRUE)
-#
-#OUTPUT: 
-#logLR : logP(D|mle(pi)) - logP(D|null)
+#' @title Main Adaptive SHrinkage function
+#'
+#' @description takes a vector of betahats and ses; fits a mixture of normals to it and returns posteriors
+#'
+#' @details See readme for more details
+#' 
+#' @param betahat (p vector); 
+#' @param sebetahat (p vector of standard errors)
+#' @param mixcompdist: distribution of components in mixture ("normal", "uniform" or "halfuniform")
+#' @param df: degrees of freedome used to compute sebetahat
+#' @param randomstart: bool, indicating whether to initialize EM randomly
+#' @param usePointMass: bool, indicating whether to use a point mass at zero as one of components for a mixture distribution
+#' @param onlylogLR (= FALSE) : bool, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, localfdr...
+#' @param localfdr (=TRUE) : bool,  indicating whether to compute localfdr and q-value
+#' @param auto (=FALSE): bool, whether to try to select the sigmaavec vector automatically (beta functionality)
+#' @param sigma.est: bool, whether to estimate sigma rather than fixing (Beta version)
+#' @param nc: number of components to use (only relevant when sigma.est=TRUE)
+#' 
+#' @return a list with elements fitted.g is fitted mixture
+#' logLR : logP(D|mle(pi)) - logP(D|null)
+#' 
+#' @export
+#' 
 #Things to do:
 # check sampling routine
 # check number of iterations
@@ -288,7 +294,15 @@ ash = function(betahat,sebetahat,mixcompdist = "normal",nullcheck=TRUE,df=NULL,r
   }
   
   completeobs = (!is.na(betahat) & !is.na(sebetahat))
-  if(auto==TRUE){
+ if(sum(completeobs==0)){
+    if(onlylogLR){
+      return(list(pi=NULL, logLR = 0))
+    }
+    else{
+      stop("Error: all input values are missing")
+    }
+  }  
+if(auto==TRUE){
     sigmaavec= autoselect.sigmaavec(betahat[completeobs],sebetahat[completeobs])
   }
   if(usePointMass){
@@ -321,16 +335,18 @@ ash = function(betahat,sebetahat,mixcompdist = "normal",nullcheck=TRUE,df=NULL,r
    	ZeroProb = rep(0,length=n)
     NegativeProb = rep(0,length=n)
     PosteriorMean = rep(0,length=n)
+    PosteriorSD=rep(0,length=n)
     
    	ZeroProb[completeobs] = colSums(comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs])[comp_sd(pi.fit$g)==0,,drop=FALSE])     
    	NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs]) - ZeroProb[completeobs]
     PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs])
+    PosteriorSD[completeobs] =postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs]) 
     
     #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
     ZeroProb[!completeobs] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g)==0])
     NegativeProb[!completeobs] = mixcdf(pi.fit$g,0) 
     PosteriorMean[!completeobs] = mixmean(pi.fit$g)
-      
+    PosteriorSD[!completeobs] =mixsd(pi.fit$g)  
     PositiveProb =  1- NegativeProb-ZeroProb    
      
     
@@ -344,7 +360,7 @@ ash = function(betahat,sebetahat,mixcompdist = "normal",nullcheck=TRUE,df=NULL,r
    		qvalue=NULL
   	}
    
-    result = list(fitted.g=pi.fit$g,PosteriorMean = PosteriorMean,PositiveProb =PositiveProb,NegativeProb=NegativeProb, ZeroProb=ZeroProb,localfsr = localfsr, localfdr=localfdr,qvalue=qvalue,fit=pi.fit)
+    result = list(fitted.g=pi.fit$g,PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,PositiveProb =PositiveProb,NegativeProb=NegativeProb, ZeroProb=ZeroProb,localfsr = localfsr, localfdr=localfdr,qvalue=qvalue,fit=pi.fit)
 	  class(result)= "ash"
     return(result)
 
