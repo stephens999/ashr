@@ -6,18 +6,20 @@
     nullcheck = TRUE, df = NULL, randomstart = FALSE,
     usePointMass = FALSE, onlylogLR = FALSE,
     localfdr = TRUE, localfsr = TRUE, prior = NULL,
-    sigmaavec = NULL, auto = FALSE, sigma.est = FALSE,
+    sigmaavec = NULL, auto = TRUE, sigma.est = FALSE,
     nc = NULL, VB = FALSE)
 }
 \arguments{
-  \item{betahat}{(p vector);}
+  \item{betahat,}{a p vector of estimates}
 
-  \item{sebetahat}{(p vector of standard errors)}
+  \item{sebetahat,}{a p vector of corresponding standard
+  errors}
 
   \item{mixcompdist:}{distribution of components in mixture
   ("normal", "uniform" or "halfuniform")}
 
-  \item{df:}{degrees of freedome used to compute sebetahat}
+  \item{df:}{appropriate degrees of freedom for (t)
+  distribution of betahat/sebetahat}
 
   \item{randomstart:}{bool, indicating whether to
   initialize EM randomly}
@@ -33,7 +35,7 @@
   \item{localfdr}{(=TRUE) : bool, indicating whether to
   compute localfdr and q-value}
 
-  \item{auto}{(=FALSE): bool, whether to try to select the
+  \item{auto}{(=TRUE): bool, whether to try to select the
   sigmaavec vector automatically (beta functionality)}
 
   \item{sigma.est:}{bool, whether to estimate sigma rather
@@ -47,10 +49,20 @@
   logP(D|mle(pi)) - logP(D|null)
 }
 \description{
-  takes a vector of betahats and ses; fits a mixture of
-  normals to it and returns posteriors
+  Takes vectors of estimates (betahat) and their standard
+  errors (sebetahat), and applies shrinkage to them, using
+  Empirical Bayes methods, to compute shrunk estimates for
+  beta.
 }
 \details{
   See readme for more details
+}
+\examples{
+beta = c(rep(0,100),rnorm(100))
+sebetahat = abs(rnorm(200,0,1))
+betahat = rnorm(200,beta,sebetahat)
+beta.ash = ash(betahat, sebetahat)
+summary(beta.ash)
+plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 }
 

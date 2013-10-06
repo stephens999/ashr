@@ -248,19 +248,20 @@ autoselect.sigmaavec = function(betahat,sebetahat){
 
 #' @title Main Adaptive SHrinkage function
 #'
-#' @description takes a vector of betahats and ses; fits a mixture of normals to it and returns posteriors
+#' @description Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
+#' shrinkage to them, using Empirical Bayes methods, to compute shrunk estimates for beta.
 #'
 #' @details See readme for more details
 #' 
-#' @param betahat (p vector); 
-#' @param sebetahat (p vector of standard errors)
+#' @param betahat, a p vector of estimates 
+#' @param sebetahat, a p vector of corresponding standard errors
 #' @param mixcompdist: distribution of components in mixture ("normal", "uniform" or "halfuniform")
-#' @param df: degrees of freedome used to compute sebetahat
+#' @param df: appropriate degrees of freedom for (t) distribution of betahat/sebetahat
 #' @param randomstart: bool, indicating whether to initialize EM randomly
 #' @param usePointMass: bool, indicating whether to use a point mass at zero as one of components for a mixture distribution
 #' @param onlylogLR (= FALSE) : bool, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, localfdr...
 #' @param localfdr (=TRUE) : bool,  indicating whether to compute localfdr and q-value
-#' @param auto (=FALSE): bool, whether to try to select the sigmaavec vector automatically (beta functionality)
+#' @param auto (=TRUE): bool, whether to try to select the sigmaavec vector automatically (beta functionality)
 #' @param sigma.est: bool, whether to estimate sigma rather than fixing (Beta version)
 #' @param nc: number of components to use (only relevant when sigma.est=TRUE)
 #' 
@@ -269,10 +270,19 @@ autoselect.sigmaavec = function(betahat,sebetahat){
 #' 
 #' @export
 #' 
+#' @examples 
+#' beta = c(rep(0,100),rnorm(100))
+#' sebetahat = abs(rnorm(200,0,1))
+#' betahat = rnorm(200,beta,sebetahat)
+#' beta.ash = ash(betahat, sebetahat)
+#' summary(beta.ash)
+#' plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
+#' 
+#' 
 #Things to do:
 # check sampling routine
 # check number of iterations
-ash = function(betahat,sebetahat,mixcompdist = "normal",nullcheck=TRUE,df=NULL,randomstart=FALSE, usePointMass = FALSE, onlylogLR = FALSE, localfdr = TRUE, localfsr = TRUE, prior=NULL, sigmaavec=NULL, auto=FALSE, sigma.est=FALSE, nc=NULL, VB=FALSE){
+ash = function(betahat,sebetahat,mixcompdist = "normal",nullcheck=TRUE,df=NULL,randomstart=FALSE, usePointMass = FALSE, onlylogLR = FALSE, localfdr = TRUE, localfsr = TRUE, prior=NULL, sigmaavec=NULL, auto=TRUE, sigma.est=FALSE, nc=NULL, VB=FALSE){
 
   #if df specified, convert betahat so that bethata/sebetahat gives the same p value
   #from a z test as the original effects would give under a t test with df=df
@@ -370,16 +380,40 @@ if(auto==TRUE){
   #}
 }
 
+#' @title Summary method for ash object
+#'
+#' @description Print summary of fitted ash object
+#'
+#' @details See readme for more details
+#' 
+#' @export
+#' 
 summary.ash=function(a){
   print(a$fitted.g)
   print(tail(a$fit$loglik,1),digits=10)
   print(a$fit$converged)
 }
 
+#' @title Print method for ash object
+#'
+#' @description Print the fitted distribution of beta values in the EB hierarchical model
+#'
+#' @details None
+#' 
+#' @export
+#' 
 print.ash =function(a){
   print(a$fitted.g)
 }
 
+#' @title Plot method for ash object
+#'
+#' @description Plot the density of the underlying fitted distribution
+#'
+#' @details None
+#' 
+#' @export
+#' 
 plot.ash = function(a,xmin,xmax){
   x = seq(xmin,xmax,length=1000)
   y = density(a,x)
@@ -392,15 +426,35 @@ plot.ash = function(a,xmin,xmax){
 predictive=function(a,se){
   
 }
-  
-#return the density of the fitted underlying hierarchical g
-#a is an ash object
-#x is a vector at which the density should be computed
+
+
+#' @title Plot method for ash object
+#'
+#' @description Return the density of the underlying fitted distribution
+#'
+#' @param a the fitted ash object
+#' @param x the vector of locations at which density is to be computed
+#'
+#' @details None
+#' 
+#' @export
+#' 
+#'
 density.ash=function(a,x){dens(a$fitted.g,x)}
 
-#return the cdf of the fitted underlying hierarchical g
-#a is an ash object
-#x is a vector at which the cdf should be computed
+#' @title Plot method for ash object
+#'
+#' @description Computed the cdf of the underlying fitted distribution
+#'
+#' @param a the fitted ash object
+#' @param x the vector of locations at which cdf is to be computed
+#' @param lower.tail (default=TRUE) whether to compute the lower or upper tail
+#'
+#' @details None
+#' 
+#' @export
+#' 
+#'
 cdf.ash=function(a,x,lower.tail=TRUE){
  return(mixcdf(a$fitted.g,x,lower.tail))
 }

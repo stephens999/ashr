@@ -1,1 +1,6 @@
 export(ash)
+export(cdf.ash)
+export(density.ash)
+export(plot.ash)
+export(print.ash)
+export(summary.ash)

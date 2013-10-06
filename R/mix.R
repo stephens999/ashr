@@ -1,3 +1,4 @@
+require(truncnorm)
 
 ################################## GENERIC FUNCTIONS ############################
 # find matrix of densities at y, for each component of the mixture
@@ -464,6 +465,6 @@ comp_postsd.unimix = function(m,betahat,sebetahat){
   print("Warning: Posterior SDs not yet implemented for uniform components")
   k= ncomp(m)
   n=length(betahat)
-  return(matrix(0,nrow=k,ncol=n)) 
+  return(matrix(NA,nrow=k,ncol=n)) 
 }
 
