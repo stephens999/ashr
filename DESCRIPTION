@@ -16,3 +16,4 @@ Collate:
     'ash.R'
     'ashr-package.r'
     'mix.R'
+    'ash.oldversion.R'

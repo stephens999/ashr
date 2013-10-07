@@ -24,18 +24,39 @@ VB.update = function(matrix_lik, pipost){
   return(list(classprob=classprob,B=B))
 }
 
-#input matrix_lik is n by k matrix of p(obs n | comes from component k)
-#prior: a k vector of dirichlet prior parameters
-#output: post: a vector of the posterior dirichlet parameters
-#B: the values of the likelihood lower bounds
-#converged: boolean for whether it converged
-#nullcheck: not implemented
-VBEM = function(matrix_lik, prior, tol=0.0001, maxiter=5000){
+#' @title Estimate posterior distribution on mixture proportions of a mixture model by a Variational Bayes EM algorithm
+#'
+#' @description Given the individual component likelihoods for a mixture model, estimates the posterior on 
+#' the mixture proportions by an VBEM algorithm. Used by the ash main function; there is no need for a user to call this 
+#' function separately, but it is exported for convenience.
+#'
+#' @details Fits a k component mixture model \deqn{f(x|\pi) = \sum_k \pi_k f_k(x)} to independent
+#' and identically distributed data \eqn{x_1,\dots,x_n}. 
+#' Estimates posterior on mixture proportions \eqn{\pi} by Variational Bayes, 
+#' with a Dirichlet prior on \eqn{\pi}. 
+#' Algorithm adapted from Bishop (2009), Pattern Recognition and Machine Learning, Chapter 10.
+#' 
+#' @param matrix_lik: a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.
+#' @param prior: a k vector of the parameters of the Dirichlet prior on \eqn{\pi}. Recommended to be rep(1,k)
+#' @param post.init: the initial value of the posterior parameters. If not specified defaults to the prior parameters.
+#' @param tol: the tolerance for convergence of log-likelihood bound.
+#' @param maxiter: the maximum number of iterations performed
+#' 
+#' @return A list, whose components include point estimates (pihat), 
+#' the parameters of the fitted posterior on \eqn{\pi} (pipost),
+#' the bound on the log likelihood for each iteration (B)
+#' and a flag to indicate convergence (converged).
+#'  
+#' @export
+#' 
+mixVBEM = function(matrix_lik, prior, post.init=NULL, tol=0.0001, maxiter=5000){
   n=nrow(matrix_lik)
   k=ncol(matrix_lik)
   B = rep(0,maxiter)
-  pipost = prior # Dirichlet posterior on pi
-  
+  pipost = post.init
+  if(is.null(post.init)){
+    pipost = prior # Dirichlet posterior on pi
+  }
   avgpipost = matrix(exp(rep(digamma(pipost),n)-rep(digamma(sum(pipost)),k*n)),ncol=k,byrow=TRUE)
   classprob = avgpipost * matrix_lik
   classprob = classprob/rowSums(classprob) # n by k matrix  
@@ -56,11 +77,33 @@ VBEM = function(matrix_lik, prior, tol=0.0001, maxiter=5000){
   
   if(i>maxiter){i=maxiter}
    
-  return(list(pihat = pipost/sum(pipost), B=B[1:i], niter = i, converged=(i<maxiter),post=pipost))
+  return(list(pihat = pipost/sum(pipost), B=B[1:i], niter = i, converged=(abs(B[i]-B[i-1])<tol),post=pipost))
 }
   
 
-EM = function(matrix_lik, prior, pi.init = NULL,tol=0.0001, maxiter=5000,sigma.est=FALSE){
+#' @title Estimate mixture proportions of a mixture model by EM algorithm
+#'
+#' @description Given the individual component likelihoods for a mixture model, estimates the mixture proportions by an EM algorithm.
+#'
+#' @details Fits a k component mixture model \deqn{f(x|\pi) = \sum_k \pi_k f_k(x)} to independent
+#' and identically distributed data \eqn{x_1,\dots,x_n}. 
+#' Estimates mixture proportions \eqn{\pi} by maximum likelihood, or by maximum a posteriori (MAP) estimation for a Dirichlet prior on $\pi$ 
+#' (if a prior is specified).  Used by the ash main function; there is no need for a user to call this 
+#' function separately, but it is exported for convenience.
+#'
+#' 
+#' @param matrix_lik, a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.
+#' @param prior, a k vector of the parameters of the Dirichlet prior on \eqn{\pi}. Recommended to be rep(1,k)
+#' @param pi.init, the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).
+#' @param tol, the tolerance for convergence of log-likelihood.
+#' @param maxiter the maximum number of iterations performed
+#' 
+#' @return A list, including the estimates (pihat), the log likelihood for each interation (B)
+#' and a flag to indicate convergence
+#'  
+#' @export
+#' 
+mixEM = function(matrix_lik, prior, pi.init = NULL,tol=0.0001, maxiter=5000){
   n=nrow(matrix_lik)
   k=ncol(matrix_lik)
   B = rep(0,maxiter)
@@ -78,25 +121,7 @@ EM = function(matrix_lik, prior, pi.init = NULL,tol=0.0001, maxiter=5000,sigma.e
     pi = colSums(classprob) + prior-1
     pi = ifelse(pi<0,0,pi) #set any estimates that are less than zero, which can happen with prior<1, to 0
     pi = normalize(pi)
-    
-    #estimate sigma
-    if(sigma.est==TRUE){
-      sigmamin=min(sigmaavec)
-      sigmamax=max(sigmaavec)
-      for(j in 1:k){
-        pj=classprob[,j]
-        f=function(x) sum((betahat^2/(sebetahat^2+x)^2-1/(sebetahat^2+x))*pj)
-        if(f(sigmamin^2)<=0){
-          sigmaavec[j]=sigmamin
-        }else if(f(sigmamax^2)>=0){
-          sigmaavec[j]=sigmamax
-        }else{
-          sigmaavec[j]=sqrt(uniroot(f,c(sigmamin^2,sigmamax^2))$root)          
-        }
-      }
-      matrix_lik = matrix_dens(betahat,sebetahat,sigmaavec)
-    }
-    
+        
     #Now re-estimate pi
     m  = t(pi * t(matrix_lik)) 
     m.rowsum = rowSums(m)
@@ -106,40 +131,34 @@ EM = function(matrix_lik, prior, pi.init = NULL,tol=0.0001, maxiter=5000,sigma.e
     if(abs(loglik[i]-loglik[i-1])<tol) break;
   }
 
-  return(list(pihat = pi, B=loglik[1:i], niter = i, converged=(i<maxiter)))
+  return(list(pihat = pi, B=loglik[1:i], 
+              niter = i, converged=(abs(loglik[i]-loglik[i-1])<tol)))
 }
+
+
+
 #estimate mixture proportions of sigmaa by EM algorithm
 #prior gives the parameter of a Dirichlet prior on pi
 #(prior is used to encourage results towards smallest value of sigma when
 #likelihood is flat)
 #nullcheck indicates whether to check whether the loglike exceeds the null
 #(may not want to use if prior is used)
-#Introduced sigma.est with intention of implenting an option to esitmate
-#sigma rather than fixing it, but this not yet implemented.
 #VB provides an approach to estimate the approximate posterior distribution
 #of mixture proportions of sigmaa by variational Bayes method
 #(use Dirichlet prior and approximate Dirichlet posterior)
 
-EMest = function(betahat,sebetahat,g,sigma.est=FALSE,nullcheck=TRUE,prior=NULL,nc=NULL,VB=FALSE,ltol=0.0001, maxiter=5000){ 
+EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,ltol=0.0001, maxiter=5000){ 
  
   pi.init = g$pi
   k=ncomp(g)
   n = length(betahat)
-
-  null.comp = 1; #which.min(sigmaavec) #which component is the "null"
-  if(is.null(prior)){ # set up prior to be 1,1/(k-1),...,1/(k-1) to favour "null"
-    prior = rep(1/(k-1),k)
-    prior[null.comp] = 1
-  }else if(prior=="uniform"){
-    prior = rep(1,k)
-  }
   
   matrix_lik = t(compdens_conv(g,betahat,sebetahat))
     
   if(VB==TRUE){
-    EMfit=VBEM(matrix_lik,prior,ltol, maxiter)}
+    EMfit=mixVBEM(matrix_lik,prior,pi.init,ltol, maxiter)}
   else{
-    EMfit = EM(matrix_lik,prior,pi.init,ltol, maxiter,sigma.est)
+    EMfit = mixEM(matrix_lik,prior,pi.init,ltol, maxiter)
   }
   
   pi = EMfit$pihat     
@@ -219,13 +238,21 @@ effective.effect=function(betahat,se,df){
   qnorm(p,sd=se)
 }
 
-get_loglik = function(z.ash){
-  return(rev(z.ash$fit$loglik)[1])
-}
 
-#compute corresponding q values from a vector of local fdr estimates
-#INPUT: localfdr a vector of local fdr estimates
-#OUTPUT: qvalue, a vector of q value estimates
+#' @title Function to compute q values from local false discovery rates
+#'
+#' @description Computes q values from a vector of local fdr estimates
+#'
+#' @details The q value for a given localfdr is an estimate of the (tail) False Discovery Rate 
+#' for all findings with a smaller localfdr, and is found by the average of the localfdr for
+#' all more significant findings. See Storey (2003), Annals of Statistics, for definition of q value.  
+#' 
+#' 
+#' @param localfdr, a vector of local fdr estimates
+#'
+#' @return vector of q values
+#' 
+#' @export
 qval.from.localfdr = function(localfdr){
   o = order(localfdr)
   qvalue=rep(NA,length(localfdr))
@@ -256,14 +283,18 @@ autoselect.sigmaavec = function(betahat,sebetahat){
 #' @param betahat, a p vector of estimates 
 #' @param sebetahat, a p vector of corresponding standard errors
 #' @param mixcompdist: distribution of components in mixture ("normal", "uniform" or "halfuniform")
+#' @param nullcheck: whether to check that any fitted model exceeds the "null" likelihood
+#' in which all weight is on the first component
+
 #' @param df: appropriate degrees of freedom for (t) distribution of betahat/sebetahat
 #' @param randomstart: bool, indicating whether to initialize EM randomly
 #' @param usePointMass: bool, indicating whether to use a point mass at zero as one of components for a mixture distribution
 #' @param onlylogLR (= FALSE) : bool, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, localfdr...
-#' @param localfdr (=TRUE) : bool,  indicating whether to compute localfdr and q-value
-#' @param auto (=TRUE): bool, whether to try to select the sigmaavec vector automatically (beta functionality)
-#' @param sigma.est: bool, whether to estimate sigma rather than fixing (Beta version)
-#' @param nc: number of components to use (only relevant when sigma.est=TRUE)
+#' @param localfdr (=TRUE) : bool,  indicating whether to compute localfdr, localfsr, and q-value
+#' @param prior=NULL: vector of Dirichlet prior on mixture proportions (defaults to 1,1/k-1,...,1/k-1 to put more weight on first component)
+#' @param sigmaavec=NULL: vector of parameters for underlying mixture components 
+#' @param VB=FALSE: whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate)
+#' 
 #' 
 #' @return a list with elements fitted.g is fitted mixture
 #' logLR : logP(D|mle(pi)) - logP(D|null)
@@ -282,7 +313,7 @@ autoselect.sigmaavec = function(betahat,sebetahat){
 #Things to do:
 # check sampling routine
 # check number of iterations
-ash = function(betahat,sebetahat,mixcompdist = "normal",nullcheck=TRUE,df=NULL,randomstart=FALSE, usePointMass = FALSE, onlylogLR = FALSE, localfdr = TRUE, localfsr = TRUE, prior=NULL, sigmaavec=NULL, auto=TRUE, sigma.est=FALSE, nc=NULL, VB=FALSE){
+ash = function(betahat,sebetahat,mixcompdist = "normal",nullcheck=TRUE,df=NULL,randomstart=FALSE, usePointMass = FALSE, onlylogLR = FALSE, localfdr = TRUE, prior=NULL, sigmaavec=NULL, VB=FALSE){
 
   #if df specified, convert betahat so that bethata/sebetahat gives the same p value
   #from a z test as the original effects would give under a t test with df=df
@@ -296,15 +327,9 @@ ash = function(betahat,sebetahat,mixcompdist = "normal",nullcheck=TRUE,df=NULL,r
   if(length(sebetahat) != length(betahat)){
     stop("Error: sebetahat must have length 1, or same length as betahat")
   }
-  if(is.null(sigmaavec)){
-    sigmaavec = c(0.00025,0.0005,0.001,0.002,0.004,0.008,0.016,0.032,0.064,0.128,0.256,0.512,1.024,2.048,4.096,8.192) 
-  }
-  if(sigma.est==TRUE&!is.null(nc)){
-    sigmaavec=2^(seq(-15,3,length.out=nc))
-  }
   
   completeobs = (!is.na(betahat) & !is.na(sebetahat))
- if(sum(completeobs==0)){
+  if(sum(completeobs)==0){
     if(onlylogLR){
       return(list(pi=NULL, logLR = 0))
     }
@@ -312,17 +337,25 @@ ash = function(betahat,sebetahat,mixcompdist = "normal",nullcheck=TRUE,df=NULL,r
       stop("Error: all input values are missing")
     }
   }  
-if(auto==TRUE){
+  
+  if(is.null(sigmaavec)){
     sigmaavec= autoselect.sigmaavec(betahat[completeobs],sebetahat[completeobs])
   }
   if(usePointMass){
-        sigmaavec = c(0,sigmaavec)
+    sigmaavec = c(0,sigmaavec)
   }
   
   k=length(sigmaavec)  
-  pi = rep(1, k)
-  pi[1]=k
-  pi=normalize(pi)
+  null.comp = which.min(sigmaavec) #which component is the "null"
+
+  if(is.null(prior)){ # set up prior to be 1,1/(k-1),...,1/(k-1) to favour "null"
+    prior = rep(1/(k-1),k)
+    prior[null.comp] = 1
+  }else if(prior=="uniform"){
+    prior = rep(1,k)
+  }
+  
+  pi = prior #default is to initialize pi at prior (mean)
   if(randomstart){pi=rgamma(k,1,1)}
   
   if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")
@@ -330,12 +363,8 @@ if(auto==TRUE){
   if(mixcompdist=="uniform") g=unimix(pi,-sigmaavec,sigmaavec)
   if(mixcompdist=="halfuniform") g=unimix(c(pi,pi),c(-sigmaavec,rep(0,k)),c(rep(0,k),sigmaavec))
   
-  pi.fit=EMest(betahat[completeobs],sebetahat[completeobs],g,sigma.est=sigma.est,prior=prior,nullcheck=nullcheck,nc=nc,VB=VB)  
+  pi.fit=EMest(betahat[completeobs],sebetahat[completeobs],g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB)  
 
-  if(sigma.est==TRUE){
-    sigmaavec=comp_sd(pi.fit$g)
-  }
-  
   if(onlylogLR){
 	logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
 	return(list(pi=pi.fit$pi, logLR = logLR))
@@ -361,16 +390,17 @@ if(auto==TRUE){
      
     
      
-  	if(localfsr & localfdr){
+  	if(localfdr){
    		localfsr = ifelse(PositiveProb<NegativeProb,PositiveProb+ZeroProb,NegativeProb+ZeroProb)
    		localfdr = 2* localfsr
       qvalue = qval.from.localfdr(localfdr)
   	}else{
-   		localfdr=NULL
+   		localfsr=NULL
+      localfdr=NULL
    		qvalue=NULL
   	}
-   
-    result = list(fitted.g=pi.fit$g,PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,PositiveProb =PositiveProb,NegativeProb=NegativeProb, ZeroProb=ZeroProb,localfsr = localfsr, localfdr=localfdr,qvalue=qvalue,fit=pi.fit)
+    
+    result = list(fitted.g=pi.fit$g,logLR =tail(pi.fit$loglik,1) - pi.fit$null.loglik,PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,PositiveProb =PositiveProb,NegativeProb=NegativeProb, ZeroProb=ZeroProb,localfsr = localfsr, localfdr=localfdr,qvalue=qvalue,fit=pi.fit)
 	  class(result)= "ash"
     return(result)
 

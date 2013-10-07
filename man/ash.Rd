@@ -5,9 +5,8 @@
   ash(betahat, sebetahat, mixcompdist = "normal",
     nullcheck = TRUE, df = NULL, randomstart = FALSE,
     usePointMass = FALSE, onlylogLR = FALSE,
-    localfdr = TRUE, localfsr = TRUE, prior = NULL,
-    sigmaavec = NULL, auto = TRUE, sigma.est = FALSE,
-    nc = NULL, VB = FALSE)
+    localfdr = TRUE, prior = NULL, sigmaavec = NULL,
+    VB = FALSE)
 }
 \arguments{
   \item{betahat,}{a p vector of estimates}
@@ -17,6 +16,10 @@
 
   \item{mixcompdist:}{distribution of components in mixture
   ("normal", "uniform" or "halfuniform")}
+
+  \item{nullcheck:}{whether to check that any fitted model
+  exceeds the "null" likelihood in which all weight is on
+  the first component}
 
   \item{df:}{appropriate degrees of freedom for (t)
   distribution of betahat/sebetahat}
@@ -33,16 +36,18 @@
   posterior mean, localfdr...}
 
   \item{localfdr}{(=TRUE) : bool, indicating whether to
-  compute localfdr and q-value}
+  compute localfdr, localfsr, and q-value}
 
-  \item{auto}{(=TRUE): bool, whether to try to select the
-  sigmaavec vector automatically (beta functionality)}
+  \item{prior=NULL:}{vector of Dirichlet prior on mixture
+  proportions (defaults to 1,1/k-1,...,1/k-1 to put more
+  weight on first component)}
 
-  \item{sigma.est:}{bool, whether to estimate sigma rather
-  than fixing (Beta version)}
+  \item{sigmaavec=NULL:}{vector of parameters for
+  underlying mixture components}
 
-  \item{nc:}{number of components to use (only relevant
-  when sigma.est=TRUE)}
+  \item{VB=FALSE:}{whether to use Variational Bayes to
+  estimate mixture proportions (instead of EM to find MAP
+  estimate)}
 }
 \value{
   a list with elements fitted.g is fitted mixture logLR :
