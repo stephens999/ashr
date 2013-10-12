@@ -1,28 +1,141 @@
-#TODO: Add nullcheck for VB?
-#Separate out the optimization over sigma from the EM algorithm
+#' @title Main Adaptive SHrinkage function
+#'
+#' @description Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
+#' shrinkage to them, using Empirical Bayes methods, to compute shrunk estimates for beta.
+#'
+#' @details See readme for more details
+#' 
+#' @param betahat, a p vector of estimates 
+#' @param sebetahat, a p vector of corresponding standard errors
+#' @param mixcompdist: distribution of components in mixture ("normal", "uniform" or "halfuniform")
+#' @param nullcheck: whether to check that any fitted model exceeds the "null" likelihood
+#' in which all weight is on the first component
 
-#ash.repodir = scan(".ash.repodir.txt",what=character()) 
-#source(file.path(ash.repodir, "/Rcode/mix.R"))
-#source("mix.R")
-
-#return the KL-divergence between 2 dirichlet distributions
-#p,q are the vectors of dirichlet parameters of same lengths
-diriKL = function(p,q){
-  p.sum = sum(p)
-  q.sum = sum(q)
-  k = length(q)
-  KL = lgamma(q.sum)-lgamma(p.sum)+sum((q-p)*(digamma(q)-digamma(rep(q.sum,k))))+sum(lgamma(p)-lgamma(q))
-  return(KL)
+#' @param df: appropriate degrees of freedom for (t) distribution of betahat/sebetahat
+#' @param randomstart: bool, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
+#' @param usePointMass: bool, indicating whether to use a point mass at zero as one of components for a mixture distribution
+#' @param onlylogLR (= FALSE) : bool, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, localfdr...
+#' @param localfdr (=TRUE) : bool,  indicating whether to compute localfdr, localfsr, and q-value
+#' @param prior: string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or 1,1...,1; also can be "nullbiased" 1,1/k-1,...,1/k-1 to put more weight on first component)
+#' @param mixsd=NULL: vector of sds for underlying mixture components 
+#' @param VB=FALSE: whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate)
+#' 
+#' 
+#' @return a list with elements fitted.g is fitted mixture
+#' logLR : logP(D|mle(pi)) - logP(D|null)
+#' 
+#' @export
+#' 
+#' @examples 
+#' beta = c(rep(0,100),rnorm(100))
+#' sebetahat = abs(rnorm(200,0,1))
+#' betahat = rnorm(200,beta,sebetahat)
+#' beta.ash = ash(betahat, sebetahat)
+#' summary(beta.ash)
+#' plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
+#' 
+#' 
+#Things to do:
+# check sampling routine
+# check number of iterations
+ash = function(betahat,sebetahat,mixcompdist = "normal",nullcheck=TRUE,df=NULL,randomstart=FALSE, usePointMass = FALSE, onlylogLR = FALSE, localfdr = TRUE, prior="uniform", mixsd=NULL, VB=FALSE){
+  
+  #if df specified, convert betahat so that bethata/sebetahat gives the same p value
+  #from a z test as the original effects would give under a t test with df=df
+  if(!is.null(df)){
+    betahat = effective.effect(betahat,sebetahat,df)
+  }  
+  
+  if(length(sebetahat)==1){
+    sebetahat = rep(sebetahat,length(betahat))
+  }
+  if(length(sebetahat) != length(betahat)){
+    stop("Error: sebetahat must have length 1, or same length as betahat")
+  }
+  
+  completeobs = (!is.na(betahat) & !is.na(sebetahat))
+  if(sum(completeobs)==0){
+    if(onlylogLR){
+      return(list(pi=NULL, logLR = 0))
+    }
+    else{
+      stop("Error: all input values are missing")
+    }
+  }  
+  
+  if(is.null(mixsd)){
+    mixsd= autoselect.mixsd(betahat[completeobs],sebetahat[completeobs])
+  }
+  if(usePointMass){
+    mixsd = c(0,mixsd)
+  }
+  
+  k=length(mixsd)  
+  null.comp = which.min(mixsd) #which component is the "null"
+  
+  if(prior=="nullbiased"){ # set up prior to be 1,1/(k-1),...,1/(k-1) to favour "null"
+    prior = rep(1/(k-1),k)
+    prior[null.comp] = 1
+  }else if(prior=="uniform"){
+    prior = rep(1,k)
+  }
+  if(length(prior)!=k | !is.numeric(prior)){
+    stop("invalid prior specification")
+  }
+  
+  pi = prior #default is to initialize pi at prior (mean)
+  if(randomstart){pi=rgamma(k,1,1)}
+  
+  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")
+  if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),mixsd)
+  if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)
+  if(mixcompdist=="halfuniform") g=unimix(c(pi,pi),c(-mixsd,rep(0,k)),c(rep(0,k),mixsd))
+  
+  pi.fit=EMest(betahat[completeobs],sebetahat[completeobs],g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB)  
+  
+  if(onlylogLR){
+    logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
+    return(list(pi=pi.fit$pi, logLR = logLR))
+  }else{
+    #   	post = posterior_dist(pi.fit$g,betahat,sebetahat)
+    n=length(betahat)
+    ZeroProb = rep(0,length=n)
+    NegativeProb = rep(0,length=n)
+    PosteriorMean = rep(0,length=n)
+    PosteriorSD=rep(0,length=n)
+    
+    ZeroProb[completeobs] = colSums(comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs])[comp_sd(pi.fit$g)==0,,drop=FALSE])     
+    NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs]) - ZeroProb[completeobs]
+    PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs])
+    PosteriorSD[completeobs] =postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs]) 
+    
+    #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
+    ZeroProb[!completeobs] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g)==0])
+    NegativeProb[!completeobs] = mixcdf(pi.fit$g,0) 
+    PosteriorMean[!completeobs] = mixmean(pi.fit$g)
+    PosteriorSD[!completeobs] =mixsd(pi.fit$g)  
+    PositiveProb =  1- NegativeProb-ZeroProb    
+    
+    if(localfdr){
+      localfsr = ifelse(PositiveProb<NegativeProb,PositiveProb+ZeroProb,NegativeProb+ZeroProb)
+      localfdr = 2* localfsr
+      qvalue = qval.from.localfdr(localfdr)
+    }else{
+      localfsr=NULL
+      localfdr=NULL
+      qvalue=NULL
+    }
+    
+    result = list(fitted.g=pi.fit$g,logLR =tail(pi.fit$loglik,1) - pi.fit$null.loglik,PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,PositiveProb =PositiveProb,NegativeProb=NegativeProb, ZeroProb=ZeroProb,localfsr = localfsr, localfdr=localfdr,qvalue=qvalue,fit=pi.fit)
+    class(result)= "ash"
+    return(result)
+    
+  }
+  #if(nsamp>0){
+  #  sample = posterior_sample(post,nsamp)
+  #}
 }
 
-#helper function for VBEM
-VB.update = function(matrix_lik, pipost){
-  avgpipost = matrix(exp(rep(digamma(pipost),n)-rep(digamma(sum(pipost)),k*n)),ncol=k,byrow=TRUE)
-  classprob = avgpipost * matrix_lik
-  classprob = classprob/rowSums(classprob) # n by k matrix
-  B = sum(classprob*log(avgpipost*matrix_lik),na.rm=TRUE) - diriKL(prior,pipost) #negative free energy
-  return(list(classprob=classprob,B=B))
-}
 
 #' @title Estimate posterior distribution on mixture proportions of a mixture model by a Variational Bayes EM algorithm
 #'
@@ -262,7 +375,7 @@ qval.from.localfdr = function(localfdr){
 
 # try to select a default range for the sigmaa values
 # that should be used, based on the values of betahat and sebetahat
-autoselect.sigmaavec = function(betahat,sebetahat){
+autoselect.mixsd = function(betahat,sebetahat){
   sigmaamin = min(sebetahat)/10 #so that the minimum is small compared with measurement precision
   if(all(betahat^2<sebetahat^2)){
     sigmaamax = 8*sigmaamin #to deal with the occassional odd case where this could happen, just arbitrarily use 4 normals.
@@ -273,142 +386,6 @@ autoselect.sigmaavec = function(betahat,sebetahat){
   return(2^((-npoint):0) * sigmaamax)
 }
 
-#' @title Main Adaptive SHrinkage function
-#'
-#' @description Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
-#' shrinkage to them, using Empirical Bayes methods, to compute shrunk estimates for beta.
-#'
-#' @details See readme for more details
-#' 
-#' @param betahat, a p vector of estimates 
-#' @param sebetahat, a p vector of corresponding standard errors
-#' @param mixcompdist: distribution of components in mixture ("normal", "uniform" or "halfuniform")
-#' @param nullcheck: whether to check that any fitted model exceeds the "null" likelihood
-#' in which all weight is on the first component
-
-#' @param df: appropriate degrees of freedom for (t) distribution of betahat/sebetahat
-#' @param randomstart: bool, indicating whether to initialize EM randomly
-#' @param usePointMass: bool, indicating whether to use a point mass at zero as one of components for a mixture distribution
-#' @param onlylogLR (= FALSE) : bool, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, localfdr...
-#' @param localfdr (=TRUE) : bool,  indicating whether to compute localfdr, localfsr, and q-value
-#' @param prior=NULL: vector of Dirichlet prior on mixture proportions (defaults to 1,1/k-1,...,1/k-1 to put more weight on first component)
-#' @param sigmaavec=NULL: vector of parameters for underlying mixture components 
-#' @param VB=FALSE: whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate)
-#' 
-#' 
-#' @return a list with elements fitted.g is fitted mixture
-#' logLR : logP(D|mle(pi)) - logP(D|null)
-#' 
-#' @export
-#' 
-#' @examples 
-#' beta = c(rep(0,100),rnorm(100))
-#' sebetahat = abs(rnorm(200,0,1))
-#' betahat = rnorm(200,beta,sebetahat)
-#' beta.ash = ash(betahat, sebetahat)
-#' summary(beta.ash)
-#' plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
-#' 
-#' 
-#Things to do:
-# check sampling routine
-# check number of iterations
-ash = function(betahat,sebetahat,mixcompdist = "normal",nullcheck=TRUE,df=NULL,randomstart=FALSE, usePointMass = FALSE, onlylogLR = FALSE, localfdr = TRUE, prior=NULL, sigmaavec=NULL, VB=FALSE){
-
-  #if df specified, convert betahat so that bethata/sebetahat gives the same p value
-  #from a z test as the original effects would give under a t test with df=df
-  if(!is.null(df)){
-    betahat = effective.effect(betahat,sebetahat,df)
-  }	
-    
-  if(length(sebetahat)==1){
-    sebetahat = rep(sebetahat,length(betahat))
-  }
-  if(length(sebetahat) != length(betahat)){
-    stop("Error: sebetahat must have length 1, or same length as betahat")
-  }
-  
-  completeobs = (!is.na(betahat) & !is.na(sebetahat))
-  if(sum(completeobs)==0){
-    if(onlylogLR){
-      return(list(pi=NULL, logLR = 0))
-    }
-    else{
-      stop("Error: all input values are missing")
-    }
-  }  
-  
-  if(is.null(sigmaavec)){
-    sigmaavec= autoselect.sigmaavec(betahat[completeobs],sebetahat[completeobs])
-  }
-  if(usePointMass){
-    sigmaavec = c(0,sigmaavec)
-  }
-  
-  k=length(sigmaavec)  
-  null.comp = which.min(sigmaavec) #which component is the "null"
-
-  if(is.null(prior)){ # set up prior to be 1,1/(k-1),...,1/(k-1) to favour "null"
-    prior = rep(1/(k-1),k)
-    prior[null.comp] = 1
-  }else if(prior=="uniform"){
-    prior = rep(1,k)
-  }
-  
-  pi = prior #default is to initialize pi at prior (mean)
-  if(randomstart){pi=rgamma(k,1,1)}
-  
-  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")
-  if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),sigmaavec)
-  if(mixcompdist=="uniform") g=unimix(pi,-sigmaavec,sigmaavec)
-  if(mixcompdist=="halfuniform") g=unimix(c(pi,pi),c(-sigmaavec,rep(0,k)),c(rep(0,k),sigmaavec))
-  
-  pi.fit=EMest(betahat[completeobs],sebetahat[completeobs],g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB)  
-
-  if(onlylogLR){
-	logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
-	return(list(pi=pi.fit$pi, logLR = logLR))
-  }else{
-#   	post = posterior_dist(pi.fit$g,betahat,sebetahat)
-    n=length(betahat)
-   	ZeroProb = rep(0,length=n)
-    NegativeProb = rep(0,length=n)
-    PosteriorMean = rep(0,length=n)
-    PosteriorSD=rep(0,length=n)
-    
-   	ZeroProb[completeobs] = colSums(comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs])[comp_sd(pi.fit$g)==0,,drop=FALSE])     
-   	NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs]) - ZeroProb[completeobs]
-    PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs])
-    PosteriorSD[completeobs] =postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs]) 
-    
-    #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
-    ZeroProb[!completeobs] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g)==0])
-    NegativeProb[!completeobs] = mixcdf(pi.fit$g,0) 
-    PosteriorMean[!completeobs] = mixmean(pi.fit$g)
-    PosteriorSD[!completeobs] =mixsd(pi.fit$g)  
-    PositiveProb =  1- NegativeProb-ZeroProb    
-     
-    
-     
-  	if(localfdr){
-   		localfsr = ifelse(PositiveProb<NegativeProb,PositiveProb+ZeroProb,NegativeProb+ZeroProb)
-   		localfdr = 2* localfsr
-      qvalue = qval.from.localfdr(localfdr)
-  	}else{
-   		localfsr=NULL
-      localfdr=NULL
-   		qvalue=NULL
-  	}
-    
-    result = list(fitted.g=pi.fit$g,logLR =tail(pi.fit$loglik,1) - pi.fit$null.loglik,PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,PositiveProb =PositiveProb,NegativeProb=NegativeProb, ZeroProb=ZeroProb,localfsr = localfsr, localfdr=localfdr,qvalue=qvalue,fit=pi.fit)
-	  class(result)= "ash"
-    return(result)
-
-  }
-  #if(nsamp>0){
-  #  sample = posterior_sample(post,nsamp)
-  #}
-}
 
 #' @title Summary method for ash object
 #'
@@ -444,10 +421,10 @@ print.ash =function(a){
 #' 
 #' @export
 #' 
-plot.ash = function(a,xmin,xmax){
+plot.ash = function(a,xmin,xmax,...){
   x = seq(xmin,xmax,length=1000)
   y = density(a,x)
-  plot(x,y,type="l")
+  plot(x,y,type="l",...)
 }
 
 #compute the predictive density of an observation
@@ -457,6 +434,39 @@ predictive=function(a,se){
   
 }
 
+
+#' @title Get fitted loglikelihood for ash object
+#'
+#' @description Return the log-likelihood of the data under the fitted distribution
+#'
+#' @param a the fitted ash object
+#'
+#' @details None
+#' 
+#' @export
+#' 
+#'
+get_loglik = function(a){
+  return(tail(a$fit$loglik,1))
+}
+
+#' @title Compute loglikelihood for data from ash fit
+#'
+#' @description Return the log-likelihood of the data betahat, with standard errors betahatsd, 
+#' under the fitted distribution in the ash object
+#'
+#' @param a the fitted ash object
+#' @param betahat the data
+#' @param betahatsd the observed standard errors
+#' 
+#' @details None
+#' 
+#' @export
+#' 
+#'
+loglik.ash = function(a,betahat,betahatsd){
+  return(loglik_conv(a$fitted.g,betahat, betahatsd))
+}
 
 #' @title Plot method for ash object
 #'
@@ -489,3 +499,21 @@ cdf.ash=function(a,x,lower.tail=TRUE){
  return(mixcdf(a$fitted.g,x,lower.tail))
 }
 
+#return the KL-divergence between 2 dirichlet distributions
+#p,q are the vectors of dirichlet parameters of same lengths
+diriKL = function(p,q){
+  p.sum = sum(p)
+  q.sum = sum(q)
+  k = length(q)
+  KL = lgamma(q.sum)-lgamma(p.sum)+sum((q-p)*(digamma(q)-digamma(rep(q.sum,k))))+sum(lgamma(p)-lgamma(q))
+  return(KL)
+}
+
+#helper function for VBEM
+VB.update = function(matrix_lik, pipost){
+  avgpipost = matrix(exp(rep(digamma(pipost),n)-rep(digamma(sum(pipost)),k*n)),ncol=k,byrow=TRUE)
+  classprob = avgpipost * matrix_lik
+  classprob = classprob/rowSums(classprob) # n by k matrix
+  B = sum(classprob*log(avgpipost*matrix_lik),na.rm=TRUE) - diriKL(prior,pipost) #negative free energy
+  return(list(classprob=classprob,B=B))
+}

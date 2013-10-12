@@ -1,6 +1,8 @@
 export(ash)
 export(cdf.ash)
 export(density.ash)
+export(get_loglik)
+export(loglik.ash)
 export(mixEM)
 export(mixVBEM)
 export(oldash)

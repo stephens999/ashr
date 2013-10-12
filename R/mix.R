@@ -101,23 +101,23 @@ dens.default = function(x,y){
   return (x$pi %*% compdens(x, y))
 }
 
-#find log likelihood of data in x for mixture in m
-LogLik = function(m,x){
-  UseMethod("LogLik")
+#find log likelihood of data in x (a vector) for mixture in m
+loglik = function(m,x){
+  UseMethod("loglik")
 }
-LogLik.default = function(m,x){
+loglik.default = function(m,x){
   sum(log(dens(m,x)))
 }
 
-#find log likelihood of data in x, when 
-#the mixture m is convolved with a normal with sd s
-#s is an n vector
-#x is an n vector
-LogLik_conv = function(m,x,s){
-  UseMethod("LogLik_conv")
+#find log likelihood of data in betahat, when 
+#the mixture m is convolved with a normal with sd betahatsd
+#betahatsd is an n vector
+#betahat is an n vector
+loglik_conv = function(m,betahat,betahatsd){
+  UseMethod("loglik_conv")
 }
-LogLik_conv.default = function(m,x,s){
-  sum(log(dens_conv(m,x,s)))
+loglik_conv.default = function(m,betahat,betahatsd){
+  sum(log(dens_conv(m,betahat,betahatsd)))
 }
 
 #compute the density of the components of the mixture m

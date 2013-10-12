@@ -5,7 +5,7 @@
   ash(betahat, sebetahat, mixcompdist = "normal",
     nullcheck = TRUE, df = NULL, randomstart = FALSE,
     usePointMass = FALSE, onlylogLR = FALSE,
-    localfdr = TRUE, prior = NULL, sigmaavec = NULL,
+    localfdr = TRUE, prior = "uniform", mixsd = NULL,
     VB = FALSE)
 }
 \arguments{
@@ -25,7 +25,8 @@
   distribution of betahat/sebetahat}
 
   \item{randomstart:}{bool, indicating whether to
-  initialize EM randomly}
+  initialize EM randomly. If FALSE, then initializes to
+  prior mean (for EM algorithm) or prior (for VBEM)}
 
   \item{usePointMass:}{bool, indicating whether to use a
   point mass at zero as one of components for a mixture
@@ -38,12 +39,13 @@
   \item{localfdr}{(=TRUE) : bool, indicating whether to
   compute localfdr, localfsr, and q-value}
 
-  \item{prior=NULL:}{vector of Dirichlet prior on mixture
-  proportions (defaults to 1,1/k-1,...,1/k-1 to put more
-  weight on first component)}
+  \item{prior:}{string, or numeric vector indicating
+  Dirichlet prior on mixture proportions (defaults to
+  "uniform", or 1,1...,1; also can be "nullbiased"
+  1,1/k-1,...,1/k-1 to put more weight on first component)}
 
-  \item{sigmaavec=NULL:}{vector of parameters for
-  underlying mixture components}
+  \item{mixsd=NULL:}{vector of sds for underlying mixture
+  components}
 
   \item{VB=FALSE:}{whether to use Variational Bayes to
   estimate mixture proportions (instead of EM to find MAP
