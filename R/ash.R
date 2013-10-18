@@ -302,22 +302,35 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,l
 
 normalize = function(x){return(x/sum(x))}
 
-#return the posterior on beta given a prior
-#that is a mixture of normals (g)
-#and observation betahat \sim N(beta,sebetahat)
-#current matrix_lik is only for mu0=0, so would need to
-#generalize that for general application
-#INPUT: g: a normalmix with components indicating the prior
-#       data, betahat (n vector), sebetahat (n vector)
-#OUTPUT list (pi1,mu1,sigma1) whose components are each k by n matrices
-#k is number of mixture components, n is number of observations
+
+#' @title Estimate mixture proportions of a mixture model by EM algorithm
+#'
+#' @description Return the posterior on beta given a prior (g) that is a mixture of normals (class normalmix) 
+#' and observation betahat \sim N(beta,sebetahat)
+#'
+#' @details This can be used to obt
+#'
+#' @param g: a normalmix with components indicating the prior; works only if g has means 0
+#' @param betahat (n vector of observations) 
+#' @param sebetahat (n vector of standard errors/deviations of observations)
+#' 
+#' @return A list, (pi1,mu1,sigma1) whose components are each k by n matrices
+#' where k is number of mixture components in g, n is number of observations in betahat
+#' 
+#' @export
+#' 
+#' 
 posterior_dist = function(g,betahat,sebetahat){
+  if(class(g)!="normalmix"){
+    stop("Error: posterior_dist implemented only for g of class normalmix")
+  }
   pi0 = g$pi
   mu0 = g$mean
-  sigma0 = g$sd
-  
+  sigma0 = g$sd  
   k= length(pi0)
   n= length(betahat)
+  
+  if(!all.equal(g$mean,rep(0,k))) stop("Error: posterior_dist currently only implemented for zero-centered priors")
   
   pi1 = pi0 * t(matrix_dens(betahat,sebetahat,sigma0))
   pi1 = apply(pi1, 2, normalize) #pi1 is now an k by n matrix
@@ -342,6 +355,24 @@ posterior_dist = function(g,betahat,sebetahat){
   return(list(pi=pi1,mu=mu1,sigma=sigma1))
 }
 
+#return matrix of densities of observations (betahat) 
+# assuming betahat_j \sim N(0, sebetahat_j^2 + sigmaavec_k^2)
+#normalized by maximum of each column
+#INPUT
+#betahat is n vector, 
+#sebetahat is n vector, 
+#sigmaavec is k vector
+#return is n by k matrix of the normal likelihoods, 
+# with (j,k)th element the density of N(betahat_j; mean=0, var = sebetahat_j^2 + sigmaavec_k^2)
+#normalized to have maximum 1 in each column
+matrix_dens = function(betahat, sebetahat, sigmaavec){
+  k = length(sigmaavec)
+  n = length(betahat)
+  ldens = dnorm(betahat,0,sqrt(outer(sebetahat^2,sigmaavec^2,FUN="+")),log=TRUE)
+  maxldens = apply(ldens, 1, max)
+  ldens = ldens - maxldens
+  return(exp(ldens))
+}
 
 #return the "effective" estimate
 #that is the effect size betanew whose z score betanew/se

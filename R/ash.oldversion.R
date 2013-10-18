@@ -227,7 +227,7 @@ normalize = function(x){return(x/sum(x))}
 #       data, betahat (n vector), sebetahat (n vector)
 #OUTPUT list (pi1,mu1,sigma1) whose components are each k by n matrices
 #k is number of mixture components, n is number of observations
-posterior_dist = function(pi0,mu0,sigma0,betahat,sebetahat){
+old_posterior_dist = function(pi0,mu0,sigma0,betahat,sebetahat){
   k= length(pi0)
   n= length(betahat)
   
@@ -389,7 +389,7 @@ oldash = function(betahat,sebetahat,nullcheck=TRUE,df=NULL,randomstart=FALSE, us
   
   completeobs = !is.na(betahat) & !is.na(sebetahat)
   if(auto==TRUE){
-    sigmaavec= autoselect.sigmaavec(betahat[completeobs],sebetahat[completeobs])
+    sigmaavec= autoselect.mixsd(betahat[completeobs],sebetahat[completeobs])
   }
   if(usePointMass){
     sigmaavec = c(0,sigmaavec)
@@ -412,7 +412,7 @@ oldash = function(betahat,sebetahat,nullcheck=TRUE,df=NULL,randomstart=FALSE, us
     logLR = pi.fit$temp2 - pi.fit$temp1
     return(list(pi=pi.fit$pi, logLR = logLR))
   }else{
-    post = posterior_dist(pi.fit$pi,0,sigmaavec,betahat,sebetahat)
+    post = old_posterior_dist(pi.fit$pi,0,sigmaavec,betahat,sebetahat)
     PositiveProb = pnormmix(0,post$pi,post$mu,post$sigma,lower.tail=FALSE)
     ZeroProb = colSums(post$pi[sigmaavec==0,,drop=FALSE])
     NegativeProb =  1- PositiveProb-ZeroProb    
