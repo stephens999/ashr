@@ -19,7 +19,8 @@
 #' @param prior: string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or 1,1...,1; also can be "nullbiased" 1,1/k-1,...,1/k-1 to put more weight on first component)
 #' @param mixsd=NULL: vector of sds for underlying mixture components 
 #' @param VB=FALSE: whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate)
-#' 
+#' @param lambda1: multiplicative "inflation factor" for standard errors (like Genomic Control)
+#' @param lambda2: additive "inflation factor" for standard errors (like Genomic Control)
 #' 
 #' @return a list with elements fitted.g is fitted mixture
 #' logLR : logP(D|mle(pi)) - logP(D|null)
@@ -38,7 +39,7 @@
 #Things to do:
 # check sampling routine
 # check number of iterations
-ash = function(betahat,sebetahat,mixcompdist = "normal",nullcheck=TRUE,df=NULL,randomstart=FALSE, usePointMass = FALSE, onlylogLR = FALSE, localfdr = TRUE, prior="uniform", mixsd=NULL, VB=FALSE){
+ash = function(betahat,sebetahat,mixcompdist = "normal",lambda1=1,lambda2=0,nullcheck=TRUE,df=NULL,randomstart=FALSE, usePointMass = FALSE, onlylogLR = FALSE, localfdr = TRUE, prior="uniform", mixsd=NULL, VB=FALSE){
   
   #if df specified, convert betahat so that bethata/sebetahat gives the same p value
   #from a z test as the original effects would give under a t test with df=df
@@ -91,7 +92,7 @@ ash = function(betahat,sebetahat,mixcompdist = "normal",nullcheck=TRUE,df=NULL,r
   if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)
   if(mixcompdist=="halfuniform") g=unimix(c(pi,pi),c(-mixsd,rep(0,k)),c(rep(0,k),mixsd))
   
-  pi.fit=EMest(betahat[completeobs],sebetahat[completeobs],g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB)  
+  pi.fit=EMest(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB)  
   
   if(onlylogLR){
     logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
@@ -126,7 +127,7 @@ ash = function(betahat,sebetahat,mixcompdist = "normal",nullcheck=TRUE,df=NULL,r
       qvalue=NULL
     }
     
-    result = list(fitted.g=pi.fit$g,logLR =tail(pi.fit$loglik,1) - pi.fit$null.loglik,PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,PositiveProb =PositiveProb,NegativeProb=NegativeProb, ZeroProb=ZeroProb,localfsr = localfsr, localfdr=localfdr,qvalue=qvalue,fit=pi.fit)
+    result = list(fitted.g=pi.fit$g,logLR =tail(pi.fit$loglik,1) - pi.fit$null.loglik,PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,PositiveProb =PositiveProb,NegativeProb=NegativeProb, ZeroProb=ZeroProb,localfsr = localfsr, localfdr=localfdr,qvalue=qvalue,fit=pi.fit,lambda1=lambda1,lambda2=lambda2)
     class(result)= "ash"
     return(result)
     

@@ -3,10 +3,10 @@
 \title{Main Adaptive SHrinkage function}
 \usage{
   ash(betahat, sebetahat, mixcompdist = "normal",
-    nullcheck = TRUE, df = NULL, randomstart = FALSE,
-    usePointMass = FALSE, onlylogLR = FALSE,
-    localfdr = TRUE, prior = "uniform", mixsd = NULL,
-    VB = FALSE)
+    lambda1 = 1, lambda2 = 0, nullcheck = TRUE, df = NULL,
+    randomstart = FALSE, usePointMass = FALSE,
+    onlylogLR = FALSE, localfdr = TRUE, prior = "uniform",
+    mixsd = NULL, VB = FALSE)
 }
 \arguments{
   \item{betahat,}{a p vector of estimates}
@@ -50,6 +50,12 @@
   \item{VB=FALSE:}{whether to use Variational Bayes to
   estimate mixture proportions (instead of EM to find MAP
   estimate)}
+
+  \item{lambda1:}{multiplicative "inflation factor" for
+  standard errors (like Genomic Control)}
+
+  \item{lambda2:}{additive "inflation factor" for standard
+  errors (like Genomic Control)}
 }
 \value{
   a list with elements fitted.g is fitted mixture logLR :
