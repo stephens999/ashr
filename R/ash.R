@@ -1,3 +1,5 @@
+#todo
+#
 #' @title Main Adaptive SHrinkage function
 #'
 #' @description Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
@@ -7,20 +9,23 @@
 #' 
 #' @param betahat, a p vector of estimates 
 #' @param sebetahat, a p vector of corresponding standard errors
+#' @param method: specifies how ash is to be run. Can be "shrinkage" (if main aim is shrinkage) or "fdr" (if main aim is to assess fdr or fsr)
+#' This is simply a convenient way to specify certain combinations of parameters: "shrinkage" sets pointmass=FALSE and prior="uniform";
+#' "fdr" sets pointmass=TRUE and prior="nullbiased".
 #' @param mixcompdist: distribution of components in mixture ("normal", "uniform" or "halfuniform")
-#' @param nullcheck: whether to check that any fitted model exceeds the "null" likelihood
-#' in which all weight is on the first component
-
-#' @param df: appropriate degrees of freedom for (t) distribution of betahat/sebetahat
-#' @param randomstart: bool, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
-#' @param usePointMass: bool, indicating whether to use a point mass at zero as one of components for a mixture distribution
-#' @param onlylogLR (= FALSE) : bool, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, localfdr...
-#' @param localfdr (=TRUE) : bool,  indicating whether to compute localfdr, localfsr, and q-value
-#' @param prior: string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or 1,1...,1; also can be "nullbiased" 1,1/k-1,...,1/k-1 to put more weight on first component)
-#' @param mixsd=NULL: vector of sds for underlying mixture components 
-#' @param VB=FALSE: whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate)
+#'
 #' @param lambda1: multiplicative "inflation factor" for standard errors (like Genomic Control)
 #' @param lambda2: additive "inflation factor" for standard errors (like Genomic Control)
+#' @param nullcheck: whether to check that any fitted model exceeds the "null" likelihood
+#' in which all weight is on the first component
+#' @param df: appropriate degrees of freedom for (t) distribution of betahat/sebetahat
+#' @param randomstart: bool, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
+#' @param pointmass: bool, indicating whether to use a point mass at zero as one of components for a mixture distribution
+#' @param onlylogLR: bool, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, lfdr...
+#' @param prior: string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or 1,1...,1; also can be "nullbiased" 1,1/k-1,...,1/k-1 to put more weight on first component)
+#' @param mixsd: vector of sds for underlying mixture components 
+#' @param VB: whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate)
+#' @param gridmult: the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)
 #' 
 #' @return a list with elements fitted.g is fitted mixture
 #' logLR : logP(D|mle(pi)) - logP(D|null)
@@ -39,13 +44,64 @@
 #Things to do:
 # check sampling routine
 # check number of iterations
-ash = function(betahat,sebetahat,mixcompdist = "normal",lambda1=1,lambda2=0,nullcheck=TRUE,df=NULL,randomstart=FALSE, usePointMass = FALSE, onlylogLR = FALSE, localfdr = TRUE, prior="uniform", mixsd=NULL, VB=FALSE){
+ash = function(betahat,sebetahat,method = c("shrink","fdr"), 
+               mixcompdist = c("normal","uniform","halfuniform"),
+               lambda1=1,lambda2=0,nullcheck=TRUE,df=NULL,randomstart=FALSE, 
+               pointmass = FALSE, 
+               onlylogLR = FALSE, 
+               prior=c("uniform","nullbiased"), mixsd=NULL, VB=FALSE,gridmult=sqrt(2)){
+  
+    
+  #If method is supplied, use it to set up defaults; provide warning if these default values
+  #are also specified by user
+  if(!missing(method)){
+    method = match.arg(method) 
+    if(method=="shrink"){
+      if(missing(prior)){
+        prior = "uniform"
+      } else {
+        cat("Warning: specification of prior overrides default for method shrink")
+      }
+      if(missing(pointmass)){
+        pointmass=FALSE
+      } else {
+        cat("Warning: specification of pointmass overrides default for method shrink")
+      }
+    }
+  
+    if(method=="fdr"){
+      if(missing(prior)){
+        prior = "nullbiased"
+      } else {
+        cat("Warning: specification of prior overrides default for method fdr")
+      }
+      if(missing(pointmass)){
+        pointmass=TRUE
+      } else {
+        cat("Warning: specification of pointmass overrides default for method fdr")
+      }
+    }  
+  }
+  
+    mixcompdist = match.arg(mixcompdist)
+    if(mixcompdist=="uniform" & pointmass==TRUE){
+      stop("point mass not yet implemented for uniform or half-uniform")
+    }
+    if(mixcompdist=="halfuniform" & pointmass==TRUE){
+      stop("point mass not yet implemented for uniform or half-uniform")
+    }
+    if(!is.numeric(prior)){
+      prior = match.arg(prior)
+    }
+  
   
   #if df specified, convert betahat so that bethata/sebetahat gives the same p value
   #from a z test as the original effects would give under a t test with df=df
   if(!is.null(df)){
     betahat = effective.effect(betahat,sebetahat,df)
   }  
+  
+  
   
   if(length(sebetahat)==1){
     sebetahat = rep(sebetahat,length(betahat))
@@ -65,21 +121,24 @@ ash = function(betahat,sebetahat,mixcompdist = "normal",lambda1=1,lambda2=0,null
   }  
   
   if(is.null(mixsd)){
-    mixsd= autoselect.mixsd(betahat[completeobs],sebetahat[completeobs])
+    mixsd= autoselect.mixsd(betahat[completeobs],sebetahat[completeobs],gridmult)
   }
-  if(usePointMass){
+  if(pointmass){
     mixsd = c(0,mixsd)
   }
   
   k=length(mixsd)  
   null.comp = which.min(mixsd) #which component is the "null"
   
-  if(prior=="nullbiased"){ # set up prior to be 1,1/(k-1),...,1/(k-1) to favour "null"
-    prior = rep(1/(k-1),k)
-    prior[null.comp] = 1
-  }else if(prior=="uniform"){
-    prior = rep(1,k)
+  if(!is.numeric(prior)){
+    if(prior=="nullbiased"){ # set up prior to favour "null"
+      prior = rep(1,k)
+      prior[null.comp] = 10 #prior 10-1 in favour of null
+    }else if(prior=="uniform"){
+      prior = rep(1,k)
+    }
   }
+  
   if(length(prior)!=k | !is.numeric(prior)){
     stop("invalid prior specification")
   }
@@ -117,17 +176,12 @@ ash = function(betahat,sebetahat,mixcompdist = "normal",lambda1=1,lambda2=0,null
     PosteriorSD[!completeobs] =mixsd(pi.fit$g)  
     PositiveProb =  1- NegativeProb-ZeroProb    
     
-    if(localfdr){
-      localfsr = ifelse(PositiveProb<NegativeProb,PositiveProb+ZeroProb,NegativeProb+ZeroProb)
-      localfdr = 2* localfsr
-      qvalue = qval.from.localfdr(localfdr)
-    }else{
-      localfsr=NULL
-      localfdr=NULL
-      qvalue=NULL
-    }
-    
-    result = list(fitted.g=pi.fit$g,logLR =tail(pi.fit$loglik,1) - pi.fit$null.loglik,PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,PositiveProb =PositiveProb,NegativeProb=NegativeProb, ZeroProb=ZeroProb,localfsr = localfsr, localfdr=localfdr,qvalue=qvalue,fit=pi.fit,lambda1=lambda1,lambda2=lambda2)
+    lfsr = ifelse(PositiveProb<NegativeProb,PositiveProb+ZeroProb,NegativeProb+ZeroProb)
+    lfsra = ifelse(PositiveProb<NegativeProb,2*PositiveProb+ZeroProb,2*NegativeProb+ZeroProb)    
+    lfdr = ZeroProb
+    qvalue = qval.from.lfdr(lfdr)
+        
+    result = list(fitted.g=pi.fit$g,logLR =tail(pi.fit$loglik,1) - pi.fit$null.loglik,PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,PositiveProb =PositiveProb,NegativeProb=NegativeProb, ZeroProb=ZeroProb,lfsr = lfsr,lfsra=lfsra, lfdr=lfdr,qvalue=qvalue,fit=pi.fit,lambda1=lambda1,lambda2=lambda2,call=match.call(),data=list(betahat = betahat, sebetahat=sebetahat))
     class(result)= "ash"
     return(result)
     
@@ -225,28 +279,35 @@ mixEM = function(matrix_lik, prior, pi.init = NULL,tol=0.0001, maxiter=5000){
   if(is.null(pi.init)){
     pi = rep(1/k,k)# Use as starting point for pi
   } 
+  pi = ifelse(pi<1e-5,1e-5,pi) #set any estimates that are very small to be very small
+  pi = normalize(pi)
+  
   loglik = rep(0,maxiter)
+  priordens= rep(0,maxiter)
   m  = t(pi * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k
   m.rowsum = rowSums(m)
   loglik[1] = sum(log(m.rowsum))
+  priordens[1] = sum((prior-1)*log(pi)) 
   classprob = m/m.rowsum #an n by k matrix
   
   for(i in 2:maxiter){  
     pi = colSums(classprob) + prior-1
-    pi = ifelse(pi<0,0,pi) #set any estimates that are less than zero, which can happen with prior<1, to 0
+    pi = ifelse(pi<1e-5,1e-5,pi) #set any estimates that are less than zero, which can happen with prior<1, to 0
     pi = normalize(pi)
         
     #Now re-estimate pi
     m  = t(pi * t(matrix_lik)) 
     m.rowsum = rowSums(m)
     loglik[i] = sum(log(m.rowsum))
+    priordens[i] = sum((prior-1)*log(pi)) 
     classprob = m/m.rowsum
     
-    if(abs(loglik[i]-loglik[i-1])<tol) break;
+    
+    if(abs(loglik[i]+priordens[i]-loglik[i-1]-priordens[i-1])<tol) break;
   }
 
   return(list(pihat = pi, B=loglik[1:i], 
-              niter = i, converged=(abs(loglik[i]-loglik[i-1])<tol)))
+              niter = i, converged=(abs(loglik[i]+priordens[i]-loglik[i-1]-priordens[i-1])<tol)))
 }
 
 
@@ -388,34 +449,35 @@ effective.effect=function(betahat,se,df){
 #'
 #' @description Computes q values from a vector of local fdr estimates
 #'
-#' @details The q value for a given localfdr is an estimate of the (tail) False Discovery Rate 
-#' for all findings with a smaller localfdr, and is found by the average of the localfdr for
+#' @details The q value for a given lfdr is an estimate of the (tail) False Discovery Rate 
+#' for all findings with a smaller lfdr, and is found by the average of the lfdr for
 #' all more significant findings. See Storey (2003), Annals of Statistics, for definition of q value.  
 #' 
 #' 
-#' @param localfdr, a vector of local fdr estimates
+#' @param lfdr, a vector of local fdr estimates
 #'
 #' @return vector of q values
 #' 
 #' @export
-qval.from.localfdr = function(localfdr){
-  o = order(localfdr)
-  qvalue=rep(NA,length(localfdr))
-  qvalue[o] = (cumsum(sort(localfdr))/(1:sum(!is.na(localfdr))))
+qval.from.lfdr = function(lfdr){
+  o = order(lfdr)
+  qvalue=rep(NA,length(lfdr))
+  qvalue[o] = (cumsum(sort(lfdr))/(1:sum(!is.na(lfdr))))
   return(qvalue)
 }
 
 # try to select a default range for the sigmaa values
 # that should be used, based on the values of betahat and sebetahat
-autoselect.mixsd = function(betahat,sebetahat){
+# mult is the multiplier by which the sds differ across the grid
+autoselect.mixsd = function(betahat,sebetahat,mult){
   sigmaamin = min(sebetahat)/10 #so that the minimum is small compared with measurement precision
   if(all(betahat^2<sebetahat^2)){
-    sigmaamax = 8*sigmaamin #to deal with the occassional odd case where this could happen, just arbitrarily use 4 normals.
+    sigmaamax = 8*sigmaamin #to deal with the occassional odd case where this could happen; 8 is arbitrary
   } else {
     sigmaamax = 2*sqrt(max(betahat^2-sebetahat^2)) #this computes a rough largest value you'd want to use, based on idea that sigmaamax^2 + sebetahat^2 should be at least betahat^2   
   }
-  npoint = ceiling(log2(sigmaamax/sigmaamin))
-  return(2^((-npoint):0) * sigmaamax)
+  npoint = ceiling(log2(sigmaamax/sigmaamin)/log2(mult))
+  return(mult^((-npoint):0) * sigmaamax)
 }
 
 
@@ -482,6 +544,20 @@ get_loglik = function(a){
   return(tail(a$fit$loglik,1))
 }
 
+#' @title Get pi0 estimate for ash object
+#'
+#' @description Return estimate of the null proportion, pi0
+#'
+#' @param a the fitted ash object
+#'
+#' @details Extracts the estimate of the null proportion, pi0, from the object a
+#' 
+#' @export
+#' 
+get_pi0 = function(a){
+  return(ifelse(comp_sd(a$fitted.g)[1]==0,a$fitted.g$pi[1],0))
+}
+
 #' @title Compute loglikelihood for data from ash fit
 #'
 #' @description Return the log-likelihood of the data betahat, with standard errors betahatsd, 
@@ -500,7 +576,7 @@ loglik.ash = function(a,betahat,betahatsd){
   return(loglik_conv(a$fitted.g,betahat, betahatsd))
 }
 
-#' @title Plot method for ash object
+#' @title Density method for ash object
 #'
 #' @description Return the density of the underlying fitted distribution
 #'
@@ -512,9 +588,9 @@ loglik.ash = function(a,betahat,betahatsd){
 #' @export
 #' 
 #'
-density.ash=function(a,x){dens(a$fitted.g,x)}
+density.ash=function(a,x){list(x=x,y=dens(a$fitted.g,x))}
 
-#' @title Plot method for ash object
+#' @title cdf method for ash object
 #'
 #' @description Computed the cdf of the underlying fitted distribution
 #'
@@ -528,8 +604,9 @@ density.ash=function(a,x){dens(a$fitted.g,x)}
 #' 
 #'
 cdf.ash=function(a,x,lower.tail=TRUE){
- return(mixcdf(a$fitted.g,x,lower.tail))
+ return(list(x=x,y=mixcdf(a$fitted.g,x,lower.tail)))
 }
+
 
 #return the KL-divergence between 2 dirichlet distributions
 #p,q are the vectors of dirichlet parameters of same lengths

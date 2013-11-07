@@ -349,9 +349,7 @@ comp_postsd.normalmix = function(m,betahat,sebetahat){
 
 ############################### METHODS FOR unimix class ###########################
 
-#constructor
-#here the uniform is parameterized in terms of min=mean-sd and min=mean+sd
-#(so obviously sd is a misnomer!)
+#constructor; pi, a and b are vectors; kth component is Uniform(a[k],b[k])
 unimix = function(pi,a,b){
   structure(data.frame(pi,a,b),class="unimix")
 }
