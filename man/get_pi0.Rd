@@ -1,0 +1,17 @@
+\name{get_pi0}
+\alias{get_pi0}
+\title{Get pi0 estimate for ash object}
+\usage{
+  get_pi0(a)
+}
+\arguments{
+  \item{a}{the fitted ash object}
+}
+\description{
+  Return estimate of the null proportion, pi0
+}
+\details{
+  Extracts the estimate of the null proportion, pi0, from
+  the object a
+}
+

@@ -1,0 +1,17 @@
+\name{get_loglik}
+\alias{get_loglik}
+\title{Get fitted loglikelihood for ash object}
+\usage{
+  get_loglik(a)
+}
+\arguments{
+  \item{a}{the fitted ash object}
+}
+\description{
+  Return the log-likelihood of the data under the fitted
+  distribution
+}
+\details{
+  None
+}
+
