@@ -26,6 +26,9 @@
 #' @param mixsd: vector of sds for underlying mixture components 
 #' @param VB: whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate)
 #' @param gridmult: the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)
+#' @param minimal_output: if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue) 
+#' @param g: the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
+#' 
 #' 
 #' @return a list with elements fitted.g is fitted mixture
 #' logLR : logP(D|mle(pi)) - logP(D|null)
@@ -49,7 +52,10 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
                lambda1=1,lambda2=0,nullcheck=TRUE,df=NULL,randomstart=FALSE, 
                pointmass = FALSE, 
                onlylogLR = FALSE, 
-               prior=c("uniform","nullbiased"), mixsd=NULL, VB=FALSE,gridmult=sqrt(2)){
+               prior=c("uniform","nullbiased"), 
+               mixsd=NULL, VB=FALSE,gridmult=sqrt(2),
+               minimaloutput=FALSE,
+               g=NULL){
   
     
   #If method is supplied, use it to set up defaults; provide warning if these default values
@@ -143,20 +149,41 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     stop("invalid prior specification")
   }
   
-  pi = prior #default is to initialize pi at prior (mean)
-  if(randomstart){pi=rgamma(k,1,1)}
+  if(missing(g)){
+    pi = prior #default is to initialize pi at prior (mean)
+    if(randomstart){pi=rgamma(k,1,1)}
   
-  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")
-  if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),mixsd)
-  if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)
-  if(mixcompdist=="halfuniform") g=unimix(c(pi,pi),c(-mixsd,rep(0,k)),c(rep(0,k),mixsd))
+    if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")
+    if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),mixsd)
+    if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)
+    if(mixcompdist=="halfuniform") g=unimix(c(pi,pi),c(-mixsd,rep(0,k)),c(rep(0,k),mixsd))
+    maxiter = 5000
+  } else {
+    maxiter = 1; # if g is specified, don't iterate the EM 
+  }
   
-  pi.fit=EMest(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB)  
+  pi.fit=EMest(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter)  
   
+
   if(onlylogLR){
     logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
     return(list(pi=pi.fit$pi, logLR = logLR))
-  }else{
+  } else if(minimaloutput){
+    n=length(betahat)
+    ZeroProb = rep(0,length=n)
+    NegativeProb = rep(0,length=n)
+    
+    ZeroProb[completeobs] = colSums(comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs])[comp_sd(pi.fit$g)==0,,drop=FALSE])     
+    NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs]) - ZeroProb[completeobs]
+    ZeroProb[!completeobs] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g)==0])
+    NegativeProb[!completeobs] = mixcdf(pi.fit$g,0) 
+    
+    lfsr = compute_lfsr(NegativeProb,ZeroProb)
+    result = list(fitted.g=pi.fit$g,lfsr=lfsr,fit=pi.fit)
+    return(result)
+  } else{
+    
+    
     #   	post = posterior_dist(pi.fit$g,betahat,sebetahat)
     n=length(betahat)
     ZeroProb = rep(0,length=n)
@@ -176,8 +203,9 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     PosteriorSD[!completeobs] =mixsd(pi.fit$g)  
     PositiveProb =  1- NegativeProb-ZeroProb    
     
-    lfsr = ifelse(PositiveProb<NegativeProb,PositiveProb+ZeroProb,NegativeProb+ZeroProb)
-    lfsra = ifelse(PositiveProb<NegativeProb,2*PositiveProb+ZeroProb,2*NegativeProb+ZeroProb)    
+    lfsr = compute_lfsr(NegativeProb,ZeroProb)
+    lfsra =  compute_lfsra(PositiveProb,NegativeProb,ZeroProb) 
+    
     lfdr = ZeroProb
     qvalue = qval.from.lfdr(lfdr)
         
@@ -191,7 +219,13 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   #}
 }
 
+compute_lfsr = function(NegativeProb,ZeroProb){
+  ifelse(NegativeProb> 0.5*(1-ZeroProb),1-NegativeProb,NegativeProb+ZeroProb)
+}
 
+compute_lfsra = function(PositiveProb, NegativeProb,ZeroProb){
+  ifelse(PositiveProb<NegativeProb,2*PositiveProb+ZeroProb,2*NegativeProb+ZeroProb)  
+}  
 #' @title Estimate posterior distribution on mixture proportions of a mixture model by a Variational Bayes EM algorithm
 #'
 #' @description Given the individual component likelihoods for a mixture model, estimates the posterior on 
@@ -229,21 +263,24 @@ mixVBEM = function(matrix_lik, prior, post.init=NULL, tol=0.0001, maxiter=5000){
   classprob = avgpipost * matrix_lik
   classprob = classprob/rowSums(classprob) # n by k matrix  
   B[1] = sum(classprob*log(avgpipost*matrix_lik),na.rm=TRUE) - diriKL(prior,pipost) #negative free energy
- 
-  for(i in 2:maxiter){  
-    pipost = colSums(classprob) + prior
+  i=1
+  
+  if(maxiter>=2){
+    for(i in 2:maxiter){  
+      pipost = colSums(classprob) + prior
     
-    #Now re-estimate pipost
-    avgpipost = matrix(exp(rep(digamma(pipost),n)-rep(digamma(sum(pipost)),k*n)),ncol=k,byrow=TRUE)
-    classprob = avgpipost*matrix_lik
-    classprob = classprob/rowSums(classprob) # n by k matrix
+      #Now re-estimate pipost
+      avgpipost = matrix(exp(rep(digamma(pipost),n)-rep(digamma(sum(pipost)),k*n)),ncol=k,byrow=TRUE)
+      classprob = avgpipost*matrix_lik
+      classprob = classprob/rowSums(classprob) # n by k matrix
     
-    B[i] = sum(classprob*log(avgpipost*matrix_lik),na.rm=TRUE) - diriKL(prior,pipost)
+      B[i] = sum(classprob*log(avgpipost*matrix_lik),na.rm=TRUE) - diriKL(prior,pipost)
     
-    if(abs(B[i]-B[i-1])<tol) break;
+      if(abs(B[i]-B[i-1])<tol) break;
+    } 
+    if(i>maxiter){i=maxiter}
   }
   
-  if(i>maxiter){i=maxiter}
    
   return(list(pihat = pipost/sum(pipost), B=B[1:i], niter = i, converged=(abs(B[i]-B[i-1])<tol),post=pipost))
 }
@@ -279,7 +316,7 @@ mixEM = function(matrix_lik, prior, pi.init = NULL,tol=0.0001, maxiter=5000){
   if(is.null(pi.init)){
     pi = rep(1/k,k)# Use as starting point for pi
   } 
-  pi = ifelse(pi<1e-5,1e-5,pi) #set any estimates that are very small to be very small
+  pi = ifelse(pi<1e-5,1e-5,pi) #set any estimates that are too small to be just very small
   pi = normalize(pi)
   
   loglik = rep(0,maxiter)
@@ -289,23 +326,25 @@ mixEM = function(matrix_lik, prior, pi.init = NULL,tol=0.0001, maxiter=5000){
   loglik[1] = sum(log(m.rowsum))
   priordens[1] = sum((prior-1)*log(pi)) 
   classprob = m/m.rowsum #an n by k matrix
-  
-  for(i in 2:maxiter){  
-    pi = colSums(classprob) + prior-1
-    pi = ifelse(pi<1e-5,1e-5,pi) #set any estimates that are less than zero, which can happen with prior<1, to 0
-    pi = normalize(pi)
+  i=1
+  if(maxiter >= 2){
+    for(i in 2:maxiter){  
+      pi = colSums(classprob) + prior-1
+      pi = ifelse(pi<1e-5,1e-5,pi) #set any estimates that are less than zero, which can happen with prior<1, to 0
+      pi = normalize(pi)
         
-    #Now re-estimate pi
-    m  = t(pi * t(matrix_lik)) 
-    m.rowsum = rowSums(m)
-    loglik[i] = sum(log(m.rowsum))
-    priordens[i] = sum((prior-1)*log(pi)) 
-    classprob = m/m.rowsum
+      #Now re-estimate pi
+      m  = t(pi * t(matrix_lik)) 
+      m.rowsum = rowSums(m)
+      loglik[i] = sum(log(m.rowsum))
+      priordens[i] = sum((prior-1)*log(pi)) 
+      classprob = m/m.rowsum
     
     
-    if(abs(loglik[i]+priordens[i]-loglik[i-1]-priordens[i-1])<tol) break;
+      if(abs(loglik[i]+priordens[i]-loglik[i-1]-priordens[i-1])<tol) break;
+    }
   }
-
+  
   return(list(pihat = pi, B=loglik[1:i], 
               niter = i, converged=(abs(loglik[i]+priordens[i]-loglik[i-1]-priordens[i-1])<tol)))
 }

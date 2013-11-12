@@ -275,7 +275,22 @@ plot_post_cdf.default = function(m,betahat,sebetahat,npoints=100,...){
 
 ############################### METHODS FOR normalmix class ###########################
 
-# constructor
+#' @title Constructor for normalmix class
+#'
+#' @description Creates an object of class normalmix (finite mixture of univariate normals)
+#' 
+#' @details None
+#' 
+#' @param pi vector of mixture proportions
+#' @param mean vector of means
+#' @param sd: vector of standard deviations
+#' 
+#' @return an object of class normalmix
+#' 
+#' @export
+#' 
+#' @examples normalmix(c(0.5,0.5),c(0,0),c(1,2))
+#' 
 normalmix = function(pi,mean,sd){
   structure(data.frame(pi,mean,sd),class="normalmix")
 }

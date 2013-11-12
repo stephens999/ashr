@@ -7,7 +7,8 @@
     lambda1 = 1, lambda2 = 0, nullcheck = TRUE, df = NULL,
     randomstart = FALSE, pointmass = FALSE,
     onlylogLR = FALSE, prior = c("uniform", "nullbiased"),
-    mixsd = NULL, VB = FALSE, gridmult = sqrt(2))
+    mixsd = NULL, VB = FALSE, gridmult = sqrt(2),
+    minimaloutput = FALSE, g = NULL)
 }
 \arguments{
   \item{betahat,}{a p vector of estimates}
@@ -64,6 +65,14 @@
   \item{gridmult:}{the multiplier by which the default grid
   values for mixsd differ by one another. (Smaller values
   produce finer grids)}
+
+  \item{minimal_output:}{if TRUE, just outputs the fitted g
+  and the lfsr (useful for very big data sets where memory
+  is an issue)}
+
+  \item{g:}{the prior distribution for beta (usually
+  estimated from the data; this is used primarily in
+  simulated data to do computations with the "true" g)}
 }
 \value{
   a list with elements fitted.g is fitted mixture logLR :
