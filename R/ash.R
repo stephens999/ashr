@@ -219,6 +219,91 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   #}
 }
 
+
+
+fast.ash = function(betahat,sebetahat, 
+               nullcheck=TRUE,randomstart=FALSE, 
+               pointmass = TRUE,    
+               prior=c("nullbiased","uniform"), 
+               mixsd=NULL, VB=FALSE,gridmult=4,
+               g=NULL){
+  
+    
+  #If method is supplied, use it to set up defaults; provide warning if these default values
+  #are also specified by user
+    if(!is.numeric(prior)){
+      prior = match.arg(prior)
+    }
+  
+  if(length(sebetahat)==1){
+    sebetahat = rep(sebetahat,length(betahat))
+  }
+  if(length(sebetahat) != length(betahat)){
+    stop("Error: sebetahat must have length 1, or same length as betahat")
+  }
+  
+  completeobs = (!is.na(betahat) & !is.na(sebetahat))
+  if(sum(completeobs)==0){
+    stop("Error: all input values are missing")
+  }  
+  
+  if(is.null(mixsd)){
+    mixsd= autoselect.mixsd(betahat[completeobs],sebetahat[completeobs],gridmult)
+  }
+  if(pointmass){
+    mixsd = c(0,mixsd)
+  }
+  
+  k=length(mixsd)  
+  null.comp = which.min(mixsd) #which component is the "null"
+  
+  if(!is.numeric(prior)){
+    if(prior=="nullbiased"){ # set up prior to favour "null"
+      prior = rep(1,k)
+      prior[null.comp] = 10 #prior 10-1 in favour of null
+    }else if(prior=="uniform"){
+      prior = rep(1,k)
+    }
+  }
+  
+  if(length(prior)!=k | !is.numeric(prior)){
+    stop("invalid prior specification")
+  }
+  
+  if(missing(g)){
+    pi = prior #default is to initialize pi at prior (mean)
+    if(randomstart){pi=rgamma(k,1,1)}
+  
+    g=normalmix(pi,rep(0,k),mixsd)
+    maxiter = 5000
+  } else {
+    maxiter = 1; # if g is specified, don't iterate the EM 
+  }
+  
+  pi.fit=EMest(betahat[completeobs],sebetahat[completeobs],g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter)  
+
+    n=length(betahat)
+    PosteriorMean = rep(0,length=n)
+    PosteriorSD=rep(0,length=n)
+    
+    PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs])
+    PosteriorSD[completeobs] =postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs]) 
+    
+    #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
+    PosteriorMean[!completeobs] = mixmean(pi.fit$g)
+    PosteriorSD[!completeobs] =mixsd(pi.fit$g)  
+        
+    result = list(fitted.g=pi.fit$g,PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,call=match.call(),data=list(betahat = betahat, sebetahat=sebetahat))
+    class(result)= "ash"
+    return(result)
+
+  #if(nsamp>0){
+  #  sample = posterior_sample(post,nsamp)
+  #}
+}
+
+
+
 compute_lfsr = function(NegativeProb,ZeroProb){
   ifelse(NegativeProb> 0.5*(1-ZeroProb),1-NegativeProb,NegativeProb+ZeroProb)
 }
@@ -515,8 +600,12 @@ autoselect.mixsd = function(betahat,sebetahat,mult){
   } else {
     sigmaamax = 2*sqrt(max(betahat^2-sebetahat^2)) #this computes a rough largest value you'd want to use, based on idea that sigmaamax^2 + sebetahat^2 should be at least betahat^2   
   }
-  npoint = ceiling(log2(sigmaamax/sigmaamin)/log2(mult))
-  return(mult^((-npoint):0) * sigmaamax)
+  if(mult==0){
+    return(c(0,sigmaamax/2))
+  }else{
+    npoint = ceiling(log2(sigmaamax/sigmaamin)/log2(mult))
+    return(mult^((-npoint):0) * sigmaamax)
+  }
 }
 
 
