@@ -220,7 +220,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
 }
 
 
-
+#' @export
 fast.ash = function(betahat,sebetahat, 
                nullcheck=TRUE,randomstart=FALSE, 
                pointmass = TRUE,    
@@ -294,7 +294,6 @@ fast.ash = function(betahat,sebetahat,
     PosteriorSD[!completeobs] =mixsd(pi.fit$g)  
         
     result = list(fitted.g=pi.fit$g,PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,call=match.call(),data=list(betahat = betahat, sebetahat=sebetahat))
-    class(result)= "ash"
     return(result)
 
   #if(nsamp>0){
