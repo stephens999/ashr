@@ -1,7 +1,7 @@
 export(ash)
-export(fast.ash)
 export(cdf.ash)
 export(density.ash)
+export(fast.ash)
 export(get_loglik)
 export(get_pi0)
 export(loglik.ash)

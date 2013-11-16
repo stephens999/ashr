@@ -2,7 +2,7 @@
 \alias{loglik.ash}
 \title{Compute loglikelihood for data from ash fit}
 \usage{
-  loglik.ash(a, betahat, betahatsd)
+  loglik.ash(a, betahat, betahatsd, zscores = FALSE)
 }
 \arguments{
   \item{a}{the fitted ash object}
@@ -10,11 +10,14 @@
   \item{betahat}{the data}
 
   \item{betahatsd}{the observed standard errors}
+
+  \item{zscores}{indicates whether ash object was
+  originally fit to z scores}
 }
 \description{
   Return the log-likelihood of the data betahat, with
   standard errors betahatsd, under the fitted distribution
-  in the ash object
+  in the ash object.
 }
 \details{
   None

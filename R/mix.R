@@ -112,11 +112,11 @@ loglik.default = function(m,x){
 #the mixture m is convolved with a normal with sd betahatsd
 #betahatsd is an n vector
 #betahat is an n vector
-loglik_conv = function(m,betahat,betahatsd){
+loglik_conv = function(m,betahat,betahatsd,FUN="+"){
   UseMethod("loglik_conv")
 }
-loglik_conv.default = function(m,betahat,betahatsd){
-  sum(log(dens_conv(m,betahat,betahatsd)))
+loglik_conv.default = function(m,betahat,betahatsd,FUN="+"){
+  sum(log(dens_conv(m,betahat,betahatsd,FUN)))
 }
 
 #compute the density of the components of the mixture m
@@ -125,10 +125,10 @@ loglik_conv.default = function(m,betahat,betahatsd){
 #x and s are n-vectors
 #m is a mixture with k components
 #output is a k by n matrix of densities
-compdens_conv = function(m, x, s){
+compdens_conv = function(m, x, s, FUN="+"){
   UseMethod("compdens_conv")
 }
-compdens_conv.default = function(m,x, s){
+compdens_conv.default = function(m,x, s,FUN="+"){
   stop("No such class")
 }
 
@@ -137,11 +137,11 @@ compdens_conv.default = function(m,x, s){
 #m is a mixture
 #x is an n vector
 #s is an n vector or integer
-dens_conv = function(m,x,s){
+dens_conv = function(m,x,s,FUN="+"){
   UseMethod("dens_conv")
 }
-dens_conv.default = function(m,x,s){
-  colSums(m$pi * compdens_conv(m,x,s))
+dens_conv.default = function(m,x,s,FUN="+"){
+  colSums(m$pi * compdens_conv(m,x,s,FUN))
 }
 
 #compute the posterior prob that each observation
@@ -314,9 +314,9 @@ compdens.normalmix = function(x,y,log=FALSE){
 # x an n-vector at which density is to be evaluated
 #return a k by n matrix
 #Note that convolution of two normals is normal, so it works that way
-compdens_conv.normalmix = function(m, x, s){
+compdens_conv.normalmix = function(m, x, s,FUN="+"){
   if(length(s)==1){s=rep(s,length(x))}
-  sdmat = sqrt(outer(s^2,m$sd^2,FUN="+")) #n by k matrix of standard deviations of convolutions
+  sdmat = sqrt(outer(s^2,m$sd^2,FUN)) #n by k matrix of standard deviations of convolutions
   return(t(dnorm(outer(x,m$mean,FUN="-")/sdmat)/sdmat))
 }
 
@@ -393,7 +393,8 @@ compdens.unimix = function(x,y,log=FALSE){
 #density of convolution of each component of a unif mixture with N(0,s) at x
 # x an n-vector
 #return a k by n matrix
-compdens_conv.unimix = function(m, x, s){
+compdens_conv.unimix = function(m, x, s, FUN="+"){
+  if(FUN!="+") stop("Error; compdens_conv not implemented for uniform with FUN!=+")
   return(t(pnorm(outer(x,m$a,FUN="-")/s)
           -pnorm(outer(x,m$b,FUN="-")/s))/(m$b-m$a))
 }
