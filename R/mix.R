@@ -75,7 +75,22 @@ mixprop.default = function(m){
   m$pi
 }
 
-#find cdf at y, a generic function
+#' @title mixcdf
+#'
+#' @description Returns cdf for a mixture (generic function)
+#' 
+#' @details None
+#' 
+#' @param x a mixture (eg of type normalmix or unimix)
+#' @param y locations at which cdf to be computed
+#' @param lower.tail: boolean indicating whether to report lower tail
+#' 
+#' @return an object of class normalmix
+#' 
+#' @export
+#' 
+#' @examples mixcdf(normalmix(c(0.5,0.5),c(0,0),c(1,2)),seq(-4,4,length=100))
+#' 
 mixcdf = function(x,y,lower.tail=TRUE){
   UseMethod("mixcdf")
 }
