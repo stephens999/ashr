@@ -1,3 +1,4 @@
+useDynLib(ashr)
 export(ash)
 export(cdf.ash)
 export(density.ash)
