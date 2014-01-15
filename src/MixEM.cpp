@@ -52,13 +52,13 @@ List cxxMixEM(NumericMatrix matrix_lik, NumericVector prior, NumericVector pi_in
     loglik.push_back(sum(log(m_rowsum)));
     priordens.push_back(sum((prior-1.)*log(pi))); 
  
-    converged= (bool) (std::abs(loglik[j]+priordens[j]-loglik[j-1]-priordens[j-1])<tol);
+    converged=(bool) (std::abs(loglik[j]+priordens[j]-loglik[j-1]-priordens[j-1])<tol);
     if(converged)
       break;
   }
   
   return(List::create(Named("pihat")=pi,
                       Named("B")=loglik,
-                      Named("niter")=wrap(j+1),
+                      Named("niter")=wrap(min(j+1, maxiter)),
                       Named("converged")=wrap(converged)));
 }

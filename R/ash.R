@@ -470,9 +470,9 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,l
   loglik.final = EMfit$B[niter]
   
   null.loglik = sum(log(matrix_lik[,null.comp]))  
-  
+
   if(nullcheck==TRUE & VB==FALSE){ #null check doesn't work with VB yet
-    if(null.loglik > loglik.final){ #check whether exceeded "null" likelihood where everything is null
+      if(null.loglik > loglik.final){ #check whether exceeded "null" likelihood where everything is null
       pi=rep(0,k)
       pi[null.comp]=1
       m  = t(pi * t(matrix_lik)) 
