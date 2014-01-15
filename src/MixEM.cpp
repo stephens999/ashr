@@ -56,9 +56,11 @@ List cxxMixEM(NumericMatrix matrix_lik, NumericVector prior, NumericVector pi_in
     if(converged)
       break;
   }
+  if (j==maxiter) 
+    j-=1;
   
   return(List::create(Named("pihat")=pi,
                       Named("B")=loglik,
-                      Named("niter")=wrap(min(j+1, maxiter)),
+                      Named("niter")=wrap(j+1),
                       Named("converged")=wrap(converged)));
 }
