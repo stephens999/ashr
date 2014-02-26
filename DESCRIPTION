@@ -13,3 +13,9 @@ Suggests:
     testthat,
     roxygen2
 URL: "http://github.com/stephens999/ash
+Collate:
+    'ash.oldversion.R'
+    'ash.R'
+    'ashr-package.r'
+    'mix.R'
+    'RcppExports.R'

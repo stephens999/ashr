@@ -4,3 +4,4 @@
 cxxMixEM <- function(matrix_lik, prior, pi_init, tol = 0.0001, maxiter = 5000L) {
     .Call('ashr_cxxMixEM', PACKAGE = 'ashr', matrix_lik, prior, pi_init, tol, maxiter)
 }
+

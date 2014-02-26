@@ -8,7 +8,7 @@
     randomstart = FALSE, pointmass = FALSE,
     onlylogLR = FALSE, prior = c("uniform", "nullbiased"),
     mixsd = NULL, VB = FALSE, gridmult = sqrt(2),
-    minimaloutput = FALSE, g = NULL)
+    minimaloutput = FALSE, g = NULL, cxx = TRUE)
 }
 \arguments{
   \item{betahat,}{a p vector of estimates}
