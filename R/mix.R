@@ -136,6 +136,9 @@ loglik.default = function(m,x){
 loglik_conv = function(m,betahat,betahatsd,FUN="+"){
   UseMethod("loglik_conv")
 }
+#' 
+#' @export
+#' 
 loglik_conv.default = function(m,betahat,betahatsd,FUN="+"){
   sum(log(dens_conv(m,betahat,betahatsd,FUN)))
 }
