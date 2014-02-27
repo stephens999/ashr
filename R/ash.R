@@ -1,3 +1,4 @@
+#' @useDynLib ashr
 #todo
 #
 #' @title Main Adaptive SHrinkage function
