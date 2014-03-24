@@ -29,7 +29,8 @@
 #' @param gridmult: the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)
 #' @param minimal_output: if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue) 
 #' @param g: the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
-#' 
+#' @param maxiter: maximum number of iterations of the EM algorithm
+#' @param cxx: flag to indicate whether to use the c++ (Rcpp) version
 #' 
 #' @return a list with elements fitted.g is fitted mixture
 #' logLR : logP(D|mle(pi)) - logP(D|null)
@@ -57,6 +58,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
                mixsd=NULL, VB=FALSE,gridmult=sqrt(2),
                minimaloutput=FALSE,
                g=NULL,
+               maxiter = 5000,
                cxx=TRUE){
   
     
@@ -159,7 +161,6 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),mixsd)
     if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)
     if(mixcompdist=="halfuniform") g=unimix(c(pi,pi),c(-mixsd,rep(0,k)),c(rep(0,k),mixsd))
-    maxiter = 5000
   } else {
     maxiter = 1 # if g is specified, don't iterate the EM 
     prior = rep(1,ncomp(g)) #prior is not actually used if g specified, but required to make sure EM doesn't produce warning
