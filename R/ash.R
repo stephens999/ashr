@@ -230,8 +230,12 @@ fast.ash = function(betahat,sebetahat,
                pointmass = TRUE,    
                prior=c("nullbiased","uniform"), 
                mixsd=NULL, VB=FALSE,gridmult=4,
-               g=NULL, cxx=TRUE){
-  
+               g=NULL, cxx=TRUE,
+               onlylogLR = FALSE){
+
+    if(onlylogLR){
+        pointmass <- TRUE  
+    }
     
   #If method is supplied, use it to set up defaults; provide warning if these default values
   #are also specified by user
@@ -248,7 +252,11 @@ fast.ash = function(betahat,sebetahat,
   
   completeobs = (!is.na(betahat) & !is.na(sebetahat))
   if(sum(completeobs)==0){
-    stop("Error: all input values are missing")
+      if(onlylogLR){
+          return(list(pi=NULL, logLR = 0))
+      }else{
+          stop("Error: all input values are missing")
+      }
   }  
   
   if(is.null(mixsd)){
@@ -285,21 +293,26 @@ fast.ash = function(betahat,sebetahat,
   }
   
   pi.fit=EMest(betahat[completeobs],sebetahat[completeobs],g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx)  
-
-    n=length(betahat)
-    PosteriorMean = rep(0,length=n)
-    PosteriorSD=rep(0,length=n)
+ 
+  if(onlylogLR){
+      logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
+      return(list(pi=pi.fit$pi, logLR = logLR))
+  }else{
     
-    PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs])
-    PosteriorSD[completeobs] =postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs]) 
+      n=length(betahat)
+      PosteriorMean = rep(0,length=n)
+      PosteriorSD=rep(0,length=n)
     
-    #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
-    PosteriorMean[!completeobs] = mixmean(pi.fit$g)
-    PosteriorSD[!completeobs] =mixsd(pi.fit$g)  
+      PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs])
+      PosteriorSD[completeobs] =postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs]) 
+    
+      #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
+      PosteriorMean[!completeobs] = mixmean(pi.fit$g)
+      PosteriorSD[!completeobs] =mixsd(pi.fit$g)  
         
-    result = list(fitted.g=pi.fit$g,PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,call=match.call(),data=list(betahat = betahat, sebetahat=sebetahat))
-    return(result)
-
+      result = list(fitted.g=pi.fit$g,PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,call=match.call(),data=list(betahat = betahat, sebetahat=sebetahat))
+      return(result)
+  }
   #if(nsamp>0){
   #  sample = posterior_sample(post,nsamp)
   #}
