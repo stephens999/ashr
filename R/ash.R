@@ -32,6 +32,7 @@
 #' @param maxiter: maximum number of iterations of the EM algorithm
 #' @param cxx: flag to indicate whether to use the c++ (Rcpp) version
 #' 
+#'
 #' @return a list with elements fitted.g is fitted mixture
 #' logLR : logP(D|mle(pi)) - logP(D|null)
 #' 
@@ -61,21 +62,23 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
                maxiter = 5000,
                cxx=TRUE){
   
-    
-  #If method is supplied, use it to set up defaults; provide warning if these default values
+  #method provides a convenient interface to set a particular combinations of parameters for prior an
+  #If method is supplied, use it to set up specific values for these parameters; provide warning if values
   #are also specified by user
+  #If method is not supplied use the user-supplied values (or defaults if user does not specify them)
+    
   if(!missing(method)){
     method = match.arg(method) 
     if(method=="shrink"){
       if(missing(prior)){
         prior = "uniform"
       } else {
-        cat("Warning: specification of prior overrides default for method shrink")
+        warning("Specification of prior overrides default for method shrink")
       }
       if(missing(pointmass)){
         pointmass=FALSE
       } else {
-        cat("Warning: specification of pointmass overrides default for method shrink")
+        warning("Specification of pointmass overrides default for method shrink")
       }
     }
   
@@ -83,12 +86,12 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
       if(missing(prior)){
         prior = "nullbiased"
       } else {
-        cat("Warning: specification of prior overrides default for method fdr")
+        warning("Specification of prior overrides default for method fdr")
       }
       if(missing(pointmass)){
         pointmass=TRUE
       } else {
-        cat("Warning: specification of pointmass overrides default for method fdr")
+        warning("Specification of pointmass overrides default for method fdr")
       }
     }  
   }
@@ -130,42 +133,49 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     }
   }  
   
-  if(is.null(mixsd)){
-    mixsd= autoselect.mixsd(betahat[completeobs],sebetahat[completeobs],gridmult)
-  }
-  if(pointmass){
-    mixsd = c(0,mixsd)
-  }
-  
-  k=length(mixsd)  
-  null.comp = which.min(mixsd) #which component is the "null"
-  
-  if(!is.numeric(prior)){
-    if(prior=="nullbiased"){ # set up prior to favour "null"
-      prior = rep(1,k)
-      prior[null.comp] = 10 #prior 10-1 in favour of null
-    }else if(prior=="uniform"){
-      prior = rep(1,k)
-    }
-  }
-  
-  if(length(prior)!=k | !is.numeric(prior)){
-    stop("invalid prior specification")
-  }
-  
-  if(missing(g)){
-    pi = prior #default is to initialize pi at prior (mean)
-    if(randomstart){pi=rgamma(k,1,1)}
-  
-    if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")
-    if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),mixsd)
-    if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)
-    if(mixcompdist=="halfuniform") g=unimix(c(pi,pi),c(-mixsd,rep(0,k)),c(rep(0,k),mixsd))
+  if(!missing(g)){
+      maxiter = 1 # if g is specified, don't iterate the EM
+      prior = rep(1,ncomp(g)) #prior is not actually used if g specified, but required to make sure EM doesn't produce warning
   } else {
-    maxiter = 1 # if g is specified, don't iterate the EM 
-    prior = rep(1,ncomp(g)) #prior is not actually used if g specified, but required to make sure EM doesn't produce warning
+      if(is.null(mixsd)){
+          mixsd = autoselect.mixsd(betahat[completeobs],sebetahat[completeobs],gridmult)
+      }
+      if(pointmass){
+          mixsd = c(0,mixsd)
+      }
+
+      null.comp = which.min(mixsd) #which component is the "null"
+
+      k = length(mixsd)
+      if(!is.numeric(prior)){
+          if(prior=="nullbiased"){ # set up prior to favour "null"
+              prior = rep(1,k)
+              prior[null.comp] = 10 #prior 10-1 in favour of null
+          }else if(prior=="uniform"){
+              prior = rep(1,k)
+          }
+      }
+
+      if(length(prior)!=k | !is.numeric(prior)){
+          stop("invalid prior specification")
+      }
+
+      if(randomstart){
+          pi = rgamma(k,1,1)
+      } else {
+          pi = prior #default is to initialize pi at prior (mean)
+      }
+
+      if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")
+      if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),mixsd)
+      if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)
+      if(mixcompdist=="halfuniform"){
+          g = unimix(c(pi,pi),c(-mixsd,rep(0,k)),c(rep(0,k),mixsd))
+          prior = rep(prior, 2)
+          pi = rep(pi, 2)
+      }
   }
-  
+    
   pi.fit=EMest(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx)  
   
 
@@ -381,9 +391,14 @@ mixVBEM = function(matrix_lik, prior, post.init=NULL, tol=0.0001, maxiter=5000){
     } 
     if(i>maxiter){i=maxiter}
   }
+
+  converged=(abs(B[i]-B[i-1])<tol)
+  if(!converged){
+      warning("EM algorithm in function mixVBEM failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
+  }
   
    
-  return(list(pihat = pipost/sum(pipost), B=B[1:i], niter = i, converged=(abs(B[i]-B[i-1])<tol),post=pipost))
+  return(list(pihat = pipost/sum(pipost), B=B[1:i], niter = i, converged=converged,post=pipost))
 }
   
 
@@ -445,9 +460,12 @@ mixEM = function(matrix_lik, prior, pi.init = NULL,tol=0.0001, maxiter=5000){
       if(abs(loglik[i]+priordens[i]-loglik[i-1]-priordens[i-1])<tol) break;
     }
   }
-  
+  converged=(abs(loglik[i]+priordens[i]-loglik[i-1]-priordens[i-1])<tol)
+  if(!converged){
+      warning("EM algorithm in function mixEM failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
+  }
   return(list(pihat = pi, B=loglik[1:i], 
-              niter = i, converged=(abs(loglik[i]+priordens[i]-loglik[i-1]-priordens[i-1])<tol)))
+              niter = i, converged=converged))
 }
 
 
@@ -483,6 +501,10 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,l
   converged = EMfit$converged
   niter = EMfit$niter
   loglik.final = EMfit$B[niter]
+
+  if(!EMfit$converged){
+      warning("EM algorithm in function cxxMixEM failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
+  }
   
   null.loglik = sum(log(matrix_lik[,null.comp]))  
 
@@ -497,9 +519,9 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,l
   }
   
   g$pi=pi
-  
+
   return(list(loglik=loglik[1:niter],null.loglik=null.loglik,
-            matrix_lik=matrix_lik,converged = converged,g=g))
+            matrix_lik=matrix_lik,converged=converged,g=g))
 }
 
 
