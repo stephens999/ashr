@@ -1,6 +1,4 @@
 #' @useDynLib ashr
-#todo
-#
 #' @title Main Adaptive SHrinkage function
 #'
 #' @description Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
@@ -672,7 +670,8 @@ summary.ash=function(a){
 #' @export
 #' 
 print.ash =function(a){
-  print(a$fitted.g)
+  print("ash returns a list with the following elements:")
+  print(names(ash))
 }
 
 #' @title Plot method for ash object
