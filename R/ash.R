@@ -1,4 +1,6 @@
 #' @useDynLib ashr
+#todo
+#
 #' @title Main Adaptive SHrinkage function
 #'
 #' @description Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
@@ -231,7 +233,26 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   #}
 }
 
-
+#' @title Faster version of function ash
+#'
+#' @description This function has similar functionality as ash, but only returns some of the outputs.
+#'
+#' @param betahat, a p vector of estimates
+#' @param sebetahat, a p vector of corresponding standard errors
+#' @param nullcheck: whether to check that any fitted model exceeds the "null" likelihood in which all weight is on the first component
+#' @param randomstart: bool, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
+#' @param pointmass: bool, indicating whether to use a point mass at zero as one of components for a mixture distribution
+#' @param onlylogLR: bool, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, lfdr...
+#' @param prior: string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or 1,1...,1; also can be "nullbiased" 1,1/k-1,...,1/k-1 to put more weight on first component)
+#' @param mixsd: vector of sds for underlying mixture components
+#' @param VB: whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate)
+#' @param gridmult: the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)
+#' @param g: the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
+#' @param cxx: flag to indicate whether to use the c++ (Rcpp) version
+#'
+#' @return a list with elements fitted.g is fitted mixture
+#' logLR : logP(D|mle(pi)) - logP(D|null)
+#'
 #' @export
 fast.ash = function(betahat,sebetahat, 
                nullcheck=TRUE,randomstart=FALSE, 
@@ -670,8 +691,7 @@ summary.ash=function(a){
 #' @export
 #' 
 print.ash =function(a){
-  print("ash returns a list with the following elements:")
-  print(names(ash))
+  print(a$fitted.g)
 }
 
 #' @title Plot method for ash object

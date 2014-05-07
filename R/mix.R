@@ -94,7 +94,7 @@ mixprop.default = function(m){
 mixcdf = function(x,y,lower.tail=TRUE){
   UseMethod("mixcdf")
 }
-#' 
+#' @title mixcdf.default
 #' @export
 #' 
 mixcdf.default = function(x,y,lower.tail=TRUE){
@@ -130,12 +130,14 @@ loglik.default = function(m,x){
 #the mixture m is convolved with a normal with sd betahatsd
 #betahatsd is an n vector
 #betahat is an n vector
+#' @title loglik_conv
 #' 
 #' @export
 #' 
 loglik_conv = function(m,betahat,betahatsd,FUN="+"){
   UseMethod("loglik_conv")
 }
+#' @title loglik_conv.default
 #' 
 #' @export
 #' 

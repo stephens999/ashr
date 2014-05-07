@@ -5,17 +5,8 @@ Version: 0.1
 License: GPL-3
 Title: Methods for Adaptive Shrinkage, using Empirical Bayes
 Description: TBA
-Depends:
-    Rcpp (>= 0.10.5),
-    truncnorm
+Depends: Rcpp (>= 0.10.5), truncnorm
 LinkingTo: Rcpp
-Suggests:
-    testthat,
-    roxygen2
+Suggests: testthat, roxygen2
 URL: "http://github.com/stephens999/ash
-Collate:
-    'ash.oldversion.R'
-    'ash.R'
-    'ashr-package.r'
-    'mix.R'
-    'RcppExports.R'
+Packaged: 2014-05-07 19:50:40 UTC; esterpantaleo
