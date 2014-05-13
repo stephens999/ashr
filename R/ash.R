@@ -526,7 +526,7 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,l
   }
   
   null.loglik = sum(log(matrix_lik[,null.comp]))  
-
+  
   if(nullcheck==TRUE & VB==FALSE){ #null check doesn't work with VB yet
       if(null.loglik > loglik.final){ #check whether exceeded "null" likelihood where everything is null
       pi=rep(0,k)

@@ -21,9 +21,10 @@ List cxxMixEM(NumericMatrix matrix_lik, NumericVector prior, NumericVector pi_in
   NumericMatrix m(n,k);
   NumericVector m_rowsum(n);
   NumericMatrix classprob(m);
-  std::vector<double> loglik, priordens;
+  std::vector<double> loglik, lpriordens, penloglik;
   loglik.reserve(maxiter);
-  priordens.reserve(maxiter); 
+  lpriordens.reserve(maxiter); 
+  penloglik.reserve(maxiter);
   
   for (int i=0;i<k;i++){
     m.column(i)=pi[i]*matrix_lik.column(i);
@@ -32,8 +33,9 @@ List cxxMixEM(NumericMatrix matrix_lik, NumericVector prior, NumericVector pi_in
   for (int i=0;i<k;i++)//can vectorize this with sugar?
     classprob.column(i)=classprob.column(i)/m_rowsum;
   loglik.push_back(sum(log(m_rowsum)));
-  priordens.push_back(sum((prior-1.)*log(pi)));
-
+  lpriordens.push_back(sum((prior-1.)*log(pi)));
+  penloglik.push_back(sum(log(m_rowsum)) + sum((prior-1.)*log(pi)));
+  
   for(j=1;j<maxiter;j++){
     //update pi
     //to do: can vectorize this with sugar?
@@ -50,9 +52,10 @@ List cxxMixEM(NumericMatrix matrix_lik, NumericVector prior, NumericVector pi_in
     for (int i=0;i<k;i++)
       classprob.column(i)=classprob.column(i)/m_rowsum;
     loglik.push_back(sum(log(m_rowsum)));
-    priordens.push_back(sum((prior-1.)*log(pi))); 
+    lpriordens.push_back(sum((prior-1.)*log(pi))); 
+    penloglik.push_back(sum(log(m_rowsum)) + sum((prior-1.)*log(pi)));
  
-    converged=(bool) (std::abs(loglik[j]+priordens[j]-loglik[j-1]-priordens[j-1])<tol);
+    converged=(bool) (std::abs(loglik[j]+lpriordens[j]-loglik[j-1]-lpriordens[j-1])<tol);
     if(converged)
       break;
   }
@@ -61,6 +64,7 @@ List cxxMixEM(NumericMatrix matrix_lik, NumericVector prior, NumericVector pi_in
   
   return(List::create(Named("pihat")=pi,
                       Named("B")=loglik,
+                      Named("penloglik")=penloglik,
                       Named("niter")=wrap(j+1),
                       Named("converged")=wrap(converged)));
 }
