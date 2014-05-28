@@ -529,7 +529,11 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,l
     EMfit=mixVBEM(matrix_lik,prior,pi.init,ltol, maxiter)}
   else{
     if (cxx==TRUE){
-        EMfit = cxxMixEM(matrix_lik,prior,pi.init,ltol, maxiter)}
+        EMfit = cxxMixEM(matrix_lik,prior,pi.init,ltol, maxiter)
+        if(!EMfit$converged){
+            warning("EM algorithm in function cxxMixEM failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
+        }
+    }
     else{
         EMfit = mixEM(matrix_lik,prior,pi.init,ltol, maxiter)}
   }
@@ -539,10 +543,6 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,l
   converged = EMfit$converged
   niter = EMfit$niter
   loglik.final = EMfit$B[niter]
-
-  if(!EMfit$converged){
-      warning("EM algorithm in function cxxMixEM failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
-  }
   
   null.loglik = sum(log(matrix_lik[,null.comp]))  
   

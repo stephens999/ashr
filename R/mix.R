@@ -7,7 +7,7 @@ compdens = function(x,y,log=FALSE){
   UseMethod("compdens")
 }
 compdens.default = function(x,y,log=FALSE){
-  stop("No such class")
+  stop(paste("Invalid class", class(m), "for first argument in",  match.call()))  
 }
 
 #standard deviations
@@ -155,7 +155,7 @@ compdens_conv = function(m, x, s, FUN="+"){
   UseMethod("compdens_conv")
 }
 compdens_conv.default = function(m,x, s,FUN="+"){
-  stop("No such class")
+  stop(paste("Invalid class", class(m), "for first argument in",  match.call()))  
 }
 
 #compute density of mixture m convoluted with normal of sd (s)
@@ -520,7 +520,7 @@ compdens_conv_t = function(m, x, s, v, FUN="+"){
   UseMethod("compdens_conv_t")
 }
 compdens_conv_t.default = function(m,x, s,v,FUN="+"){
-  stop("No such class")
+  stop(paste("Invalid class", class(m), "for first argument in",  match.call()))
 }
 #density of convolution of each component of a normal mixture with s*t(v) at x
 # x an n-vector at which density is to be evaluated
