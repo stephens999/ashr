@@ -421,8 +421,9 @@ compdens.unimix = function(x,y,log=FALSE){
 #return a k by n matrix
 compdens_conv.unimix = function(m, x, s, FUN="+"){
   if(FUN!="+") stop("Error; compdens_conv not implemented for uniform with FUN!=+")
-  return(t(pnorm(outer(x,m$a,FUN="-")/s)
-          -pnorm(outer(x,m$b,FUN="-")/s))/(m$b-m$a))
+  compdens= t(pnorm(outer(x,m$a,FUN="-")/s)-pnorm(outer(x,m$b,FUN="-")/s))/(m$b-m$a)
+  compdens[m$a==m$b,]=t(dnorm(outer(x,m$a,FUN="-")/s))[m$a==m$b,]
+  return(compdens)
 }
 
 
@@ -533,8 +534,9 @@ compdens_conv_t.normalmix = function(m, x, s, v,FUN="+"){
 #return a k by n matrix
 compdens_conv_t.unimix = function(m, x, s, v , FUN="+"){
   if(FUN!="+") stop("Error; compdens_conv_t not implemented for uniform with FUN!=+")
-  return(t(pt(outer(x,m$a,FUN="-")/s,df=v)
-           -pt(outer(x,m$b,FUN="-")/s,df=v))/(m$b-m$a))
+  compdens= t(pt(outer(x,m$a,FUN="-")/s,df=v)-pt(outer(x,m$b,FUN="-")/s,df=v))/(m$b-m$a)
+  compdens[m$a==m$b,]=t(dt(outer(x,m$a,FUN="-")/s,df=v))[m$a==m$b,]
+  return(compdens)
 }
 
 #compute density of mixture m convoluted with student t with df v

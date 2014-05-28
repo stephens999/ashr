@@ -97,12 +97,12 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   }
   
     mixcompdist = match.arg(mixcompdist)
-    if(mixcompdist=="uniform" & pointmass==TRUE){
-      stop("point mass not yet implemented for uniform or half-uniform")
-    }
-    if(mixcompdist=="halfuniform" & pointmass==TRUE){
-      stop("point mass not yet implemented for uniform or half-uniform")
-    }
+   # if(mixcompdist=="uniform" & pointmass==TRUE){
+  #    stop("point mass not yet implemented for uniform or half-uniform")
+  #  }
+  #  if(mixcompdist=="halfuniform" & pointmass==TRUE){
+  #    stop("point mass not yet implemented for uniform or half-uniform")
+  #  }
     if(!is.numeric(prior)){
       prior = match.arg(prior)
     }  
