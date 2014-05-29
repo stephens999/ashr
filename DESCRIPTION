@@ -6,6 +6,7 @@ License: GPL-3
 Title: Methods for Adaptive Shrinkage, using Empirical Bayes
 Description: TBA
 Depends: truncnorm,
+ SQUAREM,
  Rcpp (>= 0.10.5)
 LinkingTo: Rcpp
 Suggests: testthat, roxygen2

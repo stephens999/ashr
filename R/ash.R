@@ -178,14 +178,14 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     ZeroProb = rep(0,length=n)
     NegativeProb = rep(0,length=n)
     if(is.null(df)){
-      print("normal likelihood")
+      #print("normal likelihood")
       ZeroProb[completeobs] = colSums(comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs])[comp_sd(pi.fit$g)==0,,drop=FALSE])     
       NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs]) - ZeroProb[completeobs]
       ZeroProb[!completeobs] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g)==0])
       NegativeProb[!completeobs] = mixcdf(pi.fit$g,0) 
     }
     else{
-      print("student-t likelihood")
+      #print("student-t likelihood")
       ZeroProb[completeobs] = colSums(comppostprob_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)[comp_sd(pi.fit$g)==0,,drop=FALSE])     
       NegativeProb[completeobs] = cdf_post_t(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs],df) - ZeroProb[completeobs]
       ZeroProb[!completeobs] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g)==0])
@@ -205,14 +205,14 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     PosteriorMean = rep(0,length=n)
     PosteriorSD=rep(0,length=n)
     if(is.null(df)){
-      print("normal likelihood")
+      #print("normal likelihood")
       ZeroProb[completeobs] = colSums(comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs])[comp_sd(pi.fit$g)==0,,drop=FALSE])     
       NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs]) - ZeroProb[completeobs]
       PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs])
       PosteriorSD[completeobs] =postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs]) 
     }
     else{
-      print("student-t likelihood")
+      #print("student-t likelihood")
       ZeroProb[completeobs] = colSums(comppostprob_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)[comp_sd(pi.fit$g)==0,,drop=FALSE])     
       NegativeProb[completeobs] = cdf_post_t(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs],df) - ZeroProb[completeobs]
       PosteriorMean[completeobs] = postmean_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
@@ -441,7 +441,7 @@ mixVBEM = function(matrix_lik, prior, post.init=NULL, tol=0.0001, maxiter=5000){
 #' @details Fits a k component mixture model \deqn{f(x|\pi) = \sum_k \pi_k f_k(x)} to independent
 #' and identically distributed data \eqn{x_1,\dots,x_n}. 
 #' Estimates mixture proportions \eqn{\pi} by maximum likelihood, or by maximum a posteriori (MAP) estimation for a Dirichlet prior on $\pi$ 
-#' (if a prior is specified).  Used by the ash main function; there is no need for a user to call this 
+#' (if a prior is specified).  Uses the SQUAREM package to accelerate convergence of EM. Used by the ash main function; there is no need for a user to call this 
 #' function separately, but it is exported for convenience.
 #'
 #' 
@@ -456,49 +456,81 @@ mixVBEM = function(matrix_lik, prior, post.init=NULL, tol=0.0001, maxiter=5000){
 #'  
 #' @export
 #' 
-mixEM = function(matrix_lik, prior, pi.init = NULL,tol=0.0001, maxiter=5000){
-  n=nrow(matrix_lik)
-  k=ncol(matrix_lik)
-  B = rep(0,maxiter)
-  pi = pi.init
+#' 
+mixEM = function(matrix_lik, prior, pi.init = NULL,tol=1e-7, maxiter=5000){
   if(is.null(pi.init)){
     pi = rep(1/k,k)# Use as starting point for pi
   } 
-  pi = ifelse(pi<1e-5,1e-5,pi) #set any estimates that are too small to be just very small
-  pi = normalize(pi)
-  
-  loglik = rep(0,maxiter)
-  priordens= rep(0,maxiter)
+  res = squarem(par=pi.init,fixptfn=fixpoint, objfn=penloglik,matrix_lik=matrix_lik, prior=prior, control=list(maxiter=maxiter,tol=tol))
+  return(list(pihat = res$par, B=res$value.objfn, 
+              niter = res$iter, converged=res$convergence))
+}
+
+# helper functions used by mixEM
+normalize = function(x){return(x/sum(x))}
+
+fixpoint = function(pi, matrix_lik, prior){  
   m  = t(pi * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k
   m.rowsum = rowSums(m)
-  loglik[1] = sum(log(m.rowsum))
-  priordens[1] = sum((prior-1)*log(pi)) 
   classprob = m/m.rowsum #an n by k matrix
-  i=1
-  if(maxiter >= 2){
-    for(i in 2:maxiter){  
-      pi = colSums(classprob) + prior-1
-      pi = ifelse(pi<1e-5,1e-5,pi) #set any estimates that are less than zero, which can happen with prior<1, to 0
-      pi = normalize(pi)
-        
-      #Now re-estimate pi
-      m  = t(pi * t(matrix_lik)) 
-      m.rowsum = rowSums(m)
-      loglik[i] = sum(log(m.rowsum))
-      priordens[i] = sum((prior-1)*log(pi)) 
-      classprob = m/m.rowsum
-    
-    
-      if(abs(loglik[i]+priordens[i]-loglik[i-1]-priordens[i-1])<tol) break;
-    }
-  }
-  converged=(abs(loglik[i]+priordens[i]-loglik[i-1]-priordens[i-1])<tol)
-  if(!converged){
-      warning("EM algorithm in function mixEM failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
-  }
-  return(list(pihat = pi, B=loglik[1:i], 
-              niter = i, converged=converged))
+  pinew = normalize(colSums(classprob) + prior-1)
+  return(pinew)
 }
+
+penloglik = function(pi, matrix_lik, prior){
+  m  = t(pi * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k
+  m.rowsum = rowSums(m)
+  loglik = sum(log(m.rowsum))
+  subset = (prior-1) != 0
+  priordens = sum((prior-1)[subset]*log(pi[subset]))
+  return(loglik+priordens)
+}
+
+
+
+# mixEM = function(matrix_lik, prior, pi.init = NULL,tol=0.0001, maxiter=5000){
+#   n=nrow(matrix_lik)
+#   k=ncol(matrix_lik)
+#   B = rep(0,maxiter)
+#   pi = pi.init
+#   if(is.null(pi.init)){
+#     pi = rep(1/k,k)# Use as starting point for pi
+#   } 
+#   pi = ifelse(pi<1e-5,1e-5,pi) #set any estimates that are too small to be just very small
+#   pi = normalize(pi)
+#   
+#   loglik = rep(0,maxiter)
+#   priordens= rep(0,maxiter)
+#   m  = t(pi * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k
+#   m.rowsum = rowSums(m)
+#   loglik[1] = sum(log(m.rowsum))
+#   priordens[1] = sum((prior-1)*log(pi)) 
+#   classprob = m/m.rowsum #an n by k matrix
+#   i=1
+#   if(maxiter >= 2){
+#     for(i in 2:maxiter){  
+#       pi = colSums(classprob) + prior-1
+#       pi = ifelse(pi<1e-5,1e-5,pi) #set any estimates that are less than zero, which can happen with prior<1, to 0
+#       pi = normalize(pi)
+#         
+#       #Now re-estimate pi
+#       m  = t(pi * t(matrix_lik)) 
+#       m.rowsum = rowSums(m)
+#       loglik[i] = sum(log(m.rowsum))
+#       priordens[i] = sum((prior-1)*log(pi)) 
+#       classprob = m/m.rowsum
+#     
+#     
+#       if(abs(loglik[i]+priordens[i]-loglik[i-1]-priordens[i-1])<tol) break;
+#     }
+#   }
+#   converged=(abs(loglik[i]+priordens[i]-loglik[i-1]-priordens[i-1])<tol)
+#   if(!converged){
+#       warning("EM algorithm in function mixEM failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
+#   }
+#   return(list(pihat = pi, B=loglik[1:i], 
+#               niter = i, converged=converged))
+# }
 
 
 #estimate mixture proportions of sigmaa by EM algorithm
@@ -542,7 +574,7 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,l
   loglik = EMfit$B # actually return log lower bound not log-likelihood! 
   converged = EMfit$converged
   niter = EMfit$niter
-  loglik.final = EMfit$B[niter]
+  loglik.final = EMfit$B[length(EMfit$B)]
   
   null.loglik = sum(log(matrix_lik[,null.comp]))  
   
@@ -564,10 +596,8 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,l
 
 
 
-normalize = function(x){return(x/sum(x))}
 
-
-#' @title Estimate mixture proportions of a mixture model by EM algorithm
+#' @title Compute Posterior
 #'
 #' @description Return the posterior on beta given a prior (g) that is a mixture of normals (class normalmix) 
 #' and observation betahat \sim N(beta,sebetahat)
