@@ -212,7 +212,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
       PosteriorSD[completeobs] =postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs]) 
     }
     else{
-      #print("student-t likelihood")
+      print("student-t likelihood")
       ZeroProb[completeobs] = colSums(comppostprob_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)[comp_sd(pi.fit$g)==0,,drop=FALSE])     
       NegativeProb[completeobs] = cdf_post_t(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs],df) - ZeroProb[completeobs]
       PosteriorMean[completeobs] = postmean_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
@@ -459,7 +459,7 @@ mixVBEM = function(matrix_lik, prior, post.init=NULL, tol=0.0001, maxiter=5000){
 #' 
 mixEM = function(matrix_lik, prior, pi.init = NULL,tol=1e-7, maxiter=5000){
   if(is.null(pi.init)){
-    pi = rep(1/k,k)# Use as starting point for pi
+    pi.init = rep(1/k,k)# Use as starting point for pi
   } 
   res = squarem(par=pi.init,fixptfn=fixpoint, objfn=penloglik,matrix_lik=matrix_lik, prior=prior, control=list(maxiter=maxiter,tol=tol))
   return(list(pihat = res$par, B=res$value.objfn, 
@@ -584,13 +584,13 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,l
       pi[null.comp]=1
       m  = t(pi * t(matrix_lik)) 
       m.rowsum = rowSums(m)
-      loglik[niter] = sum(log(m.rowsum))
+      loglik = sum(log(m.rowsum))
     }
   }
   
   g$pi=pi
 
-  return(list(loglik=loglik[1:niter],null.loglik=null.loglik,
+  return(list(loglik=loglik.final,null.loglik=null.loglik,
             matrix_lik=matrix_lik,converged=converged,g=g))
 }
 
