@@ -115,7 +115,9 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   }
   
   completeobs = (!is.na(betahat) & !is.na(sebetahat))
-  if(sum(completeobs)==0){
+  n=sum(completeobs)
+  
+  if(n==0){
     if(onlylogLR){
       return(list(pi=NULL, logLR = 0))
     }
@@ -127,6 +129,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   if(!missing(g)){
       maxiter = 1 # if g is specified, don't iterate the EM
       prior = rep(1,ncomp(g)) #prior is not actually used if g specified, but required to make sure EM doesn't produce warning
+      null.comp=1 #null.comp also not used, but required 
   } else {
       if(is.null(mixsd)){
           mixsd = autoselect.mixsd(betahat[completeobs],sebetahat[completeobs],gridmult)
@@ -154,19 +157,25 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
       if(randomstart){
           pi = rgamma(k,1,1)
       } else {
-          pi = prior #default is to initialize pi at prior (mean)
+          if(k<n){
+            pi=rep(1,k)/n #default initialization strongly favours null; puts weight 1/n on everything except null
+            pi[null.comp] = (n-k+1)/n #the motivation is data can quickly drive away from null, but tend to drive only slowly toward null.
+          } else {
+            pi=rep(1,k)/k
+          }
       }
 
+      pi=normalize(pi)
       if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")
       if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),mixsd)
       if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)
       if(mixcompdist=="halfuniform"){
-          g = unimix(c(pi,pi),c(-mixsd,rep(0,k)),c(rep(0,k),mixsd))
+          g = unimix(c(pi,pi)/2,c(-mixsd,rep(0,k)),c(rep(0,k),mixsd))
           prior = rep(prior, 2)
           pi = rep(pi, 2)
       }
   }
-    
+ 
   pi.fit=EMest(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx, df=df)  
   
 
@@ -212,7 +221,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
       PosteriorSD[completeobs] =postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs]) 
     }
     else{
-      print("student-t likelihood")
+      #print("student-t likelihood")
       ZeroProb[completeobs] = colSums(comppostprob_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)[comp_sd(pi.fit$g)==0,,drop=FALSE])     
       NegativeProb[completeobs] = cdf_post_t(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs],df) - ZeroProb[completeobs]
       PosteriorMean[completeobs] = postmean_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
@@ -270,6 +279,7 @@ fast.ash = function(betahat,sebetahat,
                mixsd=NULL, VB=FALSE,gridmult=4,
                g=NULL, cxx=TRUE,
                onlylogLR = FALSE,df=NULL){
+  
     if(onlylogLR){
         pointmass <- TRUE  
     }
@@ -320,16 +330,16 @@ fast.ash = function(betahat,sebetahat,
   }
   
   if(missing(g)){
-    pi = prior #default is to initialize pi at prior (mean)
+    pi = prior^2 #default is to initialize pi at prior (mean)
     if(randomstart){pi=rgamma(k,1,1)}
-  
+    pi=normalize(pi)
     g=normalmix(pi,rep(0,k),mixsd)
     maxiter = 5000
   } else {
     maxiter = 1; # if g is specified, don't iterate the EM 
   }
   
-  pi.fit=EMest(betahat[completeobs],sebetahat[completeobs],g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx, df)  
+  pi.fit=EMest(betahat[completeobs],sebetahat[completeobs],g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx, df=df)  
  
   if(onlylogLR){
       logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
@@ -394,45 +404,38 @@ compute_lfsra = function(PositiveProb, NegativeProb,ZeroProb){
 #'  
 #' @export
 #' 
-mixVBEM = function(matrix_lik, prior, post.init=NULL, tol=0.0001, maxiter=5000){
+mixVBEM = function(matrix_lik, prior, pi.init = NULL,tol=1e-7, maxiter=5000){
+  k=ncol(matrix_lik)
+  if(is.null(pi.init)){
+    pi.init = rep(1,k)# Use as starting point for pi
+  } 
+  res = squarem(par=pi.init,fixptfn=VBfixpoint, objfn=VBpenloglik,matrix_lik=matrix_lik, prior=prior, control=list(maxiter=maxiter,tol=tol))
+  return(list(pihat = res$par/sum(res$par), B=res$value.objfn, niter = res$iter, converged=res$convergence,post=res$par))
+}
+
+
+VBfixpoint = function(pipost, matrix_lik, prior){  
   n=nrow(matrix_lik)
   k=ncol(matrix_lik)
-  B = rep(0,maxiter)
-  pipost = post.init
-  if(is.null(post.init)){
-    pipost = prior # Dirichlet posterior on pi
-  }
   avgpipost = matrix(exp(rep(digamma(pipost),n)-rep(digamma(sum(pipost)),k*n)),ncol=k,byrow=TRUE)
-  classprob = avgpipost * matrix_lik
-  classprob = classprob/rowSums(classprob) # n by k matrix  
-  B[1] = sum(classprob*log(avgpipost*matrix_lik),na.rm=TRUE) - diriKL(prior,pipost) #negative free energy
-  i=1
-  
-  if(maxiter>=2){
-    for(i in 2:maxiter){  
-      pipost = colSums(classprob) + prior
-    
-      #Now re-estimate pipost
-      avgpipost = matrix(exp(rep(digamma(pipost),n)-rep(digamma(sum(pipost)),k*n)),ncol=k,byrow=TRUE)
-      classprob = avgpipost*matrix_lik
-      classprob = classprob/rowSums(classprob) # n by k matrix
-    
-      B[i] = sum(classprob*log(avgpipost*matrix_lik),na.rm=TRUE) - diriKL(prior,pipost)
-    
-      if(abs(B[i]-B[i-1])<tol) break;
-    } 
-    if(i>maxiter){i=maxiter}
-  }
-
-  converged=(abs(B[i]-B[i-1])<tol)
-  if(!converged){
-      warning("EM algorithm in function mixVBEM failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
-  }
-  
-   
-  return(list(pihat = pipost/sum(pipost), B=B[1:i], niter = i, converged=converged,post=pipost))
+  classprob = avgpipost*matrix_lik
+  classprob = classprob/rowSums(classprob) # n by k matrix
+  pipostnew = colSums(classprob) + prior
+  return(pipostnew)
 }
+
+VBpenloglik = function(pipost, matrix_lik, prior){
+  n=nrow(matrix_lik)
+  k=ncol(matrix_lik)
+  avgpipost = matrix(exp(rep(digamma(pipost),n)-rep(digamma(sum(pipost)),k*n)),ncol=k,byrow=TRUE)
+  classprob = avgpipost*matrix_lik
+  classprob = classprob/rowSums(classprob) # n by k matrix
   
+  B= sum(classprob*log(avgpipost*matrix_lik),na.rm=TRUE) - diriKL(prior,pipost) - sum(classprob*log(classprob)) 
+  return(B)
+}
+
+
 
 #' @title Estimate mixture proportions of a mixture model by EM algorithm
 #'
@@ -486,7 +489,13 @@ penloglik = function(pi, matrix_lik, prior){
   return(loglik+priordens)
 }
 
-
+#The kth element of this vector is the derivative 
+#of the loglik for $\pi=(\pi_0,...,1-\pi_0,...)$ with respect to $\pi_0$ at $\pi_0=1$.
+gradient = function(matrix_lik){
+  n = nrow(matrix_lik)
+  grad = n - colSums(matrix_lik/matrix_lik[,1]) 
+  return(grad)
+}
 
 # mixEM = function(matrix_lik, prior, pi.init = NULL,tol=0.0001, maxiter=5000){
 #   n=nrow(matrix_lik)
@@ -543,31 +552,39 @@ penloglik = function(pi, matrix_lik, prior){
 #of mixture proportions of sigmaa by variational Bayes method
 #(use Dirichlet prior and approximate Dirichlet posterior)
 #if cxx TRUE use cpp version of R function mixEM
-EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,ltol=0.0001, maxiter=5000, cxx=TRUE, df=NULL){ 
+EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE, maxiter=5000, cxx=TRUE, df=NULL){ 
  
   pi.init = g$pi
   k=ncomp(g)
   n = length(betahat)
-  
+  tol = min(0.1/n,1e-4) # set convergence criteria to be more stringent for larger samples
+ 
   if(is.null(df)){
     matrix_lik = t(compdens_conv(g,betahat,sebetahat))
   }
   else{
     matrix_lik = t(compdens_conv_t(g,betahat,sebetahat,df))
   }
-  
+ 
+  #checks whether the gradient at pi0=1 is positive (suggesting that this is a fixed point)
+  #if(nullcheck){
+  #  if(all(gradient(matrix_lik)>=0)){
+  #    pi.init=rep(0,k)
+  #    pi.init[null.comp]=1 #this will make pi.init=(1,0,0...,0) which is a fixed point of the EM
+  #  }
+  #}
     
   if(VB==TRUE){
-    EMfit=mixVBEM(matrix_lik,prior,pi.init,ltol, maxiter)}
+    EMfit=mixVBEM(matrix_lik,prior,maxiter=maxiter)}
   else{
     if (cxx==TRUE){
-        EMfit = cxxMixEM(matrix_lik,prior,pi.init,ltol, maxiter)
+        EMfit = cxxMixEM(matrix_lik,prior,pi.init,1e-5, maxiter) #currently use different convergence criteria for cxx version 
         if(!EMfit$converged){
             warning("EM algorithm in function cxxMixEM failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
         }
     }
     else{
-        EMfit = mixEM(matrix_lik,prior,pi.init,ltol, maxiter)}
+        EMfit = mixEM(matrix_lik,prior,pi.init,tol, maxiter)}
   }
   
   pi = EMfit$pihat     
