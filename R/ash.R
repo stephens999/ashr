@@ -186,7 +186,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
 
   if(onlylogLR){
     logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
-    return(list(pi=pi.fit$pi, logLR = logLR))
+    return(list(pi=pi.fit$g$pi, logLR = logLR))
   } else if(minimaloutput){
     n=length(betahat)
     ZeroProb = rep(0,length=n)
