@@ -513,7 +513,7 @@ penloglik = function(pi, matrix_lik, prior){
   m  = t(pi * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k
   m.rowsum = rowSums(m)
   loglik = sum(log(m.rowsum))
-  subset = (prior-1) != 0
+  subset = (prior != 1.0)
   priordens = sum((prior-1)[subset]*log(pi[subset]))
   return(loglik+priordens)
 }
