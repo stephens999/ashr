@@ -60,7 +60,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
                minimaloutput=FALSE,
                g=NULL,
                maxiter = 5000,
-               cxx=TRUE){
+               cxx=FALSE){
   
   #method provides a convenient interface to set a particular combinations of parameters for prior an
   #If method is supplied, use it to set up specific values for these parameters; provide warning if values
