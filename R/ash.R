@@ -800,7 +800,7 @@ print.ash =function(a){
 plot.ash = function(a,xmin,xmax,...){
   x = seq(xmin,xmax,length=1000)
   y = density(a,x)
-  plot(x,y,type="l",...)
+  plot(y,type="l",...)
 }
 
 #compute the predictive density of an observation
