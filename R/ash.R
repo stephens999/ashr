@@ -617,11 +617,11 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE, 
   }
   
   pi = EMfit$pihat     
-  loglik = EMfit$B # actually return log lower bound not log-likelihood! 
+  penloglik = EMfit$B # actually return log lower bound not log-likelihood! 
   converged = EMfit$converged
   niter = EMfit$niter
-  loglik.final = EMfit$B[length(EMfit$B)]
   
+  loglik.final =  penloglik(pi,matrix_lik,1) #compute penloglik without penalty
   null.loglik = sum(log(matrix_lik[,null.comp]))  
   
   if(nullcheck==TRUE & VB==FALSE){ #null check doesn't work with VB yet
@@ -837,7 +837,8 @@ get_loglik = function(a){
 #' @export
 #' 
 get_pi0 = function(a){
-  return(ifelse(comp_sd(a$fitted.g)[1]==0,a$fitted.g$pi[1],0))
+  null.comp = comp_sd(a$fitted.g)==0
+  return(sum(a$fitted.g$pi[null.comp]))
 }
 
 #' @title Compute loglikelihood for data from ash fit

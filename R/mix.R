@@ -422,7 +422,7 @@ compdens.unimix = function(x,y,log=FALSE){
 compdens_conv.unimix = function(m, x, s, FUN="+"){
   if(FUN!="+") stop("Error; compdens_conv not implemented for uniform with FUN!=+")
   compdens= t(pnorm(outer(x,m$a,FUN="-")/s)-pnorm(outer(x,m$b,FUN="-")/s))/(m$b-m$a)
-  compdens[m$a==m$b,]=t(dnorm(outer(x,m$a,FUN="-")/s))[m$a==m$b,]
+  compdens[m$a==m$b,]=t(dnorm(outer(x,m$a,FUN="-")/s)/s)[m$a==m$b,]
   return(compdens)
 }
 
@@ -436,14 +436,16 @@ compcdf_post.unimix=function(m,c,betahat,sebetahat){
   k = length(m$pi)
   n=length(betahat)
   tmp = matrix(1,nrow=k,ncol=n)
-  tmp[m$a >= c,] = 0
-  subset = m$a<c & m$b>c # subset of components (1..k) with nontrivial cdf
+  tmp[m$a > c,] = 0
+  subset = m$a<=c & m$b>c # subset of components (1..k) with nontrivial cdf
   if(sum(subset)>0){
     pna = pnorm(outer(betahat,m$a[subset],FUN="-")/sebetahat)
     pnc = pnorm(outer(betahat,rep(c,sum(subset)),FUN="-")/sebetahat)
     pnb = pnorm(outer(betahat,m$b[subset],FUN="-")/sebetahat)
     tmp[subset,] = t((pnc-pna)/(pnb-pna))
   }
+  subset = (m$a == m$b) #subset of components with trivial cdf
+  tmp[subset,]= rep(m$a[subset] <= c,n)
   tmp
 }
 
@@ -535,7 +537,7 @@ compdens_conv_t.normalmix = function(m, x, s, v,FUN="+"){
 compdens_conv_t.unimix = function(m, x, s, v , FUN="+"){
   if(FUN!="+") stop("Error; compdens_conv_t not implemented for uniform with FUN!=+")
   compdens= t(pt(outer(x,m$a,FUN="-")/s,df=v)-pt(outer(x,m$b,FUN="-")/s,df=v))/(m$b-m$a)
-  compdens[m$a==m$b,]=t(dt(outer(x,m$a,FUN="-")/s,df=v))[m$a==m$b,]
+  compdens[m$a==m$b,]=t(dt(outer(x,m$a,FUN="-")/s,df=v)/s)[m$a==m$b,]
   return(compdens)
 }
 
@@ -585,14 +587,16 @@ compcdf_post_t.unimix=function(m,c,betahat,sebetahat,v){
   k = length(m$pi)
   n=length(betahat)
   tmp = matrix(1,nrow=k,ncol=n)
-  tmp[m$a >= c,] = 0
-  subset = m$a<c & m$b>c # subset of components (1..k) with nontrivial cdf
+  tmp[m$a > c,] = 0
+  subset = m$a<=c & m$b>c # subset of components (1..k) with nontrivial cdf
   if(sum(subset)>0){
     pna = pt(outer(betahat,m$a[subset],FUN="-")/sebetahat, df=v)
     pnc = pt(outer(betahat,rep(c,sum(subset)),FUN="-")/sebetahat, df=v)
     pnb = pt(outer(betahat,m$b[subset],FUN="-")/sebetahat, df=v)
     tmp[subset,] = t((pnc-pna)/(pnb-pna))
   }
+  subset = (m$a == m$b) #subset of components with trivial cdf
+  tmp[subset,]= rep(m$a[subset] <= c,n)
   tmp
 }
 
