@@ -613,7 +613,11 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE, 
         }
     }
     else{
-        EMfit = mixEM(matrix_lik,prior,pi.init,tol, maxiter)}
+        EMfit = mixEM(matrix_lik,prior,pi.init,tol, maxiter)
+        if(!EMfit$converged){
+          warning("EM algorithm in function mixEM failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
+        }
+    }
   }
   
   pi = EMfit$pihat     
