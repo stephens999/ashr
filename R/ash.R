@@ -96,6 +96,9 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
       }
     }  
   }
+  
+  if(gridmult<=1)
+    stop("gridmult must be > 1")
 
   if(multiseqoutput&&onlylogLR){
       pointmass = TRUE  
