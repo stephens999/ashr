@@ -492,7 +492,7 @@ mixEM = function(matrix_lik, prior, pi.init = NULL,tol=1e-7, maxiter=5000){
     pi.init = rep(1/k,k)# Use as starting point for pi
   } 
   res = squarem(par=pi.init,fixptfn=fixpoint, objfn=penloglik,matrix_lik=matrix_lik, prior=prior, control=list(maxiter=maxiter,tol=tol))
-  return(list(pihat = res$par, B=res$value.objfn, 
+  return(list(pihat = normalize(pmax(0,res$par)), B=res$value.objfn, 
               niter = res$iter, converged=res$convergence))
 }
 
@@ -500,14 +500,16 @@ mixEM = function(matrix_lik, prior, pi.init = NULL,tol=1e-7, maxiter=5000){
 normalize = function(x){return(x/sum(x))}
 
 fixpoint = function(pi, matrix_lik, prior){  
+  pi = normalize(pmax(0,pi)) #avoid occasional problems with negative pis due to rounding
   m  = t(pi * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k
   m.rowsum = rowSums(m)
   classprob = m/m.rowsum #an n by k matrix
-  pinew = normalize(colSums(classprob) + prior-1)
+  pinew = normalize(colSums(classprob) + prior - 1)
   return(pinew)
 }
 
 penloglik = function(pi, matrix_lik, prior){
+  pi = normalize(pmax(0,pi))
   m  = t(pi * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k
   m.rowsum = rowSums(m)
   loglik = sum(log(m.rowsum))
