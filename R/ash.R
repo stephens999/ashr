@@ -134,7 +134,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     }
   }  
   
-  if(!missing(g)){
+  if(!is.null(g)){
     maxiter = 1 # if g is specified, don't iterate the EM
     prior = rep(1,ncomp(g)) #prior is not actually used if g specified, but required to make sure EM doesn't produce warning
     null.comp=1 #null.comp also not used, but required 
