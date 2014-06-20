@@ -182,98 +182,74 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   
   pi.fit=EMest(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx, df=df)  
   
-  
-  if(onlylogLR){
-    logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
-    return(list(fitted.g=pi.fit$g, logLR = logLR))
-  } else if(minimaloutput){
-    n=length(betahat)
-    ZeroProb = rep(0,length=n)
-    NegativeProb = rep(0,length=n)
-    if(is.null(df)){
-      #print("normal likelihood")
-      ZeroProb[completeobs] = colSums(comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs])[comp_sd(pi.fit$g)==0,,drop=FALSE])     
-      NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs]) - ZeroProb[completeobs]
-      ZeroProb[!completeobs] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g)==0])
-      NegativeProb[!completeobs] = mixcdf(pi.fit$g,0) 
-    }
-    else{
-      #print("student-t likelihood")
-      ZeroProb[completeobs] = colSums(comppostprob_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)[comp_sd(pi.fit$g)==0,,drop=FALSE])     
-      NegativeProb[completeobs] = cdf_post_t(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs],df) - ZeroProb[completeobs]
-      ZeroProb[!completeobs] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g)==0])
-      NegativeProb[!completeobs] = mixcdf(pi.fit$g,0) 
-    }
-    
-    lfsr = compute_lfsr(NegativeProb,ZeroProb)
-    result = list(fitted.g=pi.fit$g,lfsr=lfsr,fit=pi.fit)
-    return(result) 
-  } else if(multiseqoutput){
-    n=length(betahat)
-    PosteriorMean = rep(0,length=n)
-    PosteriorSD=rep(0,length=n)
-    
-    if(is.null(df)){
-      PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs])
-      PosteriorSD[completeobs] =postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs]) 
-    }
-    else{
-      PosteriorMean[completeobs] = postmean_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
-      PosteriorSD[completeobs] =postsd_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
-    }
-    #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
-    PosteriorMean[!completeobs] = mixmean(pi.fit$g)
-    PosteriorSD[!completeobs] =mixsd(pi.fit$g)  
-
-    logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
-    result = list(fitted.g=pi.fit$g, logLR=logLR, PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,call=match.call())
-    return(result)
-  } else{
-    
-    
-    #     post = posterior_dist(pi.fit$g,betahat,sebetahat)
-    n=length(betahat)
-    ZeroProb = rep(0,length=n)
-    NegativeProb = rep(0,length=n)
-    PosteriorMean = rep(0,length=n)
-    PosteriorSD=rep(0,length=n)
-    if(is.null(df)){
-      #print("normal likelihood")
-      ZeroProb[completeobs] = colSums(comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs])[comp_sd(pi.fit$g)==0,,drop=FALSE])     
-      NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs]) - ZeroProb[completeobs]
-      PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs])
-      PosteriorSD[completeobs] =postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs]) 
-    }
-    else{
-      #print("student-t likelihood")
-      ZeroProb[completeobs] = colSums(comppostprob_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)[comp_sd(pi.fit$g)==0,,drop=FALSE])     
-      NegativeProb[completeobs] = cdf_post_t(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs],df) - ZeroProb[completeobs]
-      PosteriorMean[completeobs] = postmean_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
-      PosteriorSD[completeobs] =postsd_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
-    }
-    
-    #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
-    ZeroProb[!completeobs] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g)==0])
-    NegativeProb[!completeobs] = mixcdf(pi.fit$g,0) 
-    PosteriorMean[!completeobs] = mixmean(pi.fit$g)
-    PosteriorSD[!completeobs] =mixsd(pi.fit$g)  
-    PositiveProb =  1- NegativeProb-ZeroProb    
-    
-    lfsr = compute_lfsr(NegativeProb,ZeroProb)
-    lfsra =  compute_lfsra(PositiveProb,NegativeProb,ZeroProb) 
-    
-    lfdr = ZeroProb
-    qvalue = qval.from.lfdr(lfdr)
-    
-    result = list(fitted.g=pi.fit$g,logLR =tail(pi.fit$loglik,1) - pi.fit$null.loglik,PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,PositiveProb =PositiveProb,NegativeProb=NegativeProb, ZeroProb=ZeroProb,lfsr = lfsr,lfsra=lfsra, lfdr=lfdr,qvalue=qvalue,fit=pi.fit,lambda1=lambda1,lambda2=lambda2,call=match.call(),data=list(betahat = betahat, sebetahat=sebetahat))
-    class(result)= "ash"
-    return(result)
-    
+  if (!onlylogLR){
+      n=length(betahat)
+      if (!multiseqoutput){
+          ZeroProb = rep(0,length=n)
+          NegativeProb = rep(0,length=n)
+      }
+      if (!minimaloutput){
+          PosteriorMean = rep(0,length=n)
+          PosteriorSD = rep(0,length=n)
+      }
+      if(is.null(df)){
+                                        #print("normal likelihood")
+          if (!multiseqoutput){  
+              ZeroProb[completeobs] = colSums(comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs])[comp_sd(pi.fit$g)==0,,drop=FALSE])     
+              NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs]) - ZeroProb[completeobs]
+          }
+          if (!minimaloutput){
+              PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs])
+              PosteriorSD[completeobs] = postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs])
+          }
+      }
+      else{
+                                        #print("student-t likelihood")
+          if (!multiseqoutput){
+              ZeroProb[completeobs] = colSums(comppostprob_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)[comp_sd(pi.fit$g)==0,,drop=FALSE])     
+              NegativeProb[completeobs] = cdf_post_t(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs],df) - ZeroProb[completeobs]
+          }
+          if (!minimaloutput){
+              PosteriorMean[completeobs] = postmean_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
+              PosteriorSD[completeobs] = postsd_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
+          }
+      }
+      
+                                        #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
+      if (!multiseqoutput){
+          ZeroProb[!completeobs] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g)==0])
+          NegativeProb[!completeobs] = mixcdf(pi.fit$g,0)
+          lfsr = compute_lfsr(NegativeProb,ZeroProb)
+      }
+      if (!minimaloutput){
+          PosteriorMean[!completeobs] = mixmean(pi.fit$g)
+          PosteriorSD[!completeobs] = mixsd(pi.fit$g)
+      }
+      if (!minimaloutput & !multiseqoutput){
+          PositiveProb = 1- NegativeProb-ZeroProb
+          lfsra = compute_lfsra(PositiveProb,NegativeProb,ZeroProb) 
+          lfdr = ZeroProb
+          qvalue = qval.from.lfdr(lfdr)
+      }
   }
+  if (!minimaloutput)
+      logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
+  
+  if (onlylogLR)
+      return(list(fitted.g=pi.fit$g, logLR = logLR))
+  else if (minimaloutput)
+      return(list(fitted.g = pi.fit$g, lfsr = lfsr, fit = pi.fit))
+  else if (multiseqoutput)
+      return(list(fitted.g = pi.fit$g, logLR = logLR, PosteriorMean = PosteriorMean, PosteriorSD = PosteriorSD, call= match.call()))
+  else{
+      result = list(fitted.g = pi.fit$g, logLR = logLR, PosteriorMean = PosteriorMean, PosteriorSD = PosteriorSD, PositiveProb = PositiveProb, NegativeProb = NegativeProb, ZeroProb = ZeroProb, lfsr = lfsr,lfsra = lfsra, lfdr = lfdr, qvalue = qvalue, fit = pi.fit, lambda1 = lambda1, lambda2 = lambda2, call = match.call(), data = list(betahat = betahat, sebetahat=sebetahat))
+      class(result) = "ash"
+      return(result)
+  }
+}
   #if(nsamp>0){
   #  sample = posterior_sample(post,nsamp)
   #}
-}
 
 # #' @title Faster version of function ash
 # #'
@@ -617,7 +593,7 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE, 
     }
     else{
       EMfit = mixEM(matrix_lik,prior,pi.init,tol, maxiter)
-      if(!EMfit$converged){
+      if(!EMfit$converged & !(maxiter==1)){
         warning("EM algorithm in function mixEM failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
       }
     }
