@@ -99,11 +99,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   
   if(gridmult<=1)
     stop("gridmult must be > 1")
-  
-  if(multiseqoutput&&onlylogLR){
-    pointmass = TRUE  
-  }
-  
+    
   mixcompdist = match.arg(mixcompdist)
   # if(mixcompdist=="uniform" & pointmass==TRUE){
   #    stop("point mass not yet implemented for uniform or half-uniform")
@@ -229,7 +225,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     PosteriorMean[!completeobs] = mixmean(pi.fit$g)
     PosteriorSD[!completeobs] =mixsd(pi.fit$g)  
     
-    result = list(fitted.g=pi.fit$g,PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,call=match.call())
+    result = list(fitted.g=pi.fit$g, logLR=logLR, PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,call=match.call())
     return(result)
   } else{
     
