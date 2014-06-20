@@ -224,7 +224,8 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
     PosteriorMean[!completeobs] = mixmean(pi.fit$g)
     PosteriorSD[!completeobs] =mixsd(pi.fit$g)  
-    
+
+    logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
     result = list(fitted.g=pi.fit$g, logLR=logLR, PosteriorMean = PosteriorMean,PosteriorSD=PosteriorSD,call=match.call())
     return(result)
   } else{
