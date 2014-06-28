@@ -97,7 +97,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     }  
   }
   
-  if(gridmult<=1)
+  if(gridmult<=1&multiseqoutput!=TRUE)
     stop("gridmult must be > 1")
     
   mixcompdist = match.arg(mixcompdist)
