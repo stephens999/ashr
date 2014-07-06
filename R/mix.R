@@ -643,7 +643,7 @@ my_etrunct= function(a,b,v){
   F_a = pt(a,df=v)
   F_b = pt(b,df=v)
   G = gamma((v-1)/2)*v^(v/2)/(2*(F_b-F_a)*gamma(v/2)*gamma(1/2))
-  tmp = G*(A^(-(v-1)/2)-B^(-(v-1)/2))
+  tmp = ifelse(a==b,a,G*(A^(-(v-1)/2)-B^(-(v-1)/2)))
   tmp
 }
 
