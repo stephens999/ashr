@@ -379,7 +379,7 @@ comp_postmean.normalmix = function(m,betahat,sebetahat){
   t(tmp)
 }
 
-#return posterior mean for each component of prior m, given observations betahat and sebetahat
+#return posterior standard deviation for each component of prior m, given observations betahat and sebetahat
 #input, m is a mixture with k components
 #betahat, sebetahat are n vectors
 #output is a k by n matrix
