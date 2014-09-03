@@ -156,6 +156,7 @@ ashci = function (a,level=0.95){
   x=a$data$betahat
   s=a$data$sebetahat
   m=a$fitted.g
+  df=a$df
   lower=min(x)-qnorm(level)*(max(m$sd)+max(s))
   upper=max(x)+qnorm(level)*(max(m$sd)+max(s))
 	
