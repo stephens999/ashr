@@ -21,6 +21,8 @@
 #' in which all weight is on the first component
 #' @param df: appropriate degrees of freedom for (t) distribution of betahat/sebetahat
 #' @param randomstart: bool, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
+#' @param nullweight: scalar, the weight put on the prior of null under "fdr" method
+#' @param nonzeromean: bool, indicating whether to use a nonzero mean unimodal mixture(defaults to "FALSE")
 #' @param pointmass: bool, indicating whether to use a point mass at zero as one of components for a mixture distribution
 #' @param onlylogLR: bool, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, lfdr...
 #' @param prior: string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or 1,1...,1; also can be "nullbiased" 1,1/k-1,...,1/k-1 to put more weight on first component)
@@ -52,7 +54,8 @@
 # check number of iterations
 ash = function(betahat,sebetahat,method = c("shrink","fdr"), 
                mixcompdist = c("normal","uniform","halfuniform"),
-               lambda1=1,lambda2=0,nullcheck=TRUE,df=NULL,randomstart=FALSE, 
+               lambda1=1,lambda2=0,nullcheck=TRUE,df=NULL,randomstart=FALSE,
+               nullweight=10,nonzeromean=FALSE, 
                pointmass = FALSE, 
                onlylogLR = FALSE, 
                prior=c("uniform","nullbiased"), 
@@ -142,13 +145,22 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
       mixsd = c(0,mixsd)
     }
     
+    if(nonzeromean & is.null(df)){
+		nonzeromean.fit=nonzeromeanEM(betahat[completeobs], sebetahat[completeobs], mixsd, maxiter=maxiter)
+		betahat[completeobs]= betahat[completeobs] - nonzeromean.fit$nonzeromean
+	}
+	else if(nonzeromean & !is.null(df)){
+		stop("Error: Nonzero mean only implemented for df=NULL")
+	}
+
+    
     null.comp = which.min(mixsd) #which component is the "null"
     
     k = length(mixsd)
     if(!is.numeric(prior)){
       if(prior=="nullbiased"){ # set up prior to favour "null"
         prior = rep(1,k)
-        prior[null.comp] = 10 #prior 10-1 in favour of null
+        prior[null.comp] = nullweight #prior 10-1 in favour of null by default
       }else if(prior=="uniform"){
         prior = rep(1,k)
       }
@@ -192,28 +204,17 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
           PosteriorMean = rep(0,length=n)
           PosteriorSD = rep(0,length=n)
       }
-      if(is.null(df)){
-                                        #print("normal likelihood")
-          if (!multiseqoutput){  
-              ZeroProb[completeobs] = colSums(comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs])[comp_sd(pi.fit$g)==0,,drop=FALSE])     
-              NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs]) - ZeroProb[completeobs]
-          }
-          if (!minimaloutput){
-              PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs])
-              PosteriorSD[completeobs] = postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs])
-          }
+      
+            
+      if (!multiseqoutput){
+          ZeroProb[completeobs] = colSums(comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)[comp_sd(pi.fit$g)==0,,drop=FALSE])
+          NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs],df) - ZeroProb[completeobs]
       }
-      else{
-                                        #print("student-t likelihood")
-          if (!multiseqoutput){
-              ZeroProb[completeobs] = colSums(comppostprob_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)[comp_sd(pi.fit$g)==0,,drop=FALSE])     
-              NegativeProb[completeobs] = cdf_post_t(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs],df) - ZeroProb[completeobs]
-          }
-          if (!minimaloutput){
-              PosteriorMean[completeobs] = postmean_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
-              PosteriorSD[completeobs] = postsd_t(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
-          }
+      if (!minimaloutput){
+          PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
+          PosteriorSD[completeobs] = postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
       }
+      
       
                                         #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
       if (!multiseqoutput){
@@ -235,14 +236,21 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   if (!minimaloutput)
       logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
   
+  if(nonzeromean & is.null(df)){
+      #Adding back the nonzero mean
+      betahat[completeobs]= betahat[completeobs]+nonzeromean.fit$nonzeromean
+      pi.fit$g$mean =nonzeromean.fit$nonzeromean
+      PosteriorMean= PosteriorMean + nonzeromean.fit$nonzeromean      
+  }	   
+  
   if (onlylogLR)
-      return(list(fitted.g=pi.fit$g, logLR = logLR))
+      return(list(fitted.g=pi.fit$g, logLR = logLR, df=df))
   else if (minimaloutput)
-      return(list(fitted.g = pi.fit$g, lfsr = lfsr, fit = pi.fit))
+      return(list(fitted.g = pi.fit$g, lfsr = lfsr, fit = pi.fit,df=df))
   else if (multiseqoutput)
-      return(list(fitted.g = pi.fit$g, logLR = logLR, PosteriorMean = PosteriorMean, PosteriorSD = PosteriorSD, call= match.call()))
+      return(list(fitted.g = pi.fit$g, logLR = logLR, PosteriorMean = PosteriorMean, PosteriorSD = PosteriorSD, call= match.call(),df=df))
   else{
-      result = list(fitted.g = pi.fit$g, logLR = logLR, PosteriorMean = PosteriorMean, PosteriorSD = PosteriorSD, PositiveProb = PositiveProb, NegativeProb = NegativeProb, ZeroProb = ZeroProb, lfsr = lfsr,lfsra = lfsra, lfdr = lfdr, qvalue = qvalue, fit = pi.fit, lambda1 = lambda1, lambda2 = lambda2, call = match.call(), data = list(betahat = betahat, sebetahat=sebetahat))
+      result = list(fitted.g = pi.fit$g, logLR = logLR, PosteriorMean = PosteriorMean, PosteriorSD = PosteriorSD, PositiveProb = PositiveProb, NegativeProb = NegativeProb, ZeroProb = ZeroProb, lfsr = lfsr,lfsra = lfsra, lfdr = lfdr, qvalue = qvalue, fit = pi.fit, lambda1 = lambda1, lambda2 = lambda2, call = match.call(), data = list(betahat = betahat, sebetahat=sebetahat),df=df)
       class(result) = "ash"
       return(result)
   }
@@ -379,6 +387,68 @@ compute_lfsr = function(NegativeProb,ZeroProb){
 compute_lfsra = function(PositiveProb, NegativeProb,ZeroProb){
   ifelse(PositiveProb<NegativeProb,2*PositiveProb+ZeroProb,2*NegativeProb+ZeroProb)  
 }  
+
+#' @title Estimate unimodal nonzero mean of a mixture model by EM algorithm
+#'
+#' @description Given the data, standard error of the data and standard deviations of the Gaussian mixture model, estimate the mean of a unimodal Gaussian mixture by an EM algorithm.
+#'
+#' @details Fits a k component mixture model \deqn{f(x|\pi) = \sum_k \pi_k f_k(x)} to independent
+#' and identically distributed data \eqn{x_1,\dots,x_n}. 
+#' Estimates unimodal mean \eqn{\mu} by EM algorithm. Uses the SQUAREM package to accelerate convergence of EM. Used by the ash main function; there is no need for a user to call this 
+#' function separately, but it is exported for convenience.
+#'
+#' 
+#' @param betahat, a p vector of estimates 
+#' @param sebetahat, a p vector of corresponding standard errors
+#' @param mixsd: vector of sds for underlying mixture components 
+#' @param pi.init, the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).
+#' @param tol, the tolerance for convergence of log-likelihood.
+#' @param maxiter the maximum number of iterations performed
+#' 
+#' @return A list, including the estimates (\eqn{\mu}) and (\eqn{\pi}), the log likelihood for each iteration (NQ)
+#' and a flag to indicate convergence
+#'  
+#' @export
+#' 
+#' 
+nonzeromeanEM = function(betahat, sebetahat, mixsd, pi.init=NULL,tol=1e-7,maxiter=5000){
+  if(is.null(pi.init)){
+    pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi
+  }
+  mupi=c(mean(betahat),pi.init)
+  res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))
+  return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))
+	
+}
+
+nonzeromeanEMfixpoint = function(mupi,betahat,sebetahat,mixsd){
+	#omegamatrix=matrix(NA,nrow=length(betahat),ncol=length(mixsd))
+	mu=mupi[1]
+	pimean=mupi[-1]
+	sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) 
+	xmat=matrix(rep(betahat,length(mixsd)),ncol=length(mixsd))
+	omegamatrix=t(t(dnorm(xmat,mean=mu,sd=sdmat))*pimean)
+	omegamatrix=omegamatrix /rowSums(omegamatrix)
+	pinew=normalize(colSums(omegamatrix))
+	munew=sum(omegamatrix*xmat/(sdmat^2))/sum(omegamatrix/(sdmat^2))
+	mupi=c(munew,pinew)
+	return(mupi)
+}
+
+nonzeromeanEMobj = function(mupi,betahat,sebetahat,mixsd){
+	mu=mupi[1]
+	pimean=mupi[-1]
+	sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) 
+	xmat=matrix(rep(betahat,length(mixsd)),ncol=length(mixsd))
+	
+	omegamatrix=t(t(dnorm(xmat,mean=mu,sd=sdmat))*pimean)
+	omegamatrix=omegamatrix /rowSums(omegamatrix)
+	NegativeQ=-sum(omegamatrix*dnorm(xmat,mean=mu,sd=sdmat,log=TRUE))
+	return(NegativeQ)
+}
+
+
+
 #' @title Estimate posterior distribution on mixture proportions of a mixture model by a Variational Bayes EM algorithm
 #'
 #' @description Given the individual component likelihoods for a mixture model, estimates the posterior on 
@@ -567,12 +637,9 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE, 
   n = length(betahat)
   tol = min(0.1/n,1e-5) # set convergence criteria to be more stringent for larger samples
   
-  if(is.null(df)){
-    matrix_lik = t(compdens_conv(g,betahat,sebetahat))
-  }
-  else{
-    matrix_lik = t(compdens_conv_t(g,betahat,sebetahat,df))
-  }
+
+  matrix_lik = t(compdens_conv(g,betahat,sebetahat,df))
+
   
   #checks whether the gradient at pi0=1 is positive (suggesting that this is a fixed point)
   #if(nullcheck){
@@ -747,140 +814,6 @@ autoselect.mixsd = function(betahat,sebetahat,mult){
   }
 }
 
-
-#' @title Summary method for ash object
-#'
-#' @description Print summary of fitted ash object
-#'
-#' @details See readme for more details
-#' 
-#' @export
-#' 
-summary.ash=function(a){
-  print(a$fitted.g)
-  print(tail(a$fit$loglik,1),digits=10)
-  print(a$fit$converged)
-}
-
-#' @title Print method for ash object
-#'
-#' @description Print the fitted distribution of beta values in the EB hierarchical model
-#'
-#' @details None
-#' 
-#' @export
-#' 
-print.ash =function(a){
-  print(a$fitted.g)
-}
-
-#' @title Plot method for ash object
-#'
-#' @description Plot the density of the underlying fitted distribution
-#'
-#' @details None
-#' 
-#' @export
-#' 
-plot.ash = function(a,xmin,xmax,...){
-  x = seq(xmin,xmax,length=1000)
-  y = density(a,x)
-  plot(y,type="l",...)
-}
-
-#compute the predictive density of an observation
-#given the fitted ash object a and the vector se of standard errors
-#not implemented yet
-predictive=function(a,se){
-  
-}
-
-
-#' @title Get fitted loglikelihood for ash object
-#'
-#' @description Return the log-likelihood of the data under the fitted distribution
-#'
-#' @param a the fitted ash object
-#'
-#' @details None
-#' 
-#' @export
-#' 
-#'
-get_loglik = function(a){
-  return(tail(a$fit$loglik,1))
-}
-
-#' @title Get pi0 estimate for ash object
-#'
-#' @description Return estimate of the null proportion, pi0
-#'
-#' @param a the fitted ash object
-#'
-#' @details Extracts the estimate of the null proportion, pi0, from the object a
-#' 
-#' @export
-#' 
-get_pi0 = function(a){
-  null.comp = comp_sd(a$fitted.g)==0
-  return(sum(a$fitted.g$pi[null.comp]))
-}
-
-#' @title Compute loglikelihood for data from ash fit
-#'
-#' @description Return the log-likelihood of the data betahat, with standard errors betahatsd, 
-#' under the fitted distribution in the ash object. 
-#' 
-#'
-#' @param a the fitted ash object
-#' @param betahat the data
-#' @param betahatsd the observed standard errors
-#' @param zscores indicates whether ash object was originally fit to z scores 
-#' @details None
-#' 
-#' @export
-#' 
-#'
-loglik.ash = function(a,betahat,betahatsd,zscores=FALSE){
-  g=a$fitted.g
-  FUN="+"
-  if(zscores==TRUE){
-    g$sd = sqrt(g$sd^2+1) 
-    FUN="*"
-  }
-  return(loglik_conv(g,betahat, betahatsd,FUN))
-}
-
-#' @title Density method for ash object
-#'
-#' @description Return the density of the underlying fitted distribution
-#'
-#' @param a the fitted ash object
-#' @param x the vector of locations at which density is to be computed
-#'
-#' @details None
-#' 
-#' @export
-#' 
-#'
-density.ash=function(a,x){list(x=x,y=dens(a$fitted.g,x))}
-
-#' @title cdf method for ash object
-#'
-#' @description Computed the cdf of the underlying fitted distribution
-#'
-#' @param a the fitted ash object
-#' @param x the vector of locations at which cdf is to be computed
-#' @param lower.tail (default=TRUE) whether to compute the lower or upper tail
-#'
-#' @details None
-#' 
-#' @export
-#' 
-#'
-cdf.ash=function(a,x,lower.tail=TRUE){
-  return(list(x=x,y=mixcdf(a$fitted.g,x,lower.tail)))
-}
 
 
 #return the KL-divergence between 2 dirichlet distributions
