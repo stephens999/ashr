@@ -130,44 +130,46 @@ loglik.default = function(m,x){
 #the mixture m is convolved with a normal with sd betahatsd
 #betahatsd is an n vector
 #betahat is an n vector
+#v is the degree of freedom
 #' @title loglik_conv
 #' 
 #' @export
 #' 
-loglik_conv = function(m,betahat,betahatsd,FUN="+"){
+loglik_conv = function(m,betahat,betahatsd,v,FUN="+"){
   UseMethod("loglik_conv")
 }
 #' @title loglik_conv.default
 #' 
 #' @export
 #' 
-loglik_conv.default = function(m,betahat,betahatsd,FUN="+"){
-  sum(log(dens_conv(m,betahat,betahatsd,FUN)))
+loglik_conv.default = function(m,betahat,betahatsd,v,FUN="+"){
+  sum(log(dens_conv(m,betahat,betahatsd,v,FUN)))
 }
 
 #compute the density of the components of the mixture m
 #when convoluted with a normal with standard deviation s
+#or a scaled (se) student.t with df v
 #the density is evaluated at x
 #x and s are n-vectors
 #m is a mixture with k components
 #output is a k by n matrix of densities
-compdens_conv = function(m, x, s, FUN="+"){
+compdens_conv = function(m,x,s,v,FUN="+"){
   UseMethod("compdens_conv")
 }
-compdens_conv.default = function(m,x, s,FUN="+"){
+compdens_conv.default = function(m,x,s,v,FUN="+"){
   stop(paste("Invalid class", class(m), "for first argument in",  match.call()))  
 }
 
-#compute density of mixture m convoluted with normal of sd (s)
+#compute density of mixture m convoluted with normal of sd (s) or student t with df v
 #at locations x
 #m is a mixture
 #x is an n vector
 #s is an n vector or integer
-dens_conv = function(m,x,s,FUN="+"){
+dens_conv = function(m,x,s,v,FUN="+"){
   UseMethod("dens_conv")
 }
-dens_conv.default = function(m,x,s,FUN="+"){
-  colSums(m$pi * compdens_conv(m,x,s,FUN))
+dens_conv.default = function(m,x,s,v,FUN="+"){
+  colSums(m$pi * compdens_conv(m,x,s,v,FUN))
 }
 
 #compute the posterior prob that each observation
@@ -175,11 +177,11 @@ dens_conv.default = function(m,x,s,FUN="+"){
 #output a k by n vector of probabilities
 #computed by weighting the component densities by pi
 #and then normalizing
-comppostprob=function(m,x,s){
+comppostprob=function(m,x,s,v){
  UseMethod("comppostprob") 
 }
-comppostprob.default = function(m,x,s){
-  tmp= (t(m$pi * compdens_conv(m,x,s))/dens_conv(m,x,s))
+comppostprob.default = function(m,x,s,v){
+  tmp= (t(m$pi * compdens_conv(m,x,s,v))/dens_conv(m,x,s,v))
   ismissing = (is.na(x) | is.na(s))
   tmp[ismissing,]=m$pi
   t(tmp)
@@ -192,73 +194,78 @@ comppostprob.default = function(m,x,s){
 # c a scalar
 # betahat, sebetahat are n vectors 
 # output is a k by n matrix
-compcdf_post=function(m,c,betahat,sebetahat){
+compcdf_post=function(m,c,betahat,sebetahat,v){
   UseMethod("compcdf_post")
 }
-compcdf_post.default=function(m,c,betahat,sebetahat){
+compcdf_post.default=function(m,c,betahat,sebetahat,v){
   stop("method compcdf_post not written for this class")
 }
 
 
-cdf_post = function(m,c,betahat,sebetahat){
+cdf_post = function(m,c,betahat,sebetahat,v){
   UseMethod("cdf_post")
 }
-cdf_post.default=function(m,c,betahat,sebetahat){
-  colSums(comppostprob(m,betahat,sebetahat)*compcdf_post(m,c,betahat,sebetahat))
+cdf_post.default=function(m,c,betahat,sebetahat,v){
+  colSums(comppostprob(m,betahat,sebetahat,v)*compcdf_post(m,c,betahat,sebetahat,v))
 }
 
 #output posterior mean for beta for prior mixture m,
-#given observations betahat, sebetahat
-postmean = function(m, betahat,sebetahat){
+#given observations betahat, sebetahat, df v
+postmean = function(m, betahat,sebetahat,v){
   UseMethod("postmean")
 }
-postmean.default = function(m,betahat,sebetahat){
-  colSums(comppostprob(m,betahat,sebetahat) * comp_postmean(m,betahat,sebetahat))
+postmean.default = function(m,betahat,sebetahat,v){
+  colSums(comppostprob(m,betahat,sebetahat,v) * comp_postmean(m,betahat,sebetahat,v))
 }
 
+
+
 #output posterior mean-squared value for beta for prior mixture m,
-#given observations betahat, sebetahat
-postmean2 = function(m, betahat,sebetahat){
+#given observations betahat, sebetahat, df v
+postmean2 = function(m, betahat,sebetahat,v){
   UseMethod("postmean2")
 }
-postmean2.default = function(m,betahat,sebetahat){
-  colSums(comppostprob(m,betahat,sebetahat) * comp_postmean2(m,betahat,sebetahat))
+postmean2.default = function(m,betahat,sebetahat,v){
+  colSums(comppostprob(m,betahat,sebetahat,v) * comp_postmean2(m,betahat,sebetahat,v))
 }
 
 #output posterior sd for beta for prior mixture m,
-#given observations betahat, sebetahat
-postsd = function(m, betahat,sebetahat){
+#given observations betahat, sebetahat, df v
+postsd = function(m,betahat,sebetahat,v){
   UseMethod("postsd")
 }
-postsd.default = function(m,betahat,sebetahat){
-  sqrt(postmean2(m,betahat,sebetahat)-postmean(m,betahat,sebetahat)^2)
+postsd.default = function(m,betahat,sebetahat,v){
+  sqrt(postmean2(m,betahat,sebetahat,v)-postmean(m,betahat,sebetahat,v)^2)
 }
 
 #output posterior mean-squared value for beta for prior mixture m,
-#given observations betahat, sebetahat
-comp_postmean2 = function(m, betahat,sebetahat){
+#given observations betahat, sebetahat, df v
+comp_postmean2 = function(m,betahat,sebetahat,v){
   UseMethod("comp_postmean2")
 }
-comp_postmean2.default = function(m,betahat,sebetahat){
-  comp_postsd(m,betahat,sebetahat)^2 + comp_postmean(m,betahat,sebetahat)^2
+comp_postmean2.default = function(m,betahat,sebetahat,v){
+  comp_postsd(m,betahat,sebetahat,v)^2 + comp_postmean(m,betahat,sebetahat,v)^2
 }
 
 
 #output posterior mean for beta for each component of prior mixture m,
-#given observations betahat, sebetahat
-comp_postmean = function(m, betahat,sebetahat){
+#given observations betahat, sebetahat, df v
+comp_postmean = function(m, betahat,sebetahat,v){
   UseMethod("comp_postmean")
 }
-comp_postmean.default = function(m,betahat,sebetahat){
+comp_postmean.default = function(m,betahat,sebetahat,v){
   stop("method comp_postmean not written for this class")
 }
 
+
+
+
 #output posterior sd for beta for each component of prior mixture m,
-#given observations betahat, sebetahat
-comp_postsd = function(m, betahat,sebetahat){
+#given observations betahat, sebetahat, df v
+comp_postsd = function(m, betahat,sebetahat,v){
   UseMethod("comp_postsd")
 }
-comp_postsd.default = function(m,betahat,sebetahat){
+comp_postsd.default = function(m,betahat,sebetahat,v){
   stop("method comp_postsd not written for this class")
 }
 
@@ -287,12 +294,12 @@ plot_dens.default = function(m,npoints=100,...){
   plot(x,dens(m,x),type="l",xlab="density",ylab="x",...)
 }
 
-plot_post_cdf = function(m,betahat,sebetahat,npoints=100,...){
+plot_post_cdf = function(m,betahat,sebetahat,v,npoints=100,...){
   UseMethod("plot_post_cdf")
 }
-plot_post_cdf.default = function(m,betahat,sebetahat,npoints=100,...){
+plot_post_cdf.default = function(m,betahat,sebetahat,v,npoints=100,...){
   x = seq(min_lim(m),max_lim(m),length=npoints)
-  x_cdf = vapply(x,cdf_post,FUN.VALUE=betahat,m=m,betahat=betahat,sebetahat=sebetahat)
+  x_cdf = vapply(x,cdf_post,FUN.VALUE=betahat,m=m,betahat=betahat,sebetahat=sebetahat,v=v)
   plot(x,x_cdf,type="l",xlab="x",ylab="cdf",...)
  # for(i in 2:nrow(x_cdf)){
  #   lines(x,x_cdf[i,],col=i)
@@ -336,11 +343,14 @@ compdens.normalmix = function(x,y,log=FALSE){
   return(matrix(dnorm(d, x$mean, x$sd, log),nrow=k))  
 }
 
-#density of convolution of each component of a normal mixture with N(0,s^2) at x
+#density of convolution of each component of a normal mixture with N(0,s^2) or s*t(v) at x
 # x an n-vector at which density is to be evaluated
 #return a k by n matrix
 #Note that convolution of two normals is normal, so it works that way
-compdens_conv.normalmix = function(m, x, s,FUN="+"){
+compdens_conv.normalmix = function(m,x,s,v,FUN="+"){
+  if(!is.null(v)){
+  	stop("method comp_postsd of normal mixture not written for df!null")
+  }
   if(length(s)==1){s=rep(s,length(x))}
   sdmat = sqrt(outer(s^2,m$sd^2,FUN)) #n by k matrix of standard deviations of convolutions
   return(t(dnorm(outer(x,m$mean,FUN="-")/sdmat)/sdmat))
@@ -356,7 +366,10 @@ comp_cdf.normalmix = function(x,y,lower.tail=TRUE){
 #betahat a vector of n observations
 #sebetahat an n vector of standard errors
 #return a k by n matrix of the posterior cdf
-compcdf_post.normalmix=function(m,c,betahat,sebetahat){
+compcdf_post.normalmix=function(m,c,betahat,sebetahat,v){
+  if(!is.null(v)){
+  	stop("Error: normal mixture for student-t likelihood is not yet implemented")
+  }  
   k = length(m$pi)
   n=length(betahat)
   #compute posterior standard deviation (s1) and posterior mean (m1)
@@ -364,7 +377,7 @@ compcdf_post.normalmix=function(m,c,betahat,sebetahat){
   ismissing = (is.na(betahat) | is.na(sebetahat))
   s1[ismissing,]=m$sd
   
-  m1 = t(comp_postmean(m,betahat,sebetahat))
+  m1 = t(comp_postmean(m,betahat,sebetahat,v))
   t(pnorm(c,mean=m1,sd=s1))
 }
 
@@ -372,18 +385,25 @@ compcdf_post.normalmix=function(m,c,betahat,sebetahat){
 #input, m is a mixture with k components
 #betahat, sebetahat are n vectors
 #output is a k by n matrix
-comp_postmean.normalmix = function(m,betahat,sebetahat){
+comp_postmean.normalmix = function(m,betahat,sebetahat,v){
+  if(!is.null(v)){
+  	stop("method comp_postmean of normal mixture not written for df!=NULL")
+  }
   tmp=(outer(sebetahat^2,m$mean, FUN="*") + outer(betahat,m$sd^2, FUN="*"))/outer(sebetahat^2,m$sd^2,FUN="+")
   ismissing = (is.na(betahat) | is.na(sebetahat))
   tmp[ismissing,]=m$mean #return prior mean when missing data
   t(tmp)
 }
 
+
 #return posterior standard deviation for each component of prior m, given observations betahat and sebetahat
 #input, m is a mixture with k components
 #betahat, sebetahat are n vectors
 #output is a k by n matrix
-comp_postsd.normalmix = function(m,betahat,sebetahat){
+comp_postsd.normalmix = function(m,betahat,sebetahat,v){
+  if(!is.null(v)){
+  	stop("method comp_postsd of normal mixture not written for df!=NULL")
+  }
   t(sqrt(outer(sebetahat^2,m$sd^2,FUN="*")/outer(sebetahat^2,m$sd^2,FUN="+")))
 }
 
@@ -419,10 +439,16 @@ compdens.unimix = function(x,y,log=FALSE){
 #density of convolution of each component of a unif mixture with N(0,s) at x
 # x an n-vector
 #return a k by n matrix
-compdens_conv.unimix = function(m, x, s, FUN="+"){
+compdens_conv.unimix = function(m,x,s,v, FUN="+"){
   if(FUN!="+") stop("Error; compdens_conv not implemented for uniform with FUN!=+")
-  compdens= t(pnorm(outer(x,m$a,FUN="-")/s)-pnorm(outer(x,m$b,FUN="-")/s))/(m$b-m$a)
-  compdens[m$a==m$b,]=t(dnorm(outer(x,m$a,FUN="-")/s)/s)[m$a==m$b,]
+  if(is.null(v)){
+    compdens= t(pnorm(outer(x,m$a,FUN="-")/s)-pnorm(outer(x,m$b,FUN="-")/s))/(m$b-m$a)
+    compdens[m$a==m$b,]=t(dnorm(outer(x,m$a,FUN="-")/s)/s)[m$a==m$b,]
+  }
+  else{
+    compdens= t(pt(outer(x,m$a,FUN="-")/s,df=v)-pt(outer(x,m$b,FUN="-")/s,df=v))/(m$b-m$a)
+    compdens[m$a==m$b,]=t(dt(outer(x,m$a,FUN="-")/s,df=v)/s)[m$a==m$b,]
+  }
   return(compdens)
 }
 
@@ -432,16 +458,23 @@ compdens_conv.unimix = function(m, x, s, FUN="+"){
 #betahat a vector of n observations
 #sebetahat an n vector of standard errors
 #return a k by n matrix of the posterior cdf
-compcdf_post.unimix=function(m,c,betahat,sebetahat){
+compcdf_post.unimix=function(m,c,betahat,sebetahat,v){
   k = length(m$pi)
   n=length(betahat)
   tmp = matrix(1,nrow=k,ncol=n)
   tmp[m$a > c,] = 0
   subset = m$a<=c & m$b>c # subset of components (1..k) with nontrivial cdf
   if(sum(subset)>0){
-    pna = pnorm(outer(betahat,m$a[subset],FUN="-")/sebetahat)
-    pnc = pnorm(outer(betahat,rep(c,sum(subset)),FUN="-")/sebetahat)
-    pnb = pnorm(outer(betahat,m$b[subset],FUN="-")/sebetahat)
+  	if(is.null(v)){
+      pna = pnorm(outer(betahat,m$a[subset],FUN="-")/sebetahat)
+      pnc = pnorm(outer(betahat,rep(c,sum(subset)),FUN="-")/sebetahat)
+      pnb = pnorm(outer(betahat,m$b[subset],FUN="-")/sebetahat)
+    }
+    else{
+      pna = pt(outer(betahat,m$a[subset],FUN="-")/sebetahat, df=v)
+      pnc = pt(outer(betahat,rep(c,sum(subset)),FUN="-")/sebetahat, df=v)
+      pnb = pt(outer(betahat,m$b[subset],FUN="-")/sebetahat, df=v)
+    }
     tmp[subset,] = t((pnc-pna)/(pnb-pna))
   }
   subset = (m$a == m$b) #subset of components with trivial cdf
@@ -476,7 +509,7 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
 #output is a k by n matrix
 #note that with uniform prior, posterior is truncated normal, so
 #this is computed using formula for mean of truncated normal 
-comp_postmean.unimix = function(m,betahat,sebetahat){
+comp_postmean.unimix = function(m,betahat,sebetahat,v){
 #   k= ncomp(m)
 #   n=length(betahat)
 #   a = matrix(m$a,nrow=n,ncol=k,byrow=TRUE)
@@ -487,7 +520,12 @@ comp_postmean.unimix = function(m,betahat,sebetahat){
   
   alpha = outer(-betahat, m$a,FUN="+")/sebetahat
   beta = outer(-betahat, m$b, FUN="+")/sebetahat
-  tmp = betahat + sebetahat*my_etruncnorm(alpha,beta,0,1)
+  if(is.null(v)){
+    tmp = betahat + sebetahat*my_etruncnorm(alpha,beta,0,1)
+  }
+  else{
+  	tmp = betahat + sebetahat*my_etrunct(alpha,beta,v)
+  }
   ismissing = is.na(betahat) | is.na(sebetahat)
   tmp[ismissing,]= (m$a+m$b)/2
   t(tmp)
@@ -503,137 +541,13 @@ comp_postmean.unimix = function(m,betahat,sebetahat){
 
 #not yet implemented!
 #just returns 0s for now
-comp_postsd.unimix = function(m,betahat,sebetahat){
+comp_postsd.unimix = function(m,betahat,sebetahat,v){
   print("Warning: Posterior SDs not yet implemented for uniform components")
   k= ncomp(m)
   n=length(betahat)
   return(matrix(NA,nrow=k,ncol=n)) 
 }
 
-
-
-
-
-#####################################################################################
-########################## functions for student.t likelihood #######################
-#compute the density of the components of the mixture m
-#when convoluted with a scaled (se) student.t with df v 
-compdens_conv_t = function(m, x, s, v, FUN="+"){
-  UseMethod("compdens_conv_t")
-}
-compdens_conv_t.default = function(m,x, s,v,FUN="+"){
-  stop(paste("Invalid class", class(m), "for first argument in",  match.call()))
-}
-#density of convolution of each component of a normal mixture with s*t(v) at x
-# x an n-vector at which density is to be evaluated
-#return a k by n matrix
-#Note that convolution of two normals is normal, so it works that way
-compdens_conv_t.normalmix = function(m, x, s, v,FUN="+"){
-  stop("Error: normal mixture for student-t likelihood is not yet implemented")
-}
-#density of convolution of each component of a unif mixture with s*t(v) at x
-# x an n-vector
-#return a k by n matrix
-compdens_conv_t.unimix = function(m, x, s, v , FUN="+"){
-  if(FUN!="+") stop("Error; compdens_conv_t not implemented for uniform with FUN!=+")
-  compdens= t(pt(outer(x,m$a,FUN="-")/s,df=v)-pt(outer(x,m$b,FUN="-")/s,df=v))/(m$b-m$a)
-  compdens[m$a==m$b,]=t(dt(outer(x,m$a,FUN="-")/s,df=v)/s)[m$a==m$b,]
-  return(compdens)
-}
-
-#compute density of mixture m convoluted with student t with df v
-#at locations x
-#m is a mixture
-#x is an n vector
-#s is an n vector or integer
-dens_conv_t = function(m,x,s,v,FUN="+"){
-  UseMethod("dens_conv_t")
-}
-dens_conv_t.default = function(m,x,s,v,FUN="+"){
-  colSums(m$pi * compdens_conv_t(m,x,s,v,FUN))
-}
-
-#compute the posterior prob that each observation
-#came from each component of the mixture m
-#output a k by n vector of probabilities
-#computed by weighting the component densities by pi
-#and then normalizing
-comppostprob_t=function(m,x,s,v){
-  UseMethod("comppostprob_t") 
-}
-comppostprob_t.default = function(m,x,s,v){
-  tmp= (t(m$pi * compdens_conv_t(m,x,s,v))/dens_conv_t(m,x,s,v))
-  ismissing = (is.na(x) | is.na(s))
-  tmp[ismissing,]=m$pi
-  t(tmp)
-}
-
-
-cdf_post_t = function(m,c,betahat,sebetahat,v){
-  UseMethod("cdf_post_t")
-}
-cdf_post_t.default=function(m,c,betahat,sebetahat,v){
-  colSums(comppostprob_t(m,betahat,sebetahat,v)*compcdf_post_t(m,c,betahat,sebetahat,v))
-}
-
-compcdf_post_t=function(m,c,betahat,sebetahat,v){
-  UseMethod("compcdf_post_t")
-}
-compcdf_post_t.default=function(m,c,betahat,sebetahat,v){
-  stop("method compcdf_post_t not written for this class")
-}
-
-compcdf_post_t.unimix=function(m,c,betahat,sebetahat,v){
-  k = length(m$pi)
-  n=length(betahat)
-  tmp = matrix(1,nrow=k,ncol=n)
-  tmp[m$a > c,] = 0
-  subset = m$a<=c & m$b>c # subset of components (1..k) with nontrivial cdf
-  if(sum(subset)>0){
-    pna = pt(outer(betahat,m$a[subset],FUN="-")/sebetahat, df=v)
-    pnc = pt(outer(betahat,rep(c,sum(subset)),FUN="-")/sebetahat, df=v)
-    pnb = pt(outer(betahat,m$b[subset],FUN="-")/sebetahat, df=v)
-    tmp[subset,] = t((pnc-pna)/(pnb-pna))
-  }
-  subset = (m$a == m$b) #subset of components with trivial cdf
-  tmp[subset,]= rep(m$a[subset] <= c,n)
-  tmp
-}
-
-#output posterior mean for beta for prior mixture m,
-#given observations betahat, sebetahat
-postmean_t = function(m, betahat,sebetahat,v){
-  UseMethod("postmean_t")
-}
-postmean_t.default = function(m,betahat,sebetahat,v){
-  colSums(comppostprob_t(m,betahat,sebetahat,v) * comp_postmean_t(m,betahat,sebetahat,v))
-}
-
-#output posterior mean for beta for each component of prior mixture m,
-#given observations betahat, sebetahat
-comp_postmean_t = function(m, betahat,sebetahat,v){
-  UseMethod("comp_postmean_t")
-}
-comp_postmean_t.default = function(m,betahat,sebetahat,v){
-  stop("method comp_postmean_t not written for this class")
-}
-
-#return posterior mean for each component of prior m, given observations betahat and sebetahat
-#input, m is a mixture with k components
-#betahat, sebetahat are n vectors
-#output is a k by n matrix
-#note that with uniform prior, posterior is truncated student.t, so
-#this is computed using formula for mean of truncated student.t
-comp_postmean_t.unimix = function(m,betahat,sebetahat,v){
-  
-  alpha = outer(-betahat, m$a, FUN="+")/sebetahat
-  beta = outer(-betahat, m$b, FUN="+")/sebetahat
-  tmp = betahat + sebetahat*my_etrunct(alpha,beta,v)
-  ismissing = is.na(betahat) | is.na(sebetahat)
-  tmp[ismissing,]= (m$a+m$b)/2
-  t(tmp)
-  
-}
 # the mean of a truncated student.t
 # the result is from the paper 'Moments of truncated Student-t distribution' by H.-J Kim 
 
@@ -648,40 +562,4 @@ my_etrunct= function(a,b,v){
 }
 
 
-################# PostSD is not implemented for uniform mixture
 
-#output posterior sd for beta for prior mixture m,
-#given observations betahat, sebetahat
-postsd_t = function(m, betahat,sebetahat,v){
-  UseMethod("postsd_t")
-}
-postsd_t.default = function(m,betahat,sebetahat,v){
-  sqrt(postmean2_t(m,betahat,sebetahat,v)-postmean_t(m,betahat,sebetahat,v)^2)
-}
-postmean2_t = function(m, betahat,sebetahat,v){
-  UseMethod("postmean2_t")
-}
-postmean2_t.default = function(m,betahat,sebetahat,v){
-  colSums(comppostprob_t(m,betahat,sebetahat,v) * comp_postmean2_t(m,betahat,sebetahat,v))
-}
-
-comp_postmean2_t = function(m, betahat,sebetahat,v){
-  UseMethod("comp_postmean2_t")
-}
-comp_postmean2_t.default = function(m,betahat,sebetahat,v){
-  comp_postsd_t(m,betahat,sebetahat,v)^2 + comp_postmean_t(m,betahat,sebetahat,v)^2
-}
-comp_postsd_t = function(m, betahat,sebetahat,v){
-  UseMethod("comp_postsd_t")
-}
-comp_postsd_t.default = function(m,betahat,sebetahat,v){
-  stop("method comp_postsd not written for this class")
-}
-#not yet implemented!
-#just returns 0s for now
-comp_postsd_t.unimix = function(m,betahat,sebetahat,v){
-  print("Warning: Posterior SDs not yet implemented for uniform components")
-  k= ncomp(m)
-  n=length(betahat)
-  return(matrix(NA,nrow=k,ncol=n)) 
-}
