@@ -9,38 +9,54 @@
 #'
 #' @details See readme for more details
 #' 
-#' @param betahat, a p vector of estimates 
-#' @param sebetahat, a p vector of corresponding standard errors
-#' @param method: specifies how ash is to be run. Can be "shrinkage" (if main aim is shrinkage) or "fdr" (if main aim is to assess fdr or fsr)
+#' @param betahat  a p vector of estimates 
+#' @param sebetahat a p vector of corresponding standard errors
+#' @param method specifies how ash is to be run. Can be "shrinkage" (if main aim is shrinkage) or "fdr" (if main aim is to assess fdr or fsr)
 #' This is simply a convenient way to specify certain combinations of parameters: "shrinkage" sets pointmass=FALSE and prior="uniform";
 #' "fdr" sets pointmass=TRUE and prior="nullbiased".
-#' @param mixcompdist: distribution of components in mixture ("normal", "uniform" or "halfuniform")
+#' @param mixcompdist distribution of components in mixture ("normal", "uniform" or "halfuniform")
 #'
-#' @param lambda1: multiplicative "inflation factor" for standard errors (like Genomic Control)
-#' @param lambda2: additive "inflation factor" for standard errors (like Genomic Control)
-#' @param nullcheck: whether to check that any fitted model exceeds the "null" likelihood
+#' @param lambda1  multiplicative "inflation factor" for standard errors (like Genomic Control)
+#' @param lambda2  additive "inflation factor" for standard errors (like Genomic Control)
+#' @param nullcheck  whether to check that any fitted model exceeds the "null" likelihood
 #' in which all weight is on the first component
-#' @param df: appropriate degrees of freedom for (t) distribution of betahat/sebetahat
-#' @param randomstart: bool, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
-#' @param nullweight: scalar, the weight put on the prior of null under "fdr" method
-#' @param nonzeromean: bool, indicating whether to use a nonzero mean unimodal mixture(defaults to "FALSE")
-#' @param pointmass: bool, indicating whether to use a point mass at zero as one of components for a mixture distribution
-#' @param onlylogLR: bool, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, lfdr...
-#' @param prior: string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or 1,1...,1; also can be "nullbiased" 1,1/k-1,...,1/k-1 to put more weight on first component)
-#' @param mixsd: vector of sds for underlying mixture components 
-#' @param VB: whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate)
-#' @param gridmult: the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)
-#' @param minimal_output: if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue) 
-#' @param g: the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
-#' @param maxiter: maximum number of iterations of the EM algorithm
-#' @param cxx: flag to indicate whether to use the c++ (Rcpp) version
+#' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)
+#' @param nullweight scalar, the weight put on the prior of null under "fdr" method
+#' @param randomstart logical, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
+#' @param nonzeromean logical, indicating whether to use a nonzero mean unimodal mixture(defaults to "FALSE")
+#' @param pointmass logical, indicating whether to use a point mass at zero as one of components for a mixture distribution
+#' @param onlylogLR logical, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, lfdr...
+#' @param prior string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or 1,1...,1; also can be "nullbiased" 1,1/k-1,...,1/k-1 to put more weight on first component)
+#' @param mixsd vector of sds for underlying mixture components 
+#' @param VB whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate)
+#' @param gridmult the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)
+#' @param minimal_output if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue) 
+#' @param g the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
+#' @param maxiter maximum number of iterations of the EM algorithm
+#' @param cxx flag to indicate whether to use the c++ (Rcpp) version
 #' 
 #'
-#' @return a list with elements fitted.g is fitted mixture
-#' logLR : logP(D|mle(pi)) - logP(D|null)
-#' 
+#' @return ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE} \cr
+#' \item{fitted.g}{fitted mixture, either a normalmix or unimix}
+#' \item{logLR}{logP(D|mle(pi)) - logP(D|null)}
+#' \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
+#' \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
+#' \item{PositiveProb}{A vector of posterior probability that beta is positive}
+#' \item{NegativeProb}{A vector of posterior probability that beta is negative}
+#' \item{ZeroProb}{A vector of posterior probability that beta is zero}
+#' \item{lfsr}{The local false sign rate}
+#' \item{lfsra}{The local false sign rate(adjusted)}
+#' \item{lfdr}{A vector of estimated local false discovery rate}
+#' \item{qvalue}{A vector of q values given estimated local false discovery rates, and estimate of (tail) False Discovery Rate}
+#' \item{fit}{The fitted object return by \code{\link{EMest}}}
+#' \item{lambda1}{multiplicative "inflation factor"}
+#' \item{lambda2}{additive "inflation factor"}
+#' \item{call}{a call in which all of the specified arguments are specified by their full names}
+#' \item{data}{a list consisting the input betahat and sebetahat}
+#' \item{df}{the specified degrees of freedom for (t) distribution of betahat/sebetahat}
+
+
 #' @export
-#' 
 #' @examples 
 #' beta = c(rep(0,100),rnorm(100))
 #' sebetahat = abs(rnorm(200,0,1))
@@ -49,7 +65,10 @@
 #' summary(beta.ash)
 #' plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 #' 
-#' 
+#' betahat=betahat+1000
+#' beta.ash = ash(betahat, sebetahat)
+#' summary(beta.ash)
+#' plot(betahat,beta.ash$PosteriorMean)
 #Things to do:
 # check sampling routine
 # check number of iterations
@@ -140,7 +159,12 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     null.comp=1 #null.comp also not used, but required 
   } else {
     if(is.null(mixsd)){
-      mixsd = autoselect.mixsd(betahat[completeobs],sebetahat[completeobs],gridmult)
+      if(nonzeromean){
+      	mixsd = autoselect.mixsd(betahat[completeobs]-mean(betahat[completeobs]),sebetahat[completeobs],gridmult)
+      	}
+      else{
+        mixsd = autoselect.mixsd(betahat[completeobs],sebetahat[completeobs],gridmult)
+        }
     }
     if(pointmass){
       mixsd = c(0,mixsd)
@@ -240,8 +264,14 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   if(nonzeromean & is.null(df)){
       #Adding back the nonzero mean
       betahat[completeobs]= betahat[completeobs]+nonzeromean.fit$nonzeromean
-      pi.fit$g$mean =nonzeromean.fit$nonzeromean
-      PosteriorMean= PosteriorMean + nonzeromean.fit$nonzeromean      
+      if(mixcompdist=="normal"){
+      	pi.fit$g$mean = rep(nonzeromean.fit$nonzeromean,length(pi.fit$g$pi))
+      }
+      else if(mixcompdist=="uniform"|mixcompdist=="halfuniform"){
+      	pi.fit$g$a = pi.fit$g$a + nonzeromean.fit$nonzeromean
+      	pi.fit$g$b = pi.fit$g$b + nonzeromean.fit$nonzeromean
+      }
+      PosteriorMean = PosteriorMean + nonzeromean.fit$nonzeromean      
   }	   
   
   if (onlylogLR)
@@ -267,9 +297,9 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
 # #' @param betahat, a p vector of estimates
 # #' @param sebetahat, a p vector of corresponding standard errors
 # #' @param nullcheck: whether to check that any fitted model exceeds the "null" likelihood in which all weight is on the first component
-# #' @param randomstart: bool, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
-# #' @param pointmass: bool, indicating whether to use a point mass at zero as one of components for a mixture distribution
-# #' @param onlylogLR: bool, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, lfdr...
+# #' @param randomstart: logical, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
+# #' @param pointmass: logical, indicating whether to use a point mass at zero as one of components for a mixture distribution
+# #' @param onlylogLR: logical, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, lfdr...
 # #' @param prior: string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or 1,1...,1; also can be "nullbiased" 1,1/k-1,...,1/k-1 to put more weight on first component)
 # #' @param mixsd: vector of sds for underlying mixture components
 # #' @param VB: whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate)
@@ -518,7 +548,7 @@ VBpenloglik = function(pipost, matrix_lik, prior){
 #'
 #' @details Fits a k component mixture model \deqn{f(x|\pi) = \sum_k \pi_k f_k(x)} to independent
 #' and identically distributed data \eqn{x_1,\dots,x_n}. 
-#' Estimates mixture proportions \eqn{\pi} by maximum likelihood, or by maximum a posteriori (MAP) estimation for a Dirichlet prior on $\pi$ 
+#' Estimates mixture proportions \eqn{\pi} by maximum likelihood, or by maximum a posteriori (MAP) estimation for a Dirichlet prior on \eqn{\pi} 
 #' (if a prior is specified).  Uses the SQUAREM package to accelerate convergence of EM. Used by the ash main function; there is no need for a user to call this 
 #' function separately, but it is exported for convenience.
 #'
@@ -699,7 +729,7 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE, 
 #' @title Compute Posterior
 #'
 #' @description Return the posterior on beta given a prior (g) that is a mixture of normals (class normalmix) 
-#' and observation betahat \sim N(beta,sebetahat)
+#' and observation \eqn{betahat ~ N(beta,sebetahat)}
 #'
 #' @details This can be used to obt
 #'
