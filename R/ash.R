@@ -1,7 +1,6 @@
 #' @useDynLib ashr
 #todo
-#just testing....
-#
+#2014Sep10
 #' @title Main Adaptive SHrinkage function
 #'
 #' @description Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
@@ -34,7 +33,6 @@
 #' @param g the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
 #' @param maxiter maximum number of iterations of the EM algorithm
 #' @param cxx flag to indicate whether to use the c++ (Rcpp) version
-#' 
 #'
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE} \cr
 #' \item{fitted.g}{fitted mixture, either a normalmix or unimix}
@@ -54,8 +52,7 @@
 #' \item{call}{a call in which all of the specified arguments are specified by their full names}
 #' \item{data}{a list consisting the input betahat and sebetahat}
 #' \item{df}{the specified degrees of freedom for (t) distribution of betahat/sebetahat}
-
-
+#'
 #' @export
 #' @examples 
 #' beta = c(rep(0,100),rnorm(100))
@@ -159,25 +156,21 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     null.comp=1 #null.comp also not used, but required 
   } else {
     if(is.null(mixsd)){
-      if(nonzeromean){
-      	mixsd = autoselect.mixsd(betahat[completeobs]-mean(betahat[completeobs]),sebetahat[completeobs],gridmult)
+      if(nonzeromean & is.null(df)){
+        mixsd = autoselect.mixsd(betahat[completeobs]-mean(betahat[completeobs]),sebetahat[completeobs],gridmult)
+        if(pointmass){ mixsd = c(0,mixsd) }
+        nonzeromean.fit=nonzeromeanEM(betahat[completeobs], sebetahat[completeobs], mixsd=mixsd, mixcompdist=mixcompdist, maxiter=maxiter)
+        betahat[completeobs]= betahat[completeobs] - nonzeromean.fit$nonzeromean
       	}
-      else{
+      else if(nonzeromean & !is.null(df)){
+        stop("Error: Nonzero mean only implemented for df=NULL")
+      }
         mixsd = autoselect.mixsd(betahat[completeobs],sebetahat[completeobs],gridmult)
-        }
     }
     if(pointmass){
       mixsd = c(0,mixsd)
     }
     
-    if(nonzeromean & is.null(df)){
-		nonzeromean.fit=nonzeromeanEM(betahat[completeobs], sebetahat[completeobs], mixsd, maxiter=maxiter)
-		betahat[completeobs]= betahat[completeobs] - nonzeromean.fit$nonzeromean
-	}
-	else if(nonzeromean & !is.null(df)){
-		stop("Error: Nonzero mean only implemented for df=NULL")
-	}
-
     
     null.comp = which.min(mixsd) #which component is the "null"
     
@@ -427,7 +420,7 @@ compute_lfsra = function(PositiveProb, NegativeProb,ZeroProb){
 #' and identically distributed data \eqn{x_1,\dots,x_n}. 
 #' Estimates unimodal mean \eqn{\mu} by EM algorithm. Uses the SQUAREM package to accelerate convergence of EM. Used by the ash main function; there is no need for a user to call this 
 #' function separately, but it is exported for convenience.
-#'
+#' Currently works for mixcompdist="normal", while "uniform" abd "halfuniform" would only return the naive mean
 #' 
 #' @param betahat, a p vector of estimates 
 #' @param sebetahat, a p vector of corresponding standard errors
@@ -438,18 +431,22 @@ compute_lfsra = function(PositiveProb, NegativeProb,ZeroProb){
 #' 
 #' @return A list, including the estimates (\eqn{\mu}) and (\eqn{\pi}), the log likelihood for each iteration (NQ)
 #' and a flag to indicate convergence
-#'  
+#' 
 #' @export
 #' 
 #' 
-nonzeromeanEM = function(betahat, sebetahat, mixsd, pi.init=NULL,tol=1e-7,maxiter=5000){
-  if(is.null(pi.init)){
-    pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi
+nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist,  pi.init=NULL,tol=1e-7,maxiter=5000){
+  if(mixcompdist=="normal"){
+    if(is.null(pi.init)){
+      pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi
+    }
+    mupi=c(mean(betahat),pi.init)
+    res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))
+    return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))
   }
-  mupi=c(mean(betahat),pi.init)
-  res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))
-  return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))
-	
+  else if(mixcompdist=="uniform"|mixcompdist=="halfuniform"){
+  return(list(nonzeromean=mean(betahat)))
+  }
 }
 
 nonzeromeanEMfixpoint = function(mupi,betahat,sebetahat,mixsd){

@@ -3,8 +3,8 @@
 \alias{nonzeromeanEM}
 \title{Estimate unimodal nonzero mean of a mixture model by EM algorithm}
 \usage{
-nonzeromeanEM(betahat, sebetahat, mixsd, pi.init = NULL, tol = 1e-07,
-  maxiter = 5000)
+nonzeromeanEM(betahat, sebetahat, mixsd, mixcompdist, pi.init = NULL,
+  tol = 1e-07, maxiter = 5000)
 }
 \arguments{
 \item{betahat,}{a p vector of estimates}
@@ -31,5 +31,6 @@ Fits a k component mixture model \deqn{f(x|\pi) = \sum_k \pi_k f_k(x)} to indepe
 and identically distributed data \eqn{x_1,\dots,x_n}.
 Estimates unimodal mean \eqn{\mu} by EM algorithm. Uses the SQUAREM package to accelerate convergence of EM. Used by the ash main function; there is no need for a user to call this
 function separately, but it is exported for convenience.
+Currently works for mixcompdist="normal", while "uniform" abd "halfuniform" would only return the naive mean
 }
 

@@ -9,6 +9,6 @@
 Print summary of fitted ash object
 }
 \details{
-See readme for more details
+\code{\link{summary}} prints the fitted mixture, the fitted log likelihood with 10 digits and a flag to indicate convergence
 }
 
