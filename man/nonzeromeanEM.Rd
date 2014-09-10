@@ -3,8 +3,8 @@
 \alias{nonzeromeanEM}
 \title{Estimate unimodal nonzero mean of a mixture model by EM algorithm}
 \usage{
-nonzeromeanEM(betahat, sebetahat, mixsd, mixcompdist, pi.init = NULL,
-  tol = 1e-07, maxiter = 5000)
+nonzeromeanEM(betahat, sebetahat, mixsd, mixcompdist, df = NULL,
+  pi.init = NULL, tol = 1e-07, maxiter = 5000)
 }
 \arguments{
 \item{betahat,}{a p vector of estimates}

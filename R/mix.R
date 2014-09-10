@@ -349,7 +349,7 @@ compdens.normalmix = function(x,y,log=FALSE){
 #Note that convolution of two normals is normal, so it works that way
 compdens_conv.normalmix = function(m,x,s,v,FUN="+"){
   if(!is.null(v)){
-  	stop("method comp_postsd of normal mixture not written for df!null")
+  	stop("method comp_postsd of normal mixture not written for df!=NULL")
   }
   if(length(s)==1){s=rep(s,length(x))}
   sdmat = sqrt(outer(s^2,m$sd^2,FUN)) #n by k matrix of standard deviations of convolutions

@@ -1,212 +1,3 @@
-png("t6_1.png",width=900,height=1800)#
-par(mfrow=c(4,2))#
-for(i in 1:8){#
-	plot(density(llrm[i,]))#
-	#hist(llrm[i,],breaks=20,xlim=c(0,6),main=paste("Histogram of logLR without 0s, sample of size=",M[i]),xlab="logLR",probability=TRUE,density=TRUE)#
-}#
-dev.off()
-help(density)
-png("t6_1.png",width=900,height=1800)#
-par(mfrow=c(4,2))#
-for(i in 1:8){#
-	kdensity=density(llrm[i,])#
-	plot(kdensity,xlim=c(0,8),xlab="logLR")#
-	polygon(kdensity, col="blue", border="red")#
-	#hist(llrm[i,],breaks=20,xlim=c(0,6),main=paste("Histogram of logLR without 0s, sample of size=",M[i]),xlab="logLR",probability=TRUE,density=TRUE)#
-}#
-dev.off()
-png("t6_1.png",width=900,height=1800)#
-par(mfrow=c(4,2))#
-for(i in 1:8){#
-	kdensity=density(llrm[i,])#
-	plot(kdensity,xlim=c(0,8),xlab="logLR",main="Kernal density")#
-	polygon(kdensity, col="green", border="red")#
-	#hist(llrm[i,],breaks=20,xlim=c(0,6),main=paste("Histogram of logLR without 0s, sample of size=",M[i]),xlab="logLR",probability=TRUE,density=TRUE)#
-}#
-dev.off()
-help(hist)
-png("t6_1.png",width=900,height=1800)#
-par(mfrow=c(4,2))#
-for(i in 1:8){#
-	kdensity=density(llrm[i,])#
-	hist(llrm[i,],breaks=20,xlim=c(0,6),main=paste("Histogram of logLR without 0s, sample of size=",M[i]),xlab="logLR")#
-	lines(kdensity)#
-	#plot(kdensity,xlim=c(0,8),xlab="logLR",main="Kernal density")#
-	#polygon(kdensity, col="green", border="red")#
-}#
-dev.off()
-png("t6_1.png",width=900,height=1800)#
-par(mfrow=c(4,2))#
-for(i in 1:8){#
-	kdensity=density(llrm[i,])#
-	hist(llrm[i,],breaks=20,xlim=c(0,6),main=paste("Histogram of logLR without 0s, sample of size=",M[i]),xlab="logLR",freq=FALSE)#
-	lines(kdensity)#
-	#plot(kdensity,xlim=c(0,8),xlab="logLR",main="Kernal density")#
-	#polygon(kdensity, col="green", border="red")#
-}#
-dev.off()
-png("t6_1.png",width=900,height=1800)#
-par(mfrow=c(4,2))#
-for(i in 1:8){#
-	kdensity=density(llrm[i,])#
-	hist(llrm[i,],breaks=40,xlim=c(0,6),main=paste("Histogram of logLR without 0s, sample of size=",M[i]),xlab="logLR",freq=FALSE)#
-	lines(kdensity)#
-	#plot(kdensity,xlim=c(0,8),xlab="logLR",main="Kernal density")#
-	#polygon(kdensity, col="green", border="red")#
-}#
-dev.off()
-for(i in 1:8){#
-	png(paste("6_2",i,".png",width=900,height=1800)#
-	par(mfrow=c(1,4))#
-	for(j in 1:4){#
-		chivector=qchisq((0:499)/500, df=j, ncp = 0, lower.tail = TRUE, log.p = FALSE)#
-		qqplot(chivector,llrm[i,])#
-	}#
-	dev.off()#
-}
-for(i in 1:8){#
-	png(paste("6_2",i,".png"),width=900,height=1800)#
-	par(mfrow=c(1,4))#
-	for(j in 1:4){#
-		chivector=qchisq((0:499)/500, df=j, ncp = 0, lower.tail = TRUE, log.p = FALSE)#
-		qqplot(chivector,llrm[i,])#
-	}#
-	dev.off()#
-}
-for(i in 1:8){#
-	png(paste("6_2",i,".png",seq=""),width=900,height=1800)#
-	par(mfrow=c(1,4))#
-	for(j in 1:4){#
-		chivector=qchisq((0:499)/500, df=j, ncp = 0, lower.tail = TRUE, log.p = FALSE)#
-		qqplot(chivector,llrm[i,])#
-	}#
-	dev.off()#
-}
-i=1
-paste("6_2",i,".png"
-)
-paste("6_2",i,".png",seq='')
-paste(1,2,seq="")
-help(pasgte)
-help(paste)
-paste(1,2,seq="")
-paste("A", 1:6, sep = "")
-paste(A, 1:6, sep = "")
-paste("6_2",i,".png",seq = "")
-paste("6_2",i,,seq = "")
-paste("6_2",i,seq = "")
-paste("6_2","A",seq = "")
-for(i in 1:8){#
-	png(paste("6_2",i,".png",sep = ""),width=1200,height=400)#
-	par(mfrow=c(1,4))#
-	for(j in 1:4){#
-		chivector=qchisq((0:499)/500, df=j, ncp = 0, lower.tail = TRUE, log.p = FALSE)#
-		qqplot(chivector,llrm[i,])#
-	}#
-	dev.off()#
-}
-for(i in 1:8){#
-	png(paste("6_2",i,".png",sep = ""),width=1200,height=400)#
-	par(mfrow=c(1,4))#
-	for(j in 1:4){#
-		chivector=qchisq((0:499)/500, df=j, ncp = 0, lower.tail = TRUE, log.p = FALSE)#
-		qqplot(chivector,llrm[i,],main=paste("qqplot of chi-square df=",j," and size=",M[i],sep=""))#
-	}#
-	dev.off()#
-}
-llrm0=matrix(NA,nrow=length(M),ncol=1000)
-dim(llrm0)[2]
-M=100*2^(0:7)
-M
-simu_llr2
-simu_llr2=function(N,nullweight,copies=500,randomstart=TRUE){#
-	logLR_vector=rep(NA,copies)#
-	j=1#
-	while(j <= copies){#
-		test=simdata(N,1)#
-		test.ash=ash(test$betahat,test$betahatsd,method="fdr",nullweight=nullweight,randomstart= randomstart,onlylogLR=TRUE)#
-		if(test.ash$logLR>0){#
-			logLR_vector[j]=test.ash$logLR#
-			j=j+1#
-		}#
-	}#
-	return(logLR_vector)#
-}
-M=100*2^(0:1)#
-llrm=matrix(NA,nrow=length(M),ncol=10)#
-for(i in 1:length(M)){#
-  llrm[i,]=simu_llr2(M[i],10,10)#
-}
-llrm
-M=100*2^(0:5)#
-llrm=matrix(NA,nrow=length(M),ncol=10)#
-for(i in 1:length(M)){#
-  llrm[i,]=simu_llr2(M[i],10,10)#
-}
-test=simdata(10000,1)#
-test.ash=ash(test$betahat,test$betahatsd,method="fdr")
-test.ash
-test.ash$pi
-test.ash$g$pi
-test.ash$fitted.g$pi
-simu_pi=function(k,N){#
-	j=0#
-	while(j<k){#
-		test=simdata(N,1)#
-		test.ash=ash(test$betahat,test$betahatsd,method="fdr",nullweight=nullweight,randomstart= randomstart,onlylogLR=TRUE)#
-		if(test.ash$logLR>0){#
-			print(test.ash$fitted.g$pi)#
-			j=j+1#
-		}#
-	}#
-}#
-#
-simu_pi(5,1000)
-simu_pi=function(k,N){#
-	j=0#
-	while(j<k){#
-		test=simdata(N,1)#
-		test.ash=ash(test$betahat,test$betahatsd,method="fdr",nullweight=10,onlylogLR=TRUE)#
-		if(test.ash$logLR>0){#
-			print(test.ash$fitted.g$pi)#
-			j=j+1#
-		}#
-	}#
-}#
-#
-simu_pi(5,1000)
-test.ash$fitted.g$pi
-test=simdata(N,1)#
-		test.ash=ash(test$betahat,test$betahatsd,method="fdr",nullweight=10,onlylogLR=TRUE)
-N=5000
-test=simdata(N,1)#
-		test.ash=ash(test$betahat,test$betahatsd,method="fdr",nullweight=10,onlylogLR=TRUE)
-test.ash$fitted.g$pi
-test=simdata(N,1)#
-		test.ash=ash(test$betahat,test$betahatsd,method="fdr",nullweight=10,onlylogLR=TRUE)
-test.ash$fitted.g$pi
-test=simdata(N,1)#
-		test.ash=ash(test$betahat,test$betahatsd,method="fdr",nullweight=10,onlylogLR=TRUE)
-test.ash$fitted.g$pi
-test=simdata(N,1)
-test.ash=ash(test$betahat,test$betahatsd,method="fdr",nullweight=10,onlylogLR=TRUE)
-test.ash$fitted.g$pi
-test=simdata(N,1)
-test
-test$beta[1:10]
-test$betahat[1:10]
-test=simdata(N,1)
-test$betahat[1:10]
-test.ash=ash(test$betahat,test$betahatsd,method="fdr",nullweight=10,onlylogLR=TRUE)
-test.ash$fitted.g$pi
-test=simdata(N,1)
-test.ash$fitted.g$pi
-simu_pi(1,1000)
-simu_pi(1,6000)
-test=simudata(1000,1)
-test=simdata(1000,1)
-test.ash=ash(test$betahat,test$betahatsd,method="fdr",nullweight=10,onlylogLR=TRUE)
-test.ash$fitted.g$pi
 test.ash=ash(test$betahat,test$betahatsd,method="fdr",nullweight=10,onlylogLR=TRUE)
 test.ash$fitted.g$pi
 test=simdata(1000,1)
@@ -17055,33 +16846,82 @@ basicsim=function(mixsd,mixpi_alt,bsd=1,minpi0=0,seedval = 100,nsamp=1000,niter=
               betahat.mixfdr = betahat.mixfdr,#
               pi0=pi0))#
 }
+ls()
 rm(list = ls())
+ls()
+getwd()
+install.packages("/Users/daichaoxing/ash/package/ashr.no.cxx.tar.gz",repos=NULL,type="source")#
+library("ashr")
+help(ash)
+beta = c(rep(0,100),rnorm(100))#
+sebetahat = abs(rnorm(200,0,1))#
+betahat = rnorm(200,beta,sebetahat)#
+beta.ash = ash(betahat, sebetahat)#
+summary(beta.ash)#
+plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))#
+#
+betahat=betahat+1000#
+beta.ash = ash(betahat, sebetahat)#
+summary(beta.ash)#
+plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
+plot(betahat,beta.ash$PosteriorMean)
+remove.packages("ashr")
+remove.packages("ashr")#
+install.packages("/Users/daichaoxing/ash/package/ashr.no.cxx.tar.gz",repos=NULL,type="source")#
+library("ashr")
+help(ash)
+ash
+source*
+source()
+rm(list = ls())#
+remove.packages("ashr")#
+install.packages("/Users/daichaoxing/ash/package/ashr.no.cxx.tar.gz",repos=NULL,type="source")#
+library("ashr")
+help(ash)
+rm(list = ls())#
+remove.packages("ashr")#
+install.packages("/Users/daichaoxing/ash/package/ashr.no.cxx.tar.gz",repos=NULL,type="source")#
+library("ashr")
+help(ash)
+rm(list = ls())#
+remove.packages("ashr")#
+install.packages("/Users/daichaoxing/ash/package/ashr.no.cxx.tar.gz",repos=NULL,type="source")#
+library("ashr")#
+#library("ashr",lib.loc="/Users/daichaoxing/ash/package")
+help(ash)
+rm(list = ls())
+install.packages("/Users/daichaoxing/ash/package/ashr.no.cxx.tar.gz",repos=NULL,type="source")#
+library("ashr")
+help(ash)
+rm(list = ls())#
+remove.packages("ashr")#
+install.packages("/Users/daichaoxing/ash/package/ashr.no.cxx.tar.gz",repos=NULL,type="source")#
+library("ashr")
+help(ash)
+rm(list = ls())
+remove.packages("ashr")#
+install.packages("/Users/daichaoxing/ash/package/ashr.no.cxx.tar.gz",repos=NULL,type="source")#
+library("ashr")
+help(ash)
 require(roxygen2)#
 require(devtools)#
 setwd("/Users/daichaoxing/ash/package/ashr")#
 #devtools::document()#
 roxygenise()
+rm(list = ls())#
+remove.packages("ashr")#
 install.packages("/Users/daichaoxing/ash/package/ashr.no.cxx.tar.gz",repos=NULL,type="source")#
 library("ashr")
-ash
+nonzeromeanEM
 simdata = function(n, betahatsd,nullproportion=1, altmean=1, altsd=1) {#
     nnull=round(n*nullproportion,0)#
     null = c(rep(1, nnull), rep(0, n - nnull))#
     beta = c(rep(0, nnull), rnorm(n - nnull, altmean, altsd))#
     betahat = rnorm(n, beta, betahatsd)#
     return(list(null = null, beta = beta, betahat = betahat, betahatsd = betahatsd))#
-}
-N=1000#
-miu=500#
-set.seed(miu)#
-test=simdata(N,betahatsd=1,nullproportion=0.5,altmean=2,altsd=1)#
-test.ash=ash(test$betahat,test$betahatsd,method="shrink")#
-print(test.ash$pi.fit$g$mean)#
-test$betahat=test$betahat+miu#
-test.ashn=ash(test$betahat,test$betahatsd,method="shrink",nonzeromean=TRUE)#
-print(test.ashn$fitted.g$mean)
-test.ash
-test.ash$pi.fit
+}#
+## Testing the nonzeromean feature#
+#
 N=1000#
 miu=500#
 set.seed(miu)#
@@ -17091,15 +16931,1236 @@ print(test.ash$fitted.g$mean)#
 test$betahat=test$betahat+miu#
 test.ashn=ash(test$betahat,test$betahatsd,method="shrink",nonzeromean=TRUE)#
 print(test.ashn$fitted.g$mean)
-test.ash
-test.ashn
-require(roxygen2)#
-require(devtools)#
-setwd("/Users/daichaoxing/ash/package/ashr")#
-#devtools::document()#
-roxygenise()
-help(ash)
-install.packages("/Users/daichaoxing/ash/package/ashr.no.cxx.tar.gz",repos=NULL,type="source")#
+N=1000#
+miu=500#
+set.seed(miu)#
+test=simdata(N,betahatsd=1,nullproportion=0.5,altmean=2,altsd=1)#
+test.ash=ash(test$betahat,test$betahatsd,method="shrink",mixcompdist="uniform")#
+print(test.ash$fitted.g$a)#
+print(test.ash$fitted.g$b)#
+#
+test$betahat=test$betahat+miu#
+test.ash1=ash(test$betahat,test$betahatsd,method="shrink",nonzeromean=TRUE,mixcompdist="uniform")#
+test.ash2=ash(test$betahat,test$betahatsd,method="shrink",nonzeromean=FALSE,mixcompdist="uniform")#
+print(test.ash1)#
+print(test.ash2)
+munew=optim(par=mean(betahat),f= nonzeromeanEMoptim,pinew=pinew,betahat=betahat,sebetahat=sebetahat,g=g,df=df,method="Brent",lower=min(betahat),upper=max(betahat))$par
+mixsd
+betahat
+optim(x=1,f=x^2-x,method="Brent")
+optim(par=1,f=x^2-x,method="Brent")
+optim(par=1,f=x^2-x,method="Brent",lower=-10,upper=10)
+test
+betahat=test$betahat
+sebetahat=test$betahatsd
+method="shrink"
+mixcompdist="uniform"
+lambda1=1,lambda2=0,nullcheck=TRUE,df=NULL,randomstart=FALSE,#
+               nullweight=10,nonzeromean=FALSE, #
+               pointmass = FALSE, #
+               onlylogLR = FALSE,
+df=NULL
+if(length(sebetahat)==1){#
+    sebetahat = rep(sebetahat,length(betahat))#
+  }#
+  if(length(sebetahat) != length(betahat)){#
+    stop("Error: sebetahat must have length 1, or same length as betahat")#
+  }
+completeobs = (!is.na(betahat) & !is.na(sebetahat))#
+  n=sum(completeobs)#
+  if(n==0){#
+    if(onlylogLR){#
+      return(list(pi=NULL, logLR = 0))#
+    }#
+    else{#
+      stop("Error: all input values are missing")#
+    }#
+  }
+if(!is.null(g)){#
+    maxiter = 1 # if g is specified, don't iterate the EM#
+    prior = rep(1,ncomp(g)) #prior is not actually used if g specified, but required to make sure EM doesn't produce warning#
+    null.comp=1 #null.comp also not used, but required #
+  } else {#
+    if(is.null(mixsd)){#
+      if(nonzeromean & is.null(df)){#
+        mixsd = autoselect.mixsd(betahat[completeobs]-mean(betahat[completeobs]),sebetahat[completeobs],gridmult)#
+        if(pointmass){ mixsd = c(0,mixsd) }#
+        nonzeromean.fit=nonzeromeanEM(betahat[completeobs], sebetahat[completeobs], mixsd=mixsd, mixcompdist=mixcompdist,df=df,maxiter=maxiter)#
+        betahat[completeobs]= betahat[completeobs] - nonzeromean.fit$nonzeromean#
+      	}#
+      else if(nonzeromean & !is.null(df)){#
+        stop("Error: Nonzero mean only implemented for df=NULL")#
+      }#
+        mixsd = autoselect.mixsd(betahat[completeobs],sebetahat[completeobs],gridmult)#
+    }#
+    if(pointmass){#
+      mixsd = c(0,mixsd)#
+    }#
+    null.comp = which.min(mixsd) #which component is the "null"#
+    k = length(mixsd)#
+    if(!is.numeric(prior)){#
+      if(prior=="nullbiased"){ # set up prior to favour "null"#
+        prior = rep(1,k)#
+        prior[null.comp] = nullweight #prior 10-1 in favour of null by default#
+      }else if(prior=="uniform"){#
+        prior = rep(1,k)#
+      }#
+    }#
+    if(length(prior)!=k | !is.numeric(prior)){#
+      stop("invalid prior specification")#
+    }#
+    if(randomstart){#
+      pi = rgamma(k,1,1)#
+    } else {#
+      if(k<n){#
+        pi=rep(1,k)/n #default initialization strongly favours null; puts weight 1/n on everything except null#
+        pi[null.comp] = (n-k+1)/n #the motivation is data can quickly drive away from null, but tend to drive only slowly toward null.#
+      } else {#
+        pi=rep(1,k)/k#
+      }#
+    }    #
+    pi=normalize(pi)#
+    if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")#
+    if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),mixsd)#
+    if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)#
+    if(mixcompdist=="halfuniform"){#
+      g = unimix(c(pi,pi)/2,c(-mixsd,rep(0,k)),c(rep(0,k),mixsd))#
+      prior = rep(prior, 2)#
+      pi = rep(pi, 2)#
+    }#
+  }
+g=NULL
+if(!is.null(g)){#
+    maxiter = 1 # if g is specified, don't iterate the EM#
+    prior = rep(1,ncomp(g)) #prior is not actually used if g specified, but required to make sure EM doesn't produce warning#
+    null.comp=1 #null.comp also not used, but required #
+  } else {#
+    if(is.null(mixsd)){#
+      if(nonzeromean & is.null(df)){#
+        mixsd = autoselect.mixsd(betahat[completeobs]-mean(betahat[completeobs]),sebetahat[completeobs],gridmult)#
+        if(pointmass){ mixsd = c(0,mixsd) }#
+        nonzeromean.fit=nonzeromeanEM(betahat[completeobs], sebetahat[completeobs], mixsd=mixsd, mixcompdist=mixcompdist,df=df,maxiter=maxiter)#
+        betahat[completeobs]= betahat[completeobs] - nonzeromean.fit$nonzeromean#
+      	}#
+      else if(nonzeromean & !is.null(df)){#
+        stop("Error: Nonzero mean only implemented for df=NULL")#
+      }#
+        mixsd = autoselect.mixsd(betahat[completeobs],sebetahat[completeobs],gridmult)#
+    }#
+    if(pointmass){#
+      mixsd = c(0,mixsd)#
+    }#
+    null.comp = which.min(mixsd) #which component is the "null"#
+    k = length(mixsd)#
+    if(!is.numeric(prior)){#
+      if(prior=="nullbiased"){ # set up prior to favour "null"#
+        prior = rep(1,k)#
+        prior[null.comp] = nullweight #prior 10-1 in favour of null by default#
+      }else if(prior=="uniform"){#
+        prior = rep(1,k)#
+      }#
+    }#
+    if(length(prior)!=k | !is.numeric(prior)){#
+      stop("invalid prior specification")#
+    }#
+    if(randomstart){#
+      pi = rgamma(k,1,1)#
+    } else {#
+      if(k<n){#
+        pi=rep(1,k)/n #default initialization strongly favours null; puts weight 1/n on everything except null#
+        pi[null.comp] = (n-k+1)/n #the motivation is data can quickly drive away from null, but tend to drive only slowly toward null.#
+      } else {#
+        pi=rep(1,k)/k#
+      }#
+    }    #
+    pi=normalize(pi)#
+    if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")#
+    if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),mixsd)#
+    if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)#
+    if(mixcompdist=="halfuniform"){#
+      g = unimix(c(pi,pi)/2,c(-mixsd,rep(0,k)),c(rep(0,k),mixsd))#
+      prior = rep(prior, 2)#
+      pi = rep(pi, 2)#
+    }#
+  }
+gridmult=sqrt(2)
+mixsd = autoselect.mixsd(betahat[completeobs]-mean(betahat[completeobs]),sebetahat[completeobs],gridmult)
 library("ashr")
-help(ash)
-rm(list = ls())
+mixsd = autoselect.mixsd(betahat[completeobs]-mean(betahat[completeobs]),sebetahat[completeobs],gridmult)
+autoselect.mixsd = function(betahat,sebetahat,mult){#
+  sigmaamin = min(sebetahat)/10 #so that the minimum is small compared with measurement precision#
+  if(all(betahat^2<sebetahat^2)){#
+    sigmaamax = 8*sigmaamin #to deal with the occassional odd case where this could happen; 8 is arbitrary#
+  } else {#
+    sigmaamax = 2*sqrt(max(betahat^2-sebetahat^2)) #this computes a rough largest value you'd want to use, based on idea that sigmaamax^2 + sebetahat^2 should be at least betahat^2   #
+  }#
+  if(mult==0){#
+    return(c(0,sigmaamax/2))#
+  }else{#
+    npoint = ceiling(log2(sigmaamax/sigmaamin)/log2(mult))#
+    return(mult^((-npoint):0) * sigmaamax)#
+  }#
+}
+nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,tol=1e-7,maxiter=5000){#
+  if(is.null(pi.init)){#
+    pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi#
+  }#
+  pi=pi.init#
+  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")#
+  if(mixcompdist=="normal") {g=normalmix(pi,rep(0,length(mixsd)),mixsd)}#
+  if(mixcompdist=="uniform") {g=unimix(pi,-mixsd,mixsd)}#
+  if(mixcompdist=="halfuniform"){g=unimix(c(pi,pi)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))}#
+  if(mixcompdist=="normal" & is.null(df)){#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="normal" & !is.null(df)){#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="uniform"){#
+    #return(list(nonzeromean=mean(betahat)))#
+    mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="halfuniform"){#
+    mupi=c(mean(betahat),pi.init/2,pi.init/2)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+#
+  return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))#
+}#
+nonzeromeanEMoptimfixpoint = function(mupi,betahat,sebetahat,g,df){#
+	#omegamatrix=matrix(NA,nrow=length(betahat),ncol=length(mixsd))#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	matrix_lik=t(compdens_conv(g,betahat-mu,sebetahat,df))#
+    m=t(pi * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k#
+    m.rowsum=rowSums(m)#
+    classprob=m/m.rowsum #an n by k matrix	#
+    pinew=normalize(colSums(classprob))#
+	munew=optim(par=mean(betahat),f= nonzeromeanEMoptim,pinew=pinew,betahat=betahat,sebetahat=sebetahat,g=g,df=df,method="Brent",lower=min(betahat),upper=max(betahat))$par#
+	mupi=c(munew,pinew)#
+	return(mupi)#
+}#
+nonzeromeanEMoptimobj = function(mupi,betahat,sebetahat,g,df){#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))#
+	m = t(pimean * t(matrix_lik))#
+	m.rowsum = rowSums(m)#
+	loglik = sum(log(m.rowsum))#
+	return(-loglik)#
+}#
+#
+nonzeromeanEMoptim = function(mu,pinew,betahat,sebetahat,g,df){#
+	matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))#
+	m = t(pinew * t(matrix_lik))#
+	m.rowsum = rowSums(m)#
+	loglik = sum(log(m.rowsum))#
+	return(-loglik)#
+}#
+nonzeromeanEMfixpoint = function(mupi,betahat,sebetahat,mixsd){#
+	#omegamatrix=matrix(NA,nrow=length(betahat),ncol=length(mixsd))#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) #
+	xmat=matrix(rep(betahat,length(mixsd)),ncol=length(mixsd))#
+	omegamatrix=t(t(dnorm(xmat,mean=mu,sd=sdmat))*pimean)#
+	omegamatrix=omegamatrix /rowSums(omegamatrix)#
+	pinew=normalize(colSums(omegamatrix))#
+	munew=sum(omegamatrix*xmat/(sdmat^2))/sum(omegamatrix/(sdmat^2))#
+	mupi=c(munew,pinew)#
+	return(mupi)#
+}#
+#
+nonzeromeanEMobj = function(mupi,betahat,sebetahat,mixsd){#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) #
+	xmat=matrix(rep(betahat,length(mixsd)),ncol=length(mixsd))#
+	omegamatrix=t(t(dnorm(xmat,mean=mu,sd=sdmat))*pimean)#
+	omegamatrix=omegamatrix /rowSums(omegamatrix)#
+	NegativeQ=-sum(omegamatrix*dnorm(xmat,mean=mu,sd=sdmat,log=TRUE))#
+	return(NegativeQ)#
+}
+betahat
+sebetahat
+mixsd=c(0.5,1,2,4,8)
+mixcompdist="uniform"
+GENERIC FUNCTIONS #############################
+# find matrix of densities at y, for each component of the mixture#
+# INPUT y is an n-vector#
+# OUTPUT k by n matrix of densities#
+compdens = function(x,y,log=FALSE){#
+  UseMethod("compdens")#
+}#
+compdens.default = function(x,y,log=FALSE){#
+  stop(paste("Invalid class", class(m), "for first argument in",  match.call()))  #
+}#
+#
+#standard deviations#
+comp_sd = function(m){#
+  UseMethod("comp_sd")#
+}#
+comp_sd.default = function(m){#
+  stop("method comp_sd not written for this class")#
+}#
+#
+#second moments#
+comp_mean2 = function(m){#
+  UseMethod("comp_mean2")#
+}#
+comp_mean2.default = function(m){#
+  comp_sd(m)^2 + comp_mean(m)^2#
+}#
+#return the overall mean of the mixture#
+mixmean = function(m){#
+  UseMethod("mixmean")#
+}#
+mixmean.default = function(m){#
+  sum(m$pi * comp_mean(m))#
+}#
+#
+#return the overall second moment of the mixture#
+mixmean2 = function(m){#
+  UseMethod("mixmean2")#
+}#
+mixmean2.default = function(m){#
+  sum(m$pi * comp_mean2(m))#
+}#
+#
+#return the overall sd of the mixture#
+mixsd = function(m){#
+  UseMethod("mixsd")#
+}#
+mixsd.default = function(m){#
+  sqrt(mixmean2(m)-mixmean(m)^2)#
+}#
+#
+#means#
+comp_mean = function(m){#
+  UseMethod("comp_mean")#
+}#
+comp_mean.default = function(m){#
+  stop("method comp_mean not written for this class")#
+}#
+#
+#number of components#
+ncomp = function(m){#
+  UseMethod("ncomp")#
+}#
+ncomp.default = function(m){#
+  return(length(m$pi))#
+}#
+#
+#return mixture proportions, a generic function#
+mixprop = function(m){#
+  UseMethod("mixprop")#
+}#
+mixprop.default = function(m){#
+  m$pi#
+}#
+#
+#' @title mixcdf#
+#'#
+#' @description Returns cdf for a mixture (generic function)#
+#' #
+#' @details None#
+#' #
+#' @param x a mixture (eg of type normalmix or unimix)#
+#' @param y locations at which cdf to be computed#
+#' @param lower.tail: boolean indicating whether to report lower tail#
+#' #
+#' @return an object of class normalmix#
+#' #
+#' @export#
+#' #
+#' @examples mixcdf(normalmix(c(0.5,0.5),c(0,0),c(1,2)),seq(-4,4,length=100))#
+#' #
+mixcdf = function(x,y,lower.tail=TRUE){#
+  UseMethod("mixcdf")#
+}#
+#' @title mixcdf.default#
+#' @export#
+#' #
+mixcdf.default = function(x,y,lower.tail=TRUE){#
+  x$pi %*% comp_cdf(x,y,lower.tail)#
+}#
+#
+#find cdf for each component, a generic function#
+comp_cdf = function(x,y,lower.tail=TRUE){#
+  UseMethod("comp_cdf")#
+}#
+comp_cdf.default = function(x,y,lower.tail=TRUE){#
+  stop("comp_cdf not implemented for this class")#
+}#
+#find density at y, a generic function#
+dens = function(x,y){#
+  UseMethod("dens")#
+}#
+dens.default = function(x,y){#
+  return (x$pi %*% compdens(x, y))#
+}#
+#
+#find log likelihood of data in x (a vector) for mixture in m#
+loglik = function(m,x){#
+  UseMethod("loglik")#
+}#
+loglik.default = function(m,x){#
+  sum(log(dens(m,x)))#
+}#
+#
+#find log likelihood of data in betahat, when #
+#the mixture m is convolved with a normal with sd betahatsd#
+#betahatsd is an n vector#
+#betahat is an n vector#
+#v is the degree of freedom#
+#' @title loglik_conv#
+#' #
+#' @export#
+#' #
+loglik_conv = function(m,betahat,betahatsd,v,FUN="+"){#
+  UseMethod("loglik_conv")#
+}#
+#' @title loglik_conv.default#
+#' #
+#' @export#
+#' #
+loglik_conv.default = function(m,betahat,betahatsd,v,FUN="+"){#
+  sum(log(dens_conv(m,betahat,betahatsd,v,FUN)))#
+}#
+#
+#compute the density of the components of the mixture m#
+#when convoluted with a normal with standard deviation s#
+#or a scaled (se) student.t with df v#
+#the density is evaluated at x#
+#x and s are n-vectors#
+#m is a mixture with k components#
+#output is a k by n matrix of densities#
+compdens_conv = function(m,x,s,v,FUN="+"){#
+  UseMethod("compdens_conv")#
+}#
+compdens_conv.default = function(m,x,s,v,FUN="+"){#
+  stop(paste("Invalid class", class(m), "for first argument in",  match.call()))  #
+}#
+#
+#compute density of mixture m convoluted with normal of sd (s) or student t with df v#
+#at locations x#
+#m is a mixture#
+#x is an n vector#
+#s is an n vector or integer#
+dens_conv = function(m,x,s,v,FUN="+"){#
+  UseMethod("dens_conv")#
+}#
+dens_conv.default = function(m,x,s,v,FUN="+"){#
+  colSums(m$pi * compdens_conv(m,x,s,v,FUN))#
+}#
+#
+#compute the posterior prob that each observation#
+#came from each component of the mixture m#
+#output a k by n vector of probabilities#
+#computed by weighting the component densities by pi#
+#and then normalizing#
+comppostprob=function(m,x,s,v){#
+ UseMethod("comppostprob") #
+}#
+comppostprob.default = function(m,x,s,v){#
+  tmp= (t(m$pi * compdens_conv(m,x,s,v))/dens_conv(m,x,s,v))#
+  ismissing = (is.na(x) | is.na(s))#
+  tmp[ismissing,]=m$pi#
+  t(tmp)#
+}#
+# evaluate cdf of posterior distribution of beta at c#
+# m is the prior on beta, a mixture#
+# c is location of evaluation#
+# assumption is betahat | beta \sim N(beta,sebetahat)#
+# m is a mixture with k components#
+# c a scalar#
+# betahat, sebetahat are n vectors #
+# output is a k by n matrix#
+compcdf_post=function(m,c,betahat,sebetahat,v){#
+  UseMethod("compcdf_post")#
+}#
+compcdf_post.default=function(m,c,betahat,sebetahat,v){#
+  stop("method compcdf_post not written for this class")#
+}#
+cdf_post = function(m,c,betahat,sebetahat,v){#
+  UseMethod("cdf_post")#
+}#
+cdf_post.default=function(m,c,betahat,sebetahat,v){#
+  colSums(comppostprob(m,betahat,sebetahat,v)*compcdf_post(m,c,betahat,sebetahat,v))#
+}#
+#
+#output posterior mean for beta for prior mixture m,#
+#given observations betahat, sebetahat, df v#
+postmean = function(m, betahat,sebetahat,v){#
+  UseMethod("postmean")#
+}#
+postmean.default = function(m,betahat,sebetahat,v){#
+  colSums(comppostprob(m,betahat,sebetahat,v) * comp_postmean(m,betahat,sebetahat,v))#
+}#
+#output posterior mean-squared value for beta for prior mixture m,#
+#given observations betahat, sebetahat, df v#
+postmean2 = function(m, betahat,sebetahat,v){#
+  UseMethod("postmean2")#
+}#
+postmean2.default = function(m,betahat,sebetahat,v){#
+  colSums(comppostprob(m,betahat,sebetahat,v) * comp_postmean2(m,betahat,sebetahat,v))#
+}#
+#
+#output posterior sd for beta for prior mixture m,#
+#given observations betahat, sebetahat, df v#
+postsd = function(m,betahat,sebetahat,v){#
+  UseMethod("postsd")#
+}#
+postsd.default = function(m,betahat,sebetahat,v){#
+  sqrt(postmean2(m,betahat,sebetahat,v)-postmean(m,betahat,sebetahat,v)^2)#
+}#
+#
+#output posterior mean-squared value for beta for prior mixture m,#
+#given observations betahat, sebetahat, df v#
+comp_postmean2 = function(m,betahat,sebetahat,v){#
+  UseMethod("comp_postmean2")#
+}#
+comp_postmean2.default = function(m,betahat,sebetahat,v){#
+  comp_postsd(m,betahat,sebetahat,v)^2 + comp_postmean(m,betahat,sebetahat,v)^2#
+}#
+#output posterior mean for beta for each component of prior mixture m,#
+#given observations betahat, sebetahat, df v#
+comp_postmean = function(m, betahat,sebetahat,v){#
+  UseMethod("comp_postmean")#
+}#
+comp_postmean.default = function(m,betahat,sebetahat,v){#
+  stop("method comp_postmean not written for this class")#
+}#
+#output posterior sd for beta for each component of prior mixture m,#
+#given observations betahat, sebetahat, df v#
+comp_postsd = function(m, betahat,sebetahat,v){#
+  UseMethod("comp_postsd")#
+}#
+comp_postsd.default = function(m,betahat,sebetahat,v){#
+  stop("method comp_postsd not written for this class")#
+}#
+#
+#find nice limits of mixture m for plotting#
+min_lim = function(m){#
+  UseMethod("min_lim")#
+}#
+min_lim.default=function(m){#
+  -5#
+}#
+#
+max_lim = function(m){#
+  UseMethod("max_lim")#
+}#
+max_lim.default=function(m){#
+  5#
+}#
+#plot density of mixture#
+plot_dens = function(m,npoints=100,...){#
+  UseMethod("plot_dens")#
+}#
+plot_dens.default = function(m,npoints=100,...){#
+  x = seq(min_lim(m),max_lim(m),length=npoints)#
+  plot(x,dens(m,x),type="l",xlab="density",ylab="x",...)#
+}#
+#
+plot_post_cdf = function(m,betahat,sebetahat,v,npoints=100,...){#
+  UseMethod("plot_post_cdf")#
+}#
+plot_post_cdf.default = function(m,betahat,sebetahat,v,npoints=100,...){#
+  x = seq(min_lim(m),max_lim(m),length=npoints)#
+  x_cdf = vapply(x,cdf_post,FUN.VALUE=betahat,m=m,betahat=betahat,sebetahat=sebetahat,v=v)#
+  plot(x,x_cdf,type="l",xlab="x",ylab="cdf",...)#
+ # for(i in 2:nrow(x_cdf)){#
+ #   lines(x,x_cdf[i,],col=i)#
+ # }#
+}#
+#
+############################### METHODS FOR normalmix class ############################
+#
+#' @title Constructor for normalmix class#
+#'#
+#' @description Creates an object of class normalmix (finite mixture of univariate normals)#
+#' #
+#' @details None#
+#' #
+#' @param pi vector of mixture proportions#
+#' @param mean vector of means#
+#' @param sd: vector of standard deviations#
+#' #
+#' @return an object of class normalmix#
+#' #
+#' @export#
+#' #
+#' @examples normalmix(c(0.5,0.5),c(0,0),c(1,2))#
+#' #
+normalmix = function(pi,mean,sd){#
+  structure(data.frame(pi,mean,sd),class="normalmix")#
+}#
+#
+comp_sd.normalmix = function(m){#
+  m$sd#
+}#
+#
+comp_mean.normalmix = function(m){#
+  m$mean#
+}#
+#
+compdens.normalmix = function(x,y,log=FALSE){#
+  k=ncomp(x)#
+  n=length(y)#
+  d = matrix(rep(y,rep(k,n)),nrow=k)#
+  return(matrix(dnorm(d, x$mean, x$sd, log),nrow=k))  #
+}#
+#
+#density of convolution of each component of a normal mixture with N(0,s^2) or s*t(v) at x#
+# x an n-vector at which density is to be evaluated#
+#return a k by n matrix#
+#Note that convolution of two normals is normal, so it works that way#
+compdens_conv.normalmix = function(m,x,s,v,FUN="+"){#
+  if(!is.null(v)){#
+  	stop("method comp_postsd of normal mixture not written for df!null")#
+  }#
+  if(length(s)==1){s=rep(s,length(x))}#
+  sdmat = sqrt(outer(s^2,m$sd^2,FUN)) #n by k matrix of standard deviations of convolutions#
+  return(t(dnorm(outer(x,m$mean,FUN="-")/sdmat)/sdmat))#
+}#
+comp_cdf.normalmix = function(x,y,lower.tail=TRUE){#
+  vapply(y,pnorm,x$mean,x$mean,x$sd,lower.tail)#
+}#
+#
+#c is a scalar#
+#m a mixture with k components#
+#betahat a vector of n observations#
+#sebetahat an n vector of standard errors#
+#return a k by n matrix of the posterior cdf#
+compcdf_post.normalmix=function(m,c,betahat,sebetahat,v){#
+  if(!is.null(v)){#
+  	stop("Error: normal mixture for student-t likelihood is not yet implemented")#
+  }  #
+  k = length(m$pi)#
+  n=length(betahat)#
+  #compute posterior standard deviation (s1) and posterior mean (m1)#
+  s1 = sqrt(outer(sebetahat^2,m$sd^2,FUN="*")/outer(sebetahat^2,m$sd^2,FUN="+"))#
+  ismissing = (is.na(betahat) | is.na(sebetahat))#
+  s1[ismissing,]=m$sd#
+  m1 = t(comp_postmean(m,betahat,sebetahat,v))#
+  t(pnorm(c,mean=m1,sd=s1))#
+}#
+#
+#return posterior mean for each component of prior m, given observations betahat and sebetahat#
+#input, m is a mixture with k components#
+#betahat, sebetahat are n vectors#
+#output is a k by n matrix#
+comp_postmean.normalmix = function(m,betahat,sebetahat,v){#
+  if(!is.null(v)){#
+  	stop("method comp_postmean of normal mixture not written for df!=NULL")#
+  }#
+  tmp=(outer(sebetahat^2,m$mean, FUN="*") + outer(betahat,m$sd^2, FUN="*"))/outer(sebetahat^2,m$sd^2,FUN="+")#
+  ismissing = (is.na(betahat) | is.na(sebetahat))#
+  tmp[ismissing,]=m$mean #return prior mean when missing data#
+  t(tmp)#
+}#
+#return posterior standard deviation for each component of prior m, given observations betahat and sebetahat#
+#input, m is a mixture with k components#
+#betahat, sebetahat are n vectors#
+#output is a k by n matrix#
+comp_postsd.normalmix = function(m,betahat,sebetahat,v){#
+  if(!is.null(v)){#
+  	stop("method comp_postsd of normal mixture not written for df!=NULL")#
+  }#
+  t(sqrt(outer(sebetahat^2,m$sd^2,FUN="*")/outer(sebetahat^2,m$sd^2,FUN="+")))#
+}#
+############################### METHODS FOR unimix class ############################
+#
+#constructor; pi, a and b are vectors; kth component is Uniform(a[k],b[k])#
+unimix = function(pi,a,b){#
+  structure(data.frame(pi,a,b),class="unimix")#
+}#
+#
+comp_cdf.unimix = function(m,y,lower.tail=TRUE){#
+  vapply(y,punif,m$a,min=m$a,max=m$b,lower.tail)#
+}#
+#
+comp_sd.unimix = function(m){#
+  (m$b-m$a)/sqrt(12)#
+}#
+#
+comp_mean.unimix = function(m){#
+  (m$a+m$b)/2#
+}#
+compdens.unimix = function(x,y,log=FALSE){#
+  k=ncomp(x)#
+  n=length(y)#
+  d = matrix(rep(y,rep(k,n)),nrow=k)#
+  return(matrix(dunif(d, x$a, x$b, log),nrow=k))  #
+}#
+#
+#density of convolution of each component of a unif mixture with N(0,s) at x#
+# x an n-vector#
+#return a k by n matrix#
+compdens_conv.unimix = function(m,x,s,v, FUN="+"){#
+  if(FUN!="+") stop("Error; compdens_conv not implemented for uniform with FUN!=+")#
+  if(is.null(v)){#
+    compdens= t(pnorm(outer(x,m$a,FUN="-")/s)-pnorm(outer(x,m$b,FUN="-")/s))/(m$b-m$a)#
+    compdens[m$a==m$b,]=t(dnorm(outer(x,m$a,FUN="-")/s)/s)[m$a==m$b,]#
+  }#
+  else{#
+    compdens= t(pt(outer(x,m$a,FUN="-")/s,df=v)-pt(outer(x,m$b,FUN="-")/s,df=v))/(m$b-m$a)#
+    compdens[m$a==m$b,]=t(dt(outer(x,m$a,FUN="-")/s,df=v)/s)[m$a==m$b,]#
+  }#
+  return(compdens)#
+}#
+#c is a scalar#
+#m a mixture with k components#
+#betahat a vector of n observations#
+#sebetahat an n vector of standard errors#
+#return a k by n matrix of the posterior cdf#
+compcdf_post.unimix=function(m,c,betahat,sebetahat,v){#
+  k = length(m$pi)#
+  n=length(betahat)#
+  tmp = matrix(1,nrow=k,ncol=n)#
+  tmp[m$a > c,] = 0#
+  subset = m$a<=c & m$b>c # subset of components (1..k) with nontrivial cdf#
+  if(sum(subset)>0){#
+  	if(is.null(v)){#
+      pna = pnorm(outer(betahat,m$a[subset],FUN="-")/sebetahat)#
+      pnc = pnorm(outer(betahat,rep(c,sum(subset)),FUN="-")/sebetahat)#
+      pnb = pnorm(outer(betahat,m$b[subset],FUN="-")/sebetahat)#
+    }#
+    else{#
+      pna = pt(outer(betahat,m$a[subset],FUN="-")/sebetahat, df=v)#
+      pnc = pt(outer(betahat,rep(c,sum(subset)),FUN="-")/sebetahat, df=v)#
+      pnb = pt(outer(betahat,m$b[subset],FUN="-")/sebetahat, df=v)#
+    }#
+    tmp[subset,] = t((pnc-pna)/(pnb-pna))#
+  }#
+  subset = (m$a == m$b) #subset of components with trivial cdf#
+  tmp[subset,]= rep(m$a[subset] <= c,n)#
+  tmp#
+}#
+#
+my_etruncnorm= function(a,b,mean=0,sd=1){#
+  alpha = (a-mean)/sd#
+  beta =  (b-mean)/sd#
+ #Flip the onese where both are positive, as the computations are more stable#
+  #when both negative#
+  flip = (alpha>0 & beta>0)#
+  flip[is.na(flip)]=FALSE #deal with NAs#
+  alpha[flip]= -alpha[flip]#
+  beta[flip]=-beta[flip]#
+  tmp= (-1)^flip * (mean+sd*etruncnorm(alpha,beta,0,1))#
+  max_alphabeta = ifelse(alpha<beta, beta,alpha)#
+  max_ab = ifelse(alpha<beta,b,a)#
+  toobig = max_alphabeta<(-30)#
+  toobig[is.na(toobig)]=FALSE #
+  tmp[toobig] = max_ab[toobig]#
+  tmp#
+}#
+#return posterior mean for each component of prior m, given observations betahat and sebetahat#
+#input, m is a mixture with k components#
+#betahat, sebetahat are n vectors#
+#output is a k by n matrix#
+#note that with uniform prior, posterior is truncated normal, so#
+#this is computed using formula for mean of truncated normal #
+comp_postmean.unimix = function(m,betahat,sebetahat,v){#
+#   k= ncomp(m)#
+#   n=length(betahat)#
+#   a = matrix(m$a,nrow=n,ncol=k,byrow=TRUE)#
+#   b = matrix(m$b,nrow=n,ncol=k,byrow=TRUE)#
+#   matrix(etruncnorm(a,b,betahat,sebetahat),nrow=k,byrow=TRUE)#
+  #note: etruncnorm is more stable for a and b negative than positive#
+  #so maybe use this, and standardize to make the whole more stable.#
+  alpha = outer(-betahat, m$a,FUN="+")/sebetahat#
+  beta = outer(-betahat, m$b, FUN="+")/sebetahat#
+  if(is.null(v)){#
+    tmp = betahat + sebetahat*my_etruncnorm(alpha,beta,0,1)#
+  }#
+  else{#
+  	tmp = betahat + sebetahat*my_etrunct(alpha,beta,v)#
+  }#
+  ismissing = is.na(betahat) | is.na(sebetahat)#
+  tmp[ismissing,]= (m$a+m$b)/2#
+  t(tmp)#
+#   t(#
+#     betahat + sebetahat* #
+#       exp(dnorm(alpha,log=TRUE)- pnorm(alpha,log=TRUE))#
+#    * #
+#       (-expm1(dnorm(beta,log=TRUE)-dnorm(alpha,log=TRUE)))#
+#     /#
+#       (expm1(pnorm(beta,log=TRUE)-pnorm(alpha,log=TRUE)))#
+#   )#
+}#
+#
+#not yet implemented!#
+#just returns 0s for now#
+comp_postsd.unimix = function(m,betahat,sebetahat,v){#
+  print("Warning: Posterior SDs not yet implemented for uniform components")#
+  k= ncomp(m)#
+  n=length(betahat)#
+  return(matrix(NA,nrow=k,ncol=n)) #
+}#
+#
+# the mean of a truncated student.t#
+# the result is from the paper 'Moments of truncated Student-t distribution' by H.-J Kim #
+#
+my_etrunct= function(a,b,v){#
+  A = v+a^2#
+  B = v+b^2#
+  F_a = pt(a,df=v)#
+  F_b = pt(b,df=v)#
+  G = gamma((v-1)/2)*v^(v/2)/(2*(F_b-F_a)*gamma(v/2)*gamma(1/2))#
+  tmp = ifelse(a==b,a,G*(A^(-(v-1)/2)-B^(-(v-1)/2)))#
+  tmp#
+}
+' #
+nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,tol=1e-7,maxiter=5000){#
+  if(is.null(pi.init)){#
+    pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi#
+  }#
+  pi=pi.init#
+  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")#
+  if(mixcompdist=="normal") {g=normalmix(pi,rep(0,length(mixsd)),mixsd)}#
+  if(mixcompdist=="uniform") {g=unimix(pi,-mixsd,mixsd)}#
+  if(mixcompdist=="halfuniform"){g=unimix(c(pi,pi)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))}#
+  if(mixcompdist=="normal" & is.null(df)){#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="normal" & !is.null(df)){#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="uniform"){#
+    #return(list(nonzeromean=mean(betahat)))#
+    mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="halfuniform"){#
+    mupi=c(mean(betahat),pi.init/2,pi.init/2)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+#
+  return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))#
+}#
+nonzeromeanEMoptimfixpoint = function(mupi,betahat,sebetahat,g,df){#
+	#omegamatrix=matrix(NA,nrow=length(betahat),ncol=length(mixsd))#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	matrix_lik=t(compdens_conv(g,betahat-mu,sebetahat,df))#
+    m=t(pi * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k#
+    m.rowsum=rowSums(m)#
+    classprob=m/m.rowsum #an n by k matrix	#
+    pinew=normalize(colSums(classprob))#
+	munew=optim(par=mean(betahat),f= nonzeromeanEMoptim,pinew=pinew,betahat=betahat,sebetahat=sebetahat,g=g,df=df,method="Brent",lower=min(betahat),upper=max(betahat))$par#
+	mupi=c(munew,pinew)#
+	return(mupi)#
+}#
+nonzeromeanEMoptimobj = function(mupi,betahat,sebetahat,g,df){#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))#
+	m = t(pimean * t(matrix_lik))#
+	m.rowsum = rowSums(m)#
+	loglik = sum(log(m.rowsum))#
+	return(-loglik)#
+}#
+#
+nonzeromeanEMoptim = function(mu,pinew,betahat,sebetahat,g,df){#
+	matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))#
+	m = t(pinew * t(matrix_lik))#
+	m.rowsum = rowSums(m)#
+	loglik = sum(log(m.rowsum))#
+	return(-loglik)#
+}#
+nonzeromeanEMfixpoint = function(mupi,betahat,sebetahat,mixsd){#
+	#omegamatrix=matrix(NA,nrow=length(betahat),ncol=length(mixsd))#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) #
+	xmat=matrix(rep(betahat,length(mixsd)),ncol=length(mixsd))#
+	omegamatrix=t(t(dnorm(xmat,mean=mu,sd=sdmat))*pimean)#
+	omegamatrix=omegamatrix /rowSums(omegamatrix)#
+	pinew=normalize(colSums(omegamatrix))#
+	munew=sum(omegamatrix*xmat/(sdmat^2))/sum(omegamatrix/(sdmat^2))#
+	mupi=c(munew,pinew)#
+	return(mupi)#
+}#
+#
+nonzeromeanEMobj = function(mupi,betahat,sebetahat,mixsd){#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) #
+	xmat=matrix(rep(betahat,length(mixsd)),ncol=length(mixsd))#
+	omegamatrix=t(t(dnorm(xmat,mean=mu,sd=sdmat))*pimean)#
+	omegamatrix=omegamatrix /rowSums(omegamatrix)#
+	NegativeQ=-sum(omegamatrix*dnorm(xmat,mean=mu,sd=sdmat,log=TRUE))#
+	return(NegativeQ)#
+}
+nonzeromeanEM(betahat,sebetahat,mixsd,mixcompdist)
+mixcompdist
+a= nonzeromeanEM(betahat,sebetahat,mixsd,mixcompdist)
+betahat
+mixsd
+mixsd1=c(0.5,1,2,4,8)
+a= nonzeromeanEM(betahat,sebetahat,mixsd1,mixcompdist)
+nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,tol=1e-7,maxiter=5000){#
+  if(is.null(pi.init)){#
+    pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi#
+  }#
+  pi=pi.init#
+  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")#
+  if(mixcompdist=="normal") {g=normalmix(pi,rep(0,length(mixsd)),mixsd)}#
+  if(mixcompdist=="uniform") {g=unimix(pi,-mixsd,mixsd)}#
+  if(mixcompdist=="halfuniform"){g=unimix(c(pi,pi)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))}#
+  if(mixcompdist=="normal" & is.null(df)){#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="normal" & !is.null(df)){#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="uniform"){#
+    #return(list(nonzeromean=mean(betahat)))#
+    mupi=c(mean(betahat),pi.init)#
+    #res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="halfuniform"){#
+    mupi=c(mean(betahat),pi.init/2,pi.init/2)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+#
+  return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))#
+}
+a= nonzeromeanEM(betahat=betahat,sebetahat=sebetahat,mixsd=c(0.5,1,2,4,5),mixcompdist="uniform")
+a= nonzeromeanEM(betahat=betahat,sebetahat=sebetahat,mixsd=c(0.5,1,2,4,5),mixcompdist="uniform")
+a= nonzeromeanEM(betahat=betahat,sebetahat=sebetahat,mixsd=c(0.5,1,2,4,5),mixcompdist="halfuniform")
+a= nonzeromeanEM(betahat=betahat,sebetahat=sebetahat,mixsd=c(0.5,1,2,4,5),mixcompdist="normal",df=10)
+nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,tol=1e-7,maxiter=5000){#
+  if(is.null(pi.init)){#
+    pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi#
+  }#
+  pi=pi.init#
+  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")#
+  if(mixcompdist=="normal") {g=normalmix(pi,rep(0,length(mixsd)),mixsd)}#
+  if(mixcompdist=="uniform") {g=unimix(pi,-mixsd,mixsd)}#
+  if(mixcompdist=="halfuniform"){g=unimix(c(pi,pi)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))}#
+  if(mixcompdist=="normal" & is.null(df)){#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="normal" & !is.null(df)){#
+  	stop("method comp_postsd of normal mixture not yet written for t likelihood")#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="uniform"){#
+    #return(list(nonzeromean=mean(betahat)))#
+    mupi=c(mean(betahat),pi.init)#
+    #res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="halfuniform"){#
+    mupi=c(mean(betahat),pi.init/2,pi.init/2)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+#
+  return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))#
+}
+nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,tol=1e-7,maxiter=5000){#
+  if(is.null(pi.init)){#
+    pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi#
+  }#
+  pi=pi.init#
+  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")#
+  if(mixcompdist=="normal") {g=normalmix(pi,rep(0,length(mixsd)),mixsd)}#
+  if(mixcompdist=="uniform") {g=unimix(pi,-mixsd,mixsd)}#
+  if(mixcompdist=="halfuniform"){g=unimix(c(pi,pi)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))}#
+  if(mixcompdist=="normal" & is.null(df)){#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="normal" & !is.null(df)){#
+  	stop("method comp_postsd of normal mixture not yet written for t likelihood")#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="uniform"){#
+    #return(list(nonzeromean=mean(betahat)))#
+    mupi=c(mean(betahat),pi.init)#
+    #res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="halfuniform"){#
+    mupi=c(mean(betahat),pi.init/2,pi.init/2)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+#
+  return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))#
+}a= nonzeromeanEM(betahat=betahat,sebetahat=sebetahat,mixsd=c(0.5,1,2,4,5),mixcompdist="half")nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,tol=1e-7,maxiter=5000){#
+  if(is.null(pi.init)){#
+    pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi#
+  }#
+  pi=pi.init#
+  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")#
+  if(mixcompdist=="normal") {g=normalmix(pi,rep(0,length(mixsd)),mixsd)}#
+  if(mixcompdist=="uniform") {g=unimix(pi,-mixsd,mixsd)}#
+  if(mixcompdist=="halfuniform"){g=unimix(c(pi,pi)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))}#
+  if(mixcompdist=="normal" & is.null(df)){#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="normal" & !is.null(df)){#
+  	stop("method comp_postsd of normal mixture not yet written for t likelihood")#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="uniform"){#
+    #return(list(nonzeromean=mean(betahat)))#
+    mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="halfuniform"){#
+    mupi=c(mean(betahat),pi.init/2,pi.init/2)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+#
+  return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))#
+}
+nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,tol=1e-7,maxiter=5000){#
+  if(is.null(pi.init)){#
+    pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi#
+  }#
+  pi=pi.init#
+  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")#
+  if(mixcompdist=="normal") {g=normalmix(pi,rep(0,length(mixsd)),mixsd)}#
+  if(mixcompdist=="uniform") {g=unimix(pi,-mixsd,mixsd)}#
+  if(mixcompdist=="halfuniform"){g=unimix(c(pi,pi)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))}#
+  if(mixcompdist=="normal" & is.null(df)){#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="normal" & !is.null(df)){#
+  	stop("method comp_postsd of normal mixture not yet written for t likelihood")#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="uniform"){#
+    #return(list(nonzeromean=mean(betahat)))#
+    mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="halfuniform"){#
+    mupi=c(mean(betahat),pi.init/2,pi.init/2)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+#
+  return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))#
+}
+a= nonzeromeanEM(betahat=betahat,sebetahat=sebetahat,mixsd=c(0.5,1,2,4,5),mixcompdist="uniform")
+min(betahat)
+max(betahat)
+nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,tol=1e-7,maxiter=5000){#
+  if(is.null(pi.init)){#
+    pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi#
+  }#
+  pi=pi.init#
+  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")#
+  if(mixcompdist=="normal") {g=normalmix(pi,rep(0,length(mixsd)),mixsd)}#
+  if(mixcompdist=="uniform") {g=unimix(pi,-mixsd,mixsd)}#
+  if(mixcompdist=="halfuniform"){g=unimix(c(pi,pi)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))}#
+  if(mixcompdist=="normal" & is.null(df)){#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="normal" & !is.null(df)){#
+  	stop("method comp_postsd of normal mixture not yet written for t likelihood")#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="uniform"){#
+    #return(list(nonzeromean=mean(betahat)))#
+    mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="halfuniform"){#
+    mupi=c(mean(betahat),pi.init/2,pi.init/2)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+#
+  return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))#
+}#
+nonzeromeanEMoptimfixpoint = function(mupi,betahat,sebetahat,g,df){#
+	#omegamatrix=matrix(NA,nrow=length(betahat),ncol=length(mixsd))#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	matrix_lik=t(compdens_conv(g,betahat-mu,sebetahat,df))#
+    m=t(pimean * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k#
+    m.rowsum=rowSums(m)#
+    classprob=m/m.rowsum #an n by k matrix	#
+    pinew=normalize(colSums(classprob))#
+	munew=optim(par=mean(betahat),f= nonzeromeanEMoptim,pinew=pinew,betahat=betahat,sebetahat=sebetahat,g=g,df=df,method="Brent",lower=min(betahat),upper=max(betahat))$par#
+	mupi=c(munew,pinew)#
+	return(mupi)#
+}#
+nonzeromeanEMoptimobj = function(mupi,betahat,sebetahat,g,df){#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))#
+	m = t(pimean * t(matrix_lik))#
+	m.rowsum = rowSums(m)#
+	loglik = sum(log(m.rowsum))#
+	return(-loglik)#
+}#
+#
+nonzeromeanEMoptim = function(mu,pinew,betahat,sebetahat,g,df){#
+	matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))#
+	m = t(pinew * t(matrix_lik))#
+	m.rowsum = rowSums(m)#
+	loglik = sum(log(m.rowsum))#
+	return(-loglik)#
+}#
+nonzeromeanEMfixpoint = function(mupi,betahat,sebetahat,mixsd){#
+	#omegamatrix=matrix(NA,nrow=length(betahat),ncol=length(mixsd))#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) #
+	xmat=matrix(rep(betahat,length(mixsd)),ncol=length(mixsd))#
+	omegamatrix=t(t(dnorm(xmat,mean=mu,sd=sdmat))*pimean)#
+	omegamatrix=omegamatrix /rowSums(omegamatrix)#
+	pinew=normalize(colSums(omegamatrix))#
+	munew=sum(omegamatrix*xmat/(sdmat^2))/sum(omegamatrix/(sdmat^2))#
+	mupi=c(munew,pinew)#
+	return(mupi)#
+}#
+#
+nonzeromeanEMobj = function(mupi,betahat,sebetahat,mixsd){#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) #
+	xmat=matrix(rep(betahat,length(mixsd)),ncol=length(mixsd))#
+	omegamatrix=t(t(dnorm(xmat,mean=mu,sd=sdmat))*pimean)#
+	omegamatrix=omegamatrix /rowSums(omegamatrix)#
+	NegativeQ=-sum(omegamatrix*dnorm(xmat,mean=mu,sd=sdmat,log=TRUE))#
+	return(NegativeQ)#
+}
+a= nonzeromeanEM(betahat=betahat,sebetahat=sebetahat,mixsd=c(0.5,1,2,4,5),mixcompdist="uniform")
+nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,tol=1e-7,maxiter=5000){#
+  if(is.null(pi.init)){#
+    pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi#
+  }#
+  pi=pi.init#
+  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")#
+  if(mixcompdist=="normal") {g=normalmix(pi,rep(0,length(mixsd)),mixsd)}#
+  if(mixcompdist=="uniform") {g=unimix(pi,-mixsd,mixsd)}#
+  if(mixcompdist=="halfuniform"){g=unimix(c(pi,pi)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))}#
+  if(mixcompdist=="normal" & is.null(df)){#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="normal" & !is.null(df)){#
+  	stop("method comp_postsd of normal mixture not yet written for t likelihood")#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="uniform"){#
+    #return(list(nonzeromean=mean(betahat)))#
+    mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="halfuniform"){#
+    mupi=c(mean(betahat),pi.init/2,pi.init/2)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+#
+  return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))#
+}#
+nonzeromeanEMoptimfixpoint = function(mupi,betahat,sebetahat,g,df){#
+	#omegamatrix=matrix(NA,nrow=length(betahat),ncol=length(mixsd))#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	matrix_lik=t(compdens_conv(g,betahat-mu,sebetahat,df))#
+    m=t(pimean * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k#
+    m.rowsum=rowSums(m)#
+    classprob=m/m.rowsum #an n by k matrix	#
+    pinew=normalize(colSums(classprob))#
+    munew=mu#
+	#munew=optim(par=mean(betahat),f= nonzeromeanEMoptim,pinew=pinew,betahat=betahat,sebetahat=sebetahat,g=g,df=df,method="Brent",lower=min(betahat),upper=max(betahat))$par#
+	mupi=c(munew,pinew)#
+	return(mupi)#
+}#
+nonzeromeanEMoptimobj = function(mupi,betahat,sebetahat,g,df){#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))#
+	m = t(pimean * t(matrix_lik))#
+	m.rowsum = rowSums(m)#
+	loglik = sum(log(m.rowsum))#
+	return(-loglik)#
+}#
+#
+nonzeromeanEMoptim = function(mu,pinew,betahat,sebetahat,g,df){#
+	matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))#
+	m = t(pinew * t(matrix_lik))#
+	m.rowsum = rowSums(m)#
+	loglik = sum(log(m.rowsum))#
+	return(-loglik)#
+}#
+nonzeromeanEMfixpoint = function(mupi,betahat,sebetahat,mixsd){#
+	#omegamatrix=matrix(NA,nrow=length(betahat),ncol=length(mixsd))#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) #
+	xmat=matrix(rep(betahat,length(mixsd)),ncol=length(mixsd))#
+	omegamatrix=t(t(dnorm(xmat,mean=mu,sd=sdmat))*pimean)#
+	omegamatrix=omegamatrix /rowSums(omegamatrix)#
+	pinew=normalize(colSums(omegamatrix))#
+	munew=sum(omegamatrix*xmat/(sdmat^2))/sum(omegamatrix/(sdmat^2))#
+	mupi=c(munew,pinew)#
+	return(mupi)#
+}#
+#
+nonzeromeanEMobj = function(mupi,betahat,sebetahat,mixsd){#
+	mu=mupi[1]#
+	pimean=mupi[-1]#
+	sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) #
+	xmat=matrix(rep(betahat,length(mixsd)),ncol=length(mixsd))#
+	omegamatrix=t(t(dnorm(xmat,mean=mu,sd=sdmat))*pimean)#
+	omegamatrix=omegamatrix /rowSums(omegamatrix)#
+	NegativeQ=-sum(omegamatrix*dnorm(xmat,mean=mu,sd=sdmat,log=TRUE))#
+	return(NegativeQ)#
+}
+a= nonzeromeanEM(betahat=betahat,sebetahat=sebetahat,mixsd=c(0.5,1,2,4,5),mixcompdist="uniform")
+nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,tol=1e-7,maxiter=5000){#
+  if(is.null(pi.init)){#
+    pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi#
+  }#
+  pi=pi.init#
+  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")#
+  if(mixcompdist=="normal") {g=normalmix(pi,rep(0,length(mixsd)),mixsd)}#
+  if(mixcompdist=="uniform") {g=unimix(pi,-mixsd,mixsd)}#
+  if(mixcompdist=="halfuniform"){g=unimix(c(pi,pi)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))}#
+  if(mixcompdist=="normal" & is.null(df)){#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="normal" & !is.null(df)){#
+  	stop("method comp_postsd of normal mixture not yet written for t likelihood")#
+  	mupi=c(mean(betahat),pi.init)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="uniform"){#
+    #return(list(nonzeromean=mean(betahat)))#
+    mupi=c(mean(betahat),pi.init)#
+    res=1#
+    #res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+  else if(mixcompdist=="halfuniform"){#
+    mupi=c(mean(betahat),pi.init/2,pi.init/2)#
+    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))#
+  }#
+#
+  return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))#
+}
+a= nonzeromeanEM(betahat=betahat,sebetahat=sebetahat,mixsd=c(0.5,1,2,4,5),mixcompdist="uniform")
