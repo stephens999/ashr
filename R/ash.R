@@ -454,7 +454,7 @@ nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.ini
   else if(mixcompdist=="normal" & !is.null(df)){
   	stop("method comp_postsd of normal mixture not yet written for t likelihood")
   	mupi=c(mean(betahat),pi.init)
-    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
+    res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
   }
   else if(mixcompdist=="uniform"){
     #return(list(nonzeromean=mean(betahat)))
@@ -465,24 +465,25 @@ nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.ini
   else if(mixcompdist=="halfuniform"){
   	stop("method not yet completed")
     mupi=c(mean(betahat),pi.init/2,pi.init/2)
-    res=squarem(par=mupi,fixptfn= nonzeromeanEMoptimfixpoint,objfn= nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
+    res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
   }
-
   return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))
 }
 
 
-nonzeromeanEMoptimfixpoint = function(mupi,betahat,sebetahat,g,df){
+nonzeromeanEMoptimfixpoint = function(mupi,betahat,sebetahat,g1,df){
 	#omegamatrix=matrix(NA,nrow=length(betahat),ncol=length(mixsd))
 	mu=mupi[1]
 	pimean=mupi[-1]
+	
 	matrix_lik=t(compdens_conv(g,betahat-mu,sebetahat,df))
     m=t(pimean * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k
     m.rowsum=rowSums(m)
     classprob=m/m.rowsum #an n by k matrix	
     pinew=normalize(colSums(classprob))
-
-	munew=optim(par=mean(betahat),f= nonzeromeanEMoptim,pinew=pinew,betahat=betahat,sebetahat=sebetahat,g=g,df=df,method="Brent",lower=min(betahat),upper=max(betahat))$par
+	
+	##DCX debug
+	munew=optim(par=mean(betahat),fn= nonzeromeanEMoptim,pinew=pinew,betahat=betahat,sebetahat=sebetahat,g=g,df=df,method="Brent",lower=min(betahat),upper=max(betahat))$par
 	mupi=c(munew,pinew)
 	return(mupi)
 }
@@ -497,6 +498,7 @@ nonzeromeanEMoptimobj = function(mupi,betahat,sebetahat,g,df){
 	loglik = sum(log(m.rowsum))
 	return(-loglik)
 }
+
 
 nonzeromeanEMoptim = function(mu,pinew,betahat,sebetahat,g,df){
 	matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))
