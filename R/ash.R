@@ -459,17 +459,19 @@ nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.ini
   if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist occcur in nonzeromeanEM()")
   
   if(mixcompdist=="normal" & is.null(df)){
-  	print("Warning:method comp_postsd of normal mixture not written for df!=NULL, nonzeroMean would return the naive estimator")
-  	#g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
-  	#mupi=c(mean(betahat),pi.init)
-    #res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))
-	return(list(nonzeromean=mean(betahat)))
+  	#print("Warning:method comp_postsd of normal mixture not written for df!=NULL, nonzeroMean would return the naive estimator")
+  	g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
+  	mupi=c(mean(betahat),pi.init)
+    res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))
   }
   else if(mixcompdist=="normal" & !is.null(df)){
   	#stop("method comp_postsd of normal mixture not yet written for t likelihood")
-  	g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
-  	mupi=c(mean(betahat),pi.init)
-    res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
+  	print("Warning:method comp_postsd of normal mixture not written for df!=NULL, nonzeroMean would return the naive estimator")
+
+  	#g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
+  	#mupi=c(mean(betahat),pi.init)
+    #res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
+	return(list(nonzeromean=mean(betahat)))
   }
   else if(mixcompdist=="uniform"){
     #return(list(nonzeromean=mean(betahat)))
