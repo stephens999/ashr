@@ -1,6 +1,6 @@
 #' @useDynLib ashr
 #todo
-#2014Sep10
+#
 #' @title Main Adaptive SHrinkage function
 #'
 #' @description Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
@@ -20,21 +20,21 @@
 #' @param nullcheck  whether to check that any fitted model exceeds the "null" likelihood
 #' in which all weight is on the first component
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)
-#' @param nullweight scalar, the weight put on the prior of null under "fdr" method
+#' @param nullweight scalar, the weight put on the prior under "nullbiased" specification, see \code{prior}
 #' @param randomstart logical, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
 #' @param nonzeromean logical, indicating whether to use a nonzero mean unimodal mixture(defaults to "FALSE")
 #' @param pointmass logical, indicating whether to use a point mass at zero as one of components for a mixture distribution
 #' @param onlylogLR logical, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, lfdr...
-#' @param prior string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or 1,1...,1; also can be "nullbiased" 1,1/k-1,...,1/k-1 to put more weight on first component)
+#' @param prior string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component)
 #' @param mixsd vector of sds for underlying mixture components 
-#' @param VB whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate)
+#' @param VB whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}
 #' @param gridmult the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)
 #' @param minimal_output if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue) 
 #' @param g the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
 #' @param maxiter maximum number of iterations of the EM algorithm
-#' @param cxx flag to indicate whether to use the c++ (Rcpp) version
+#' @param cxx flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point. 
 #'
-#' @return ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE} \cr
+#' @return ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
 #' \item{fitted.g}{fitted mixture, either a normalmix or unimix}
 #' \item{logLR}{logP(D|mle(pi)) - logP(D|null)}
 #' \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
@@ -156,14 +156,14 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     null.comp=1 #null.comp also not used, but required 
   } else {
     if(is.null(mixsd)){
-      if(nonzeromean & is.null(df)){
+      if(nonzeromean){
         mixsd = autoselect.mixsd(betahat[completeobs]-mean(betahat[completeobs]),sebetahat[completeobs],gridmult)
         if(pointmass){ mixsd = c(0,mixsd) }
         nonzeromean.fit=nonzeromeanEM(betahat[completeobs], sebetahat[completeobs], mixsd=mixsd, mixcompdist=mixcompdist,df=df,maxiter=maxiter)
         betahat[completeobs]= betahat[completeobs] - nonzeromean.fit$nonzeromean
       	}
       else if(nonzeromean & !is.null(df)){
-        stop("Error: Nonzero mean only implemented for df=NULL")
+      #  stop("Error: Nonzero mean only implemented for df=NULL")
       }
         mixsd = autoselect.mixsd(betahat[completeobs],sebetahat[completeobs],gridmult)
     }
@@ -210,6 +210,11 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   }
   
   pi.fit=EMest(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx, df=df)  
+  
+  if(!nonzeromean && max(pi.fit$g$pi)>(1-length(betahat))){
+	print("Warning: EM algorithm converges to a single component of the mixture.Results might be unreliable. Try to set nonzeromean=TRUE and rerun")
+  }
+  
   
   if (!onlylogLR){
       n=length(betahat)
@@ -425,7 +430,7 @@ compute_lfsra = function(PositiveProb, NegativeProb,ZeroProb){
 #' @param sebetahat, a p vector of corresponding standard errors
 #' @param mixsd: vector of sds for underlying mixture components 
 #' @param pi.init, the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).
-#' @param tol, the tolerance for convergence of log-likelihood.
+#' @param retol, the relative tolerance for estimate of nonzero mean
 #' @param maxiter the maximum number of iterations performed
 #' 
 #' @return A list, including the estimates (\eqn{\mu}) and (\eqn{\pi}), the log likelihood for each iteration (NQ)
@@ -434,44 +439,57 @@ compute_lfsra = function(PositiveProb, NegativeProb,ZeroProb){
 #' @export
 #' 
 #' 
-nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,tol=1e-7,maxiter=5000){
+nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,retol=1e-6,maxiter=5000){
   if(is.null(pi.init)){
     pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi
   }
+  else{
+    pi.init=rgamma(length(mixsd),1,1)
+  }
   
-  pi=pi.init
+  #tol in squarem needs special attention as it compares the difference of estimate fixed point (\mu), thus, the absolute tol is not of our interest.
+  #here we set it to be relative tol, and our reference level would be the sample mean, the naive estimator,we keep significant figures to be 6 for fast convergence
+  #failing to set tol to adapt to data would result in keeping the fixed point iteration running till maxiter, and NaN would be produced, making the method inapplicable
   
-  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")
-   
-  if(mixcompdist=="normal") {g=normalmix(pi,rep(0,length(mixsd)),mixsd)}
-  if(mixcompdist=="uniform") {g=unimix(pi,-mixsd,mixsd)}
-  if(mixcompdist=="halfuniform"){g=unimix(c(pi,pi)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))}
+  tol=mean(betahat)*retol
+
+  if(length(sebetahat)==1){
+    sebetahat = rep(sebetahat,length(betahat))
+  }
+  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist occcur in nonzeromeanEM()")
   
   if(mixcompdist=="normal" & is.null(df)){
-  	mupi=c(mean(betahat),pi.init)
-    res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))
+  	print("Warning:method comp_postsd of normal mixture not written for df!=NULL, nonzeroMean would return the naive estimator")
+  	#g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
+  	#mupi=c(mean(betahat),pi.init)
+    #res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))
+	return(list(nonzeromean=mean(betahat)))
   }
   else if(mixcompdist=="normal" & !is.null(df)){
-  	stop("method comp_postsd of normal mixture not yet written for t likelihood")
+  	#stop("method comp_postsd of normal mixture not yet written for t likelihood")
+  	g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
   	mupi=c(mean(betahat),pi.init)
     res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
   }
   else if(mixcompdist=="uniform"){
     #return(list(nonzeromean=mean(betahat)))
-  	stop("method not yet completed")
+  	#stop("method not yet completed")
+    g=unimix(pi.init,-mixsd,mixsd)
     mupi=c(mean(betahat),pi.init)    
     res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
   }
   else if(mixcompdist=="halfuniform"){
-  	stop("method not yet completed")
+  	#stop("method not yet completed")
+  	g=unimix(c(pi.init, pi.init)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))
     mupi=c(mean(betahat),pi.init/2,pi.init/2)
     res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
   }
+  
   return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))
 }
 
 
-nonzeromeanEMoptimfixpoint = function(mupi,betahat,sebetahat,g1,df){
+nonzeromeanEMoptimfixpoint = function(mupi,betahat,sebetahat,g,df){
 	#omegamatrix=matrix(NA,nrow=length(betahat),ncol=length(mixsd))
 	mu=mupi[1]
 	pimean=mupi[-1]
@@ -482,8 +500,7 @@ nonzeromeanEMoptimfixpoint = function(mupi,betahat,sebetahat,g1,df){
     classprob=m/m.rowsum #an n by k matrix	
     pinew=normalize(colSums(classprob))
 	
-	##DCX debug
-	munew=optim(par=mean(betahat),fn= nonzeromeanEMoptim,pinew=pinew,betahat=betahat,sebetahat=sebetahat,g=g,df=df,method="Brent",lower=min(betahat),upper=max(betahat))$par
+	munew=optimize(f=nonzeromeanEMoptim,interval=c(min(betahat),max(betahat)), pinew=pinew,betahat=betahat,sebetahat=sebetahat,g=g,df=df)$minimum
 	mupi=c(munew,pinew)
 	return(mupi)
 }
@@ -504,8 +521,8 @@ nonzeromeanEMoptim = function(mu,pinew,betahat,sebetahat,g,df){
 	matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))
 	m = t(pinew * t(matrix_lik))
 	m.rowsum = rowSums(m)
-	loglik = sum(log(m.rowsum))
-	return(-loglik)
+	nloglik =- sum(log(m.rowsum))
+	return(nloglik)
 }
 
 
@@ -602,7 +619,7 @@ VBpenloglik = function(pipost, matrix_lik, prior){
 #'
 #' @description Given the individual component likelihoods for a mixture model, estimates the mixture proportions by an EM algorithm.
 #'
-#' @details Fits a k component mixture model \deqn{f(x|\pi) = \sum_k \pi_k f_k(x)} to independent
+#' @details Fits a k component mixture model \deqn{f(x|\pi)= \sum_k \pi_k f_k(x)} to independent
 #' and identically distributed data \eqn{x_1,\dots,x_n}. 
 #' Estimates mixture proportions \eqn{\pi} by maximum likelihood, or by maximum a posteriori (MAP) estimation for a Dirichlet prior on \eqn{\pi} 
 #' (if a prior is specified).  Uses the SQUAREM package to accelerate convergence of EM. Used by the ash main function; there is no need for a user to call this 

@@ -4,7 +4,7 @@
 \title{Estimate unimodal nonzero mean of a mixture model by EM algorithm}
 \usage{
 nonzeromeanEM(betahat, sebetahat, mixsd, mixcompdist, df = NULL,
-  pi.init = NULL, tol = 1e-07, maxiter = 5000)
+  pi.init = NULL, retol = 1e-06, maxiter = 5000)
 }
 \arguments{
 \item{betahat,}{a p vector of estimates}
@@ -13,7 +13,7 @@ nonzeromeanEM(betahat, sebetahat, mixsd, mixcompdist, df = NULL,
 
 \item{pi.init,}{the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).}
 
-\item{tol,}{the tolerance for convergence of log-likelihood.}
+\item{retol,}{the relative tolerance for estimate of nonzero mean}
 
 \item{maxiter}{the maximum number of iterations performed}
 

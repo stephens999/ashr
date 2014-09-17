@@ -33,7 +33,7 @@ in which all weight is on the first component}
 
 \item{randomstart}{logical, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)}
 
-\item{nullweight}{scalar, the weight put on the prior of null under "fdr" method}
+\item{nullweight}{scalar, the weight put on the prior under "nullbiased" specification, see \code{prior}}
 
 \item{nonzeromean}{logical, indicating whether to use a nonzero mean unimodal mixture(defaults to "FALSE")}
 
@@ -41,11 +41,11 @@ in which all weight is on the first component}
 
 \item{onlylogLR}{logical, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, lfdr...}
 
-\item{prior}{string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or 1,1...,1; also can be "nullbiased" 1,1/k-1,...,1/k-1 to put more weight on first component)}
+\item{prior}{string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component)}
 
 \item{mixsd}{vector of sds for underlying mixture components}
 
-\item{VB}{whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate)}
+\item{VB}{whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}}
 
 \item{gridmult}{the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)}
 
@@ -53,12 +53,12 @@ in which all weight is on the first component}
 
 \item{maxiter}{maximum number of iterations of the EM algorithm}
 
-\item{cxx}{flag to indicate whether to use the c++ (Rcpp) version}
+\item{cxx}{flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point.}
 
 \item{minimal_output}{if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue)}
 }
 \value{
-ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE} \cr
+ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
 \item{fitted.g}{fitted mixture, either a normalmix or unimix}
 \item{logLR}{logP(D|mle(pi)) - logP(D|null)}
 \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
