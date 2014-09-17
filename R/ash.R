@@ -211,7 +211,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   
   pi.fit=EMest(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx, df=df)  
   
-  if(!nonzeromean && max(pi.fit$g$pi)>(1-length(betahat))){
+  if(!nonzeromean && max(pi.fit$g$pi)>(1-1/length(betahat))){
 	print("Warning: EM algorithm converges to a single component of the mixture.Results might be unreliable. Try to set nonzeromean=TRUE and rerun")
   }
   
