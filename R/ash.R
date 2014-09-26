@@ -218,7 +218,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     maxsd=max(mixsd)
   	maxse=quantile(sebetahat[completeobs],0.999)
 	thresholdval=qnorm(0.999,mean=0,sd=maxse+maxsd)
-	currentval=sum(betahat[completeobs])/sqrt(length(betahat[completeobs]))
+	currentval=abs(sum(betahat[completeobs])/sqrt(length(betahat[completeobs])))
 	if(currentval>thresholdval){
 		print("Caution:It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromean=TRUE when applying ash()")
 	}
