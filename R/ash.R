@@ -213,17 +213,14 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   
   pi.fit=EMest(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx, df=df)  
   
-  #A more stringent criteria would be set to give the user warning message.
-  #if(!nonzeromean && max(pi.fit$g$pi)>(1-length(betahat))){
-  #	print("Warning: EM algorithm converges to a single component of the mixture.Results might be unreliable. Try to set nonzeromean=TRUE and rerun")
-  #}
+  #A stringent criteria based on central limit theorem is set to give the user warning message.
   if(!nonzeromean){
     maxsd=max(mixsd)
   	maxse=quantile(sebetahat[completeobs],0.999)
 	thresholdval=qnorm(0.999,mean=0,sd=maxse+maxsd)
 	currentval=sum(betahat[completeobs])/sqrt(length(betahat[completeobs]))
 	if(currentval>thresholdval){
-		print("Caution:This likely the input data not coming from a mixture centered at 0, consider to set nonzeromean=TRUE when applying ash()")
+		print("Caution:It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromean=TRUE when applying ash()")
 	}
   }
   
