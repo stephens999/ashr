@@ -46,7 +46,7 @@
 #' \item{lfsra}{The local false sign rate(adjusted)}
 #' \item{lfdr}{A vector of estimated local false discovery rate}
 #' \item{qvalue}{A vector of q values given estimated local false discovery rates, and estimate of (tail) False Discovery Rate}
-#' \item{fit}{The fitted object return by \code{\link{EMest}}}
+#' \item{fit}{The fitted mixture object by \code{\link{mixEM}} or \code{\link{mixVBEM}} }
 #' \item{lambda1}{multiplicative "inflation factor"}
 #' \item{lambda2}{additive "inflation factor"}
 #' \item{call}{a call in which all of the specified arguments are specified by their full names}
@@ -119,8 +119,10 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   
   if(gridmult<=1&multiseqoutput!=TRUE)
     stop("gridmult must be > 1")
-    
   mixcompdist = match.arg(mixcompdist)
+  if(mixcompdist=="normal" & !is.null(df)){
+  	stop("Error:Normal mixture for student-t likelihood is not yet implemented")
+  }
   # if(mixcompdist=="uniform" & pointmass==TRUE){
   #    stop("point mass not yet implemented for uniform or half-uniform")
   #  }
@@ -211,8 +213,18 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   
   pi.fit=EMest(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx, df=df)  
   
-  if(!nonzeromean && max(pi.fit$g$pi)>(1-1/length(betahat))){
-	print("Warning: EM algorithm converges to a single component of the mixture.Results might be unreliable. Try to set nonzeromean=TRUE and rerun")
+  #A more stringent criteria would be set to give the user warning message.
+  #if(!nonzeromean && max(pi.fit$g$pi)>(1-length(betahat))){
+  #	print("Warning: EM algorithm converges to a single component of the mixture.Results might be unreliable. Try to set nonzeromean=TRUE and rerun")
+  #}
+  if(!nonzeromean){
+    maxsd=max(mixsd)
+  	maxse=quantile(sebetahat[completeobs],0.999)
+	thresholdval=qnorm(0.999,mean=0,sd=maxse+maxsd)
+	currentval=sum(betahat[completeobs])/sqrt(length(betahat[completeobs]))
+	if(currentval>thresholdval){
+		print("Caution:This likely the input data not coming from a mixture centered at 0, consider to set nonzeromean=TRUE when applying ash()")
+	}
   }
   
   
@@ -245,8 +257,8 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
           lfsr = compute_lfsr(NegativeProb,ZeroProb)
       }
       if (!minimaloutput){
-          PosteriorMean[!completeobs] = mixmean(pi.fit$g)
-          PosteriorSD[!completeobs] = mixsd(pi.fit$g)
+          PosteriorMean[!completeobs] = comp_mixmean(pi.fit$g)
+          PosteriorSD[!completeobs] = comp_mixsd(pi.fit$g)
       }
       if (!minimaloutput & !multiseqoutput){
           PositiveProb = 1- NegativeProb-ZeroProb
@@ -450,38 +462,33 @@ nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.ini
   #tol in squarem needs special attention as it compares the difference of estimate fixed point (\mu), thus, the absolute tol is not of our interest.
   #here we set it to be relative tol, and our reference level would be the sample mean, the naive estimator,we keep significant figures to be 6 for fast convergence
   #failing to set tol to adapt to data would result in keeping the fixed point iteration running till maxiter, and NaN would be produced, making the method inapplicable
-  
-  tol=mean(betahat)*retol
+  tol=max(mean(betahat),1)*retol
 
   if(length(sebetahat)==1){
     sebetahat = rep(sebetahat,length(betahat))
   }
   if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist occcur in nonzeromeanEM()")
-  
+
+
   if(mixcompdist=="normal" & is.null(df)){
-  	#print("Warning:method comp_postsd of normal mixture not written for df!=NULL, nonzeroMean would return the naive estimator")
   	g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
   	mupi=c(mean(betahat),pi.init)
     res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))
   }
   else if(mixcompdist=="normal" & !is.null(df)){
-  	#stop("method comp_postsd of normal mixture not yet written for t likelihood")
-  	print("Warning:method comp_postsd of normal mixture not written for df!=NULL, nonzeroMean would return the naive estimator")
-
+  	stop("method comp_postsd of normal mixture not yet written for t likelihood")
+  	#print("Warning:method comp_postsd of normal mixture not written for df!=NULL, nonzeroMean would return the naive estimator")
+	#return(list(nonzeromean=mean(betahat)))
   	#g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
   	#mupi=c(mean(betahat),pi.init)
     #res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
-	return(list(nonzeromean=mean(betahat)))
   }
   else if(mixcompdist=="uniform"){
-    #return(list(nonzeromean=mean(betahat)))
-  	#stop("method not yet completed")
     g=unimix(pi.init,-mixsd,mixsd)
     mupi=c(mean(betahat),pi.init)    
     res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
   }
   else if(mixcompdist=="halfuniform"){
-  	#stop("method not yet completed")
   	g=unimix(c(pi.init, pi.init)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))
     mupi=c(mean(betahat),pi.init/2,pi.init/2)
     res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
@@ -909,7 +916,7 @@ autoselect.mixsd = function(betahat,sebetahat,mult){
   sigmaamin = min(sebetahat)/10 #so that the minimum is small compared with measurement precision
   if(all(betahat^2<sebetahat^2)){
     sigmaamax = 8*sigmaamin #to deal with the occassional odd case where this could happen; 8 is arbitrary
-  } else {
+  }else{
     sigmaamax = 2*sqrt(max(betahat^2-sebetahat^2)) #this computes a rough largest value you'd want to use, based on idea that sigmaamax^2 + sebetahat^2 should be at least betahat^2   
   }
   if(mult==0){

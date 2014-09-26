@@ -28,10 +28,10 @@ comp_mean2.default = function(m){
 
 
 #return the overall mean of the mixture
-mixmean = function(m){
-  UseMethod("mixmean")
+comp_mixmean = function(m){
+  UseMethod("comp_mixmean")
 }
-mixmean.default = function(m){
+comp_mixmean.default = function(m){
   sum(m$pi * comp_mean(m))
 }
 
@@ -44,11 +44,11 @@ mixmean2.default = function(m){
 }
 
 #return the overall sd of the mixture
-mixsd = function(m){
-  UseMethod("mixsd")
+comp_mixsd = function(m){
+  UseMethod("comp_mixsd")
 }
-mixsd.default = function(m){
-  sqrt(mixmean2(m)-mixmean(m)^2)
+comp_mixsd.default = function(m){
+  sqrt(mixmean2(m)-comp_mixmean(m)^2)
 }
 
 #means
@@ -469,8 +469,7 @@ compcdf_post.unimix=function(m,c,betahat,sebetahat,v){
       pna = pnorm(outer(betahat,m$a[subset],FUN="-")/sebetahat)
       pnc = pnorm(outer(betahat,rep(c,sum(subset)),FUN="-")/sebetahat)
       pnb = pnorm(outer(betahat,m$b[subset],FUN="-")/sebetahat)
-    }
-    else{
+    }else{
       pna = pt(outer(betahat,m$a[subset],FUN="-")/sebetahat, df=v)
       pnc = pt(outer(betahat,rep(c,sum(subset)),FUN="-")/sebetahat, df=v)
       pnb = pt(outer(betahat,m$b[subset],FUN="-")/sebetahat, df=v)
@@ -492,7 +491,14 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   alpha[flip]= -alpha[flip]
   beta[flip]=-beta[flip]
   
-  tmp= (-1)^flip * (mean+sd*etruncnorm(alpha,beta,0,1))
+  #Fix a bug of quoting the truncnorm package
+  #E(X|a<X<b)=a when a==b as a natural result
+  #while etruncnorm would simply return NaN,causing PosteriorMean also NaN
+  tmp1=etruncnorm(alpha,beta,0,1)
+  isequal=(alpha==beta)
+  tmp1[isequal]=alpha[isequal]
+  
+  tmp= (-1)^flip * (mean+sd*tmp1)
   
   max_alphabeta = ifelse(alpha<beta, beta,alpha)
   max_ab = ifelse(alpha<beta,b,a)
@@ -522,8 +528,7 @@ comp_postmean.unimix = function(m,betahat,sebetahat,v){
   beta = outer(-betahat, m$b, FUN="+")/sebetahat
   if(is.null(v)){
     tmp = betahat + sebetahat*my_etruncnorm(alpha,beta,0,1)
-  }
-  else{
+  }else{
   	tmp = betahat + sebetahat*my_etrunct(alpha,beta,v)
   }
   ismissing = is.na(betahat) | is.na(sebetahat)
