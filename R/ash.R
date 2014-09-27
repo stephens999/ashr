@@ -214,16 +214,20 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   pi.fit=EMest(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx, df=df)  
   
   #A stringent criteria based on central limit theorem is set to give the user warning message.
+  #if(!nonzeromean){
+  #  maxsd=max(mixsd)
+  #	maxse=quantile(sebetahat[completeobs],0.999)
+  #	thresholdval=qnorm(0.999,mean=0,sd=maxse+maxsd)
+  #	currentval=abs(sum(betahat[completeobs])/sqrt(length(betahat[completeobs])))
+  #	if(currentval>thresholdval){
+  #		print("Caution:It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromean=TRUE when applying ash()")
+  #	}
+  #}
   if(!nonzeromean){
-    maxsd=max(mixsd)
-  	maxse=quantile(sebetahat[completeobs],0.999)
-	thresholdval=qnorm(0.999,mean=0,sd=maxse+maxsd)
-	currentval=abs(sum(betahat[completeobs])/sqrt(length(betahat[completeobs])))
-	if(currentval>thresholdval){
-		print("Caution:It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromean=TRUE when applying ash()")
-	}
+    zvalue=betahat[completeobs]/sebetahat[completeobs]
+  	abststat=abs(mean(zvalue)/sd(zvalue))*sqrt(length(zvalue))
+    if(abststat>2.5758){print("Caution:It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromean=TRUE when applying ash()")}
   }
-  
   
   if (!onlylogLR){
       n=length(betahat)
@@ -254,8 +258,8 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
           lfsr = compute_lfsr(NegativeProb,ZeroProb)
       }
       if (!minimaloutput){
-          PosteriorMean[!completeobs] = comp_mixmean(pi.fit$g)
-          PosteriorSD[!completeobs] = comp_mixsd(pi.fit$g)
+          PosteriorMean[!completeobs] = calc_mixmean(pi.fit$g)
+          PosteriorSD[!completeobs] = calc_mixsd(pi.fit$g)
       }
       if (!minimaloutput & !multiseqoutput){
           PositiveProb = 1- NegativeProb-ZeroProb

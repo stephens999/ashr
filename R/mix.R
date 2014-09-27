@@ -28,10 +28,10 @@ comp_mean2.default = function(m){
 
 
 #return the overall mean of the mixture
-comp_mixmean = function(m){
-  UseMethod("comp_mixmean")
+calc_mixmean = function(m){
+  UseMethod("calc_mixmean")
 }
-comp_mixmean.default = function(m){
+calc_mixmean.default = function(m){
   sum(m$pi * comp_mean(m))
 }
 
@@ -44,11 +44,11 @@ mixmean2.default = function(m){
 }
 
 #return the overall sd of the mixture
-comp_mixsd = function(m){
-  UseMethod("comp_mixsd")
+calc_mixsd = function(m){
+  UseMethod("calc_mixsd")
 }
-comp_mixsd.default = function(m){
-  sqrt(mixmean2(m)-comp_mixmean(m)^2)
+calc_mixsd.default = function(m){
+  sqrt(mixmean2(m)-calc_mixmean(m)^2)
 }
 
 #means
