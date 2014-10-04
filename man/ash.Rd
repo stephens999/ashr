@@ -4,7 +4,7 @@
 \title{Main Adaptive SHrinkage function}
 \usage{
 ash(betahat, sebetahat, method = c("shrink", "fdr"),
-  mixcompdist = c("normal", "uniform", "halfuniform"), lambda1 = 1,
+  mixcompdist = c("uniform", "halfuniform", "normal"), lambda1 = 1,
   lambda2 = 0, nullcheck = TRUE, df = NULL, randomstart = FALSE,
   nullweight = 10, nonzeromean = FALSE, pointmass = FALSE,
   onlylogLR = FALSE, prior = c("uniform", "nullbiased"), mixsd = NULL,
@@ -20,7 +20,7 @@ ash(betahat, sebetahat, method = c("shrink", "fdr"),
 This is simply a convenient way to specify certain combinations of parameters: "shrinkage" sets pointmass=FALSE and prior="uniform";
 "fdr" sets pointmass=TRUE and prior="nullbiased".}
 
-\item{mixcompdist}{distribution of components in mixture ("normal", "uniform" or "halfuniform")}
+\item{mixcompdist}{distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value would be "uniform"}
 
 \item{lambda1}{multiplicative "inflation factor" for standard errors (like Genomic Control)}
 

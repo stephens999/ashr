@@ -547,7 +547,7 @@ comp_postmean.unimix = function(m,betahat,sebetahat,v){
 #not yet implemented!
 #just returns 0s for now
 comp_postsd.unimix = function(m,betahat,sebetahat,v){
-  print("Warning: Posterior SDs not yet implemented for uniform components")
+  print("Function ashci() is provided for computing the credible interval(HPD),see documentation for usage and example.")
   k= ncomp(m)
   n=length(betahat)
   return(matrix(NA,nrow=k,ncol=n)) 

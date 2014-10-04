@@ -145,21 +145,35 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #'
 #' @param a the fitted ash object 
 #' @param levels, the level for the credible interval, (default=0.95)
-#' @param tol, the tolerance for convergence of log-likelihood.
 #' 
 #' @return A matrix, with first column being the posterior mean, second and third column being the lower bound and upper bound for the credible interval. 
 #'  
 #' @export
+#' @examples 
+#' beta = c(rep(0,20),rnorm(20))
+#' sebetahat = abs(rnorm(40,0,1))
+#' betahat = rnorm(40,beta,sebetahat)
+#' beta.ash = ash(betahat, sebetahat)
+#' 
+#' CImatrix=ashci(beta.ash,level=0.95)
+#' 
+#' 
 #' 
 #' 
 ashci = function (a,level=0.95){
+  options(warn=-1)
   x=a$data$betahat
   s=a$data$sebetahat
   m=a$fitted.g
   df=a$df
-  lower=min(x)-qnorm(level)*(max(m$sd)+max(s))
-  upper=max(x)+qnorm(level)*(max(m$sd)+max(s))
-	
+  if(class(m)=="normalmix"){
+    lower=min(x)-qt(level,df=1)*(max(m$sd)+max(abs(s)))
+    upper=max(x)+qt(level,df=1)*(max(m$sd)+max(abs(s)))
+  } else{
+    lower=min(c(m$a,m$b))
+    upper=max(c(m$a,m$b))
+  }
+
   CImatrix=matrix(NA,nrow=length(x),ncol=3)	
   colnames(CImatrix)=c("Posterior Mean",(1-level)/2,(1+level)/2)
   CImatrix[,1]=a$PosteriorMean
@@ -169,9 +183,7 @@ ashci = function (a,level=0.95){
 	  CImatrix[i,2]=optim(par=a$PosteriorMean[i],f=ci.lower,m=m,x=x[i],s=s[i],level=level,df=df,method="Brent",lower=lower,upper=upper)$par
 	  CImatrix[i,3]=optim(par=a$PosteriorMean[i],f=ci.upper,m=m,x=x[i],s=s[i],level=level,df=df,method="Brent",lower=lower,upper=upper)$par
 	}
-  }
-  else{stop(paste("Invalid class",class(m)))}
-  	
+  } else{stop(paste("Invalid class",class(m)))}
   return(CImatrix)
 }
 

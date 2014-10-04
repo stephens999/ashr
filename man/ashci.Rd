@@ -9,8 +9,6 @@ ashci(a, level = 0.95)
 \item{a}{the fitted ash object}
 
 \item{levels,}{the level for the credible interval, (default=0.95)}
-
-\item{tol,}{the tolerance for convergence of log-likelihood.}
 }
 \value{
 A matrix, with first column being the posterior mean, second and third column being the lower bound and upper bound for the credible interval.
@@ -20,5 +18,13 @@ Given the ash object return by the main function ash, this function computes the
 }
 \details{
 Uses default optimization function and perform component-wise credible interval computation. The computation cost is linear of the length of betahat.
+}
+\examples{
+beta = c(rep(0,20),rnorm(20))
+sebetahat = abs(rnorm(40,0,1))
+betahat = rnorm(40,beta,sebetahat)
+beta.ash = ash(betahat, sebetahat)
+
+CImatrix=ashci(beta.ash,level=0.95)
 }
 

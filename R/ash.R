@@ -13,7 +13,7 @@
 #' @param method specifies how ash is to be run. Can be "shrinkage" (if main aim is shrinkage) or "fdr" (if main aim is to assess fdr or fsr)
 #' This is simply a convenient way to specify certain combinations of parameters: "shrinkage" sets pointmass=FALSE and prior="uniform";
 #' "fdr" sets pointmass=TRUE and prior="nullbiased".
-#' @param mixcompdist distribution of components in mixture ("normal", "uniform" or "halfuniform")
+#' @param mixcompdist distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value would be "uniform"
 #'
 #' @param lambda1  multiplicative "inflation factor" for standard errors (like Genomic Control)
 #' @param lambda2  additive "inflation factor" for standard errors (like Genomic Control)
@@ -70,7 +70,7 @@
 # check sampling routine
 # check number of iterations
 ash = function(betahat,sebetahat,method = c("shrink","fdr"), 
-               mixcompdist = c("normal","uniform","halfuniform"),
+               mixcompdist = c("uniform","halfuniform","normal"),
                lambda1=1,lambda2=0,nullcheck=TRUE,df=NULL,randomstart=FALSE,
                nullweight=10,nonzeromean=FALSE, 
                pointmass = FALSE, 
@@ -460,9 +460,11 @@ nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.ini
     pi.init=rgamma(length(mixsd),1,1)
   }
   
-  #tol in squarem needs special attention as it compares the difference of estimate fixed point (\mu), thus, the absolute tol is not of our interest.
-  #here we set it to be relative tol, and our reference level would be the sample mean, the naive estimator,we keep significant figures to be 6 for fast convergence
-  #failing to set tol to adapt to data would result in keeping the fixed point iteration running till maxiter, and NaN would be produced, making the method inapplicable
+  #tol in squarem needs special attention as it compares the difference of estimate fixed point (\mu),
+  #thus, the absolute tol is not of our interest.here we set it to be relative tol, and our reference 
+  #level would be the sample mean, the naive estimator,we keep significant figures to be 6 for fast 
+  #convergence failing to set tol to adapt to data would result in keeping the fixed point iteration 
+  #running till maxiter, and NaN would be produced, making the method inapplicable
   tol=max(mean(betahat),1)*retol
 
   if(length(sebetahat)==1){
@@ -472,16 +474,16 @@ nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.ini
 
 
   if(mixcompdist=="normal" & is.null(df)){
-  	g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
-  	mupi=c(mean(betahat),pi.init)
+    g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
+    mupi=c(mean(betahat),pi.init)
     res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))
   }
   else if(mixcompdist=="normal" & !is.null(df)){
-  	stop("method comp_postsd of normal mixture not yet written for t likelihood")
-  	#print("Warning:method comp_postsd of normal mixture not written for df!=NULL, nonzeroMean would return the naive estimator")
-	#return(list(nonzeromean=mean(betahat)))
-  	#g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
-  	#mupi=c(mean(betahat),pi.init)
+    stop("method comp_postsd of normal mixture not yet written for t likelihood")
+    #print("Warning:method comp_postsd of normal mixture not written for df!=NULL, nonzeroMean would return the naive estimator")
+    #return(list(nonzeromean=mean(betahat)))
+    #g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
+    #mupi=c(mean(betahat),pi.init)
     #res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
   }
   else if(mixcompdist=="uniform"){
@@ -490,7 +492,7 @@ nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.ini
     res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
   }
   else if(mixcompdist=="halfuniform"){
-  	g=unimix(c(pi.init, pi.init)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))
+    g=unimix(c(pi.init, pi.init)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))
     mupi=c(mean(betahat),pi.init/2,pi.init/2)
     res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
   }
@@ -500,66 +502,61 @@ nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.ini
 
 
 nonzeromeanEMoptimfixpoint = function(mupi,betahat,sebetahat,g,df){
-	#omegamatrix=matrix(NA,nrow=length(betahat),ncol=length(mixsd))
-	mu=mupi[1]
-	pimean=mupi[-1]
-	
-	matrix_lik=t(compdens_conv(g,betahat-mu,sebetahat,df))
-    m=t(pimean * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k
-    m.rowsum=rowSums(m)
-    classprob=m/m.rowsum #an n by k matrix	
-    pinew=normalize(colSums(classprob))
-	
-	munew=optimize(f=nonzeromeanEMoptim,interval=c(min(betahat),max(betahat)), pinew=pinew,betahat=betahat,sebetahat=sebetahat,g=g,df=df)$minimum
-	mupi=c(munew,pinew)
-	return(mupi)
+  mu=mupi[1]
+  pimean=mupi[-1]	
+  matrix_lik=t(compdens_conv(g,betahat-mu,sebetahat,df))
+  m=t(pimean * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k
+  m.rowsum=rowSums(m)
+  classprob=m/m.rowsum #an n by k matrix	
+  pinew=normalize(colSums(classprob))
+  munew=optimize(f=nonzeromeanEMoptim,interval=c(min(betahat),max(betahat)), pinew=pinew,betahat=betahat,sebetahat=sebetahat,g=g,df=df)$minimum
+  mupi=c(munew,pinew)
+  return(mupi)
 }
 
 
 nonzeromeanEMoptimobj = function(mupi,betahat,sebetahat,g,df){
-	mu=mupi[1]
-	pimean=mupi[-1]
-	matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))
-	m = t(pimean * t(matrix_lik))
-	m.rowsum = rowSums(m)
-	loglik = sum(log(m.rowsum))
-	return(-loglik)
+  mu=mupi[1]
+  pimean=mupi[-1]
+  matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))
+  m = t(pimean * t(matrix_lik))
+  m.rowsum = rowSums(m)
+  loglik = sum(log(m.rowsum))
+  return(-loglik)
 }
 
 
 nonzeromeanEMoptim = function(mu,pinew,betahat,sebetahat,g,df){
-	matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))
-	m = t(pinew * t(matrix_lik))
-	m.rowsum = rowSums(m)
-	nloglik =- sum(log(m.rowsum))
-	return(nloglik)
+  matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))
+  m = t(pinew * t(matrix_lik))
+  m.rowsum = rowSums(m)
+  nloglik =- sum(log(m.rowsum))
+  return(nloglik)
 }
 
 
 nonzeromeanEMfixpoint = function(mupi,betahat,sebetahat,mixsd){
-	#omegamatrix=matrix(NA,nrow=length(betahat),ncol=length(mixsd))
-	mu=mupi[1]
-	pimean=mupi[-1]
-	sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) 
-	xmat=matrix(rep(betahat,length(mixsd)),ncol=length(mixsd))
-	omegamatrix=t(t(dnorm(xmat,mean=mu,sd=sdmat))*pimean)
-	omegamatrix=omegamatrix /rowSums(omegamatrix)
-	pinew=normalize(colSums(omegamatrix))
-	munew=sum(omegamatrix*xmat/(sdmat^2))/sum(omegamatrix/(sdmat^2))
-	mupi=c(munew,pinew)
-	return(mupi)
+  mu=mupi[1]
+  pimean=mupi[-1]
+  sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) 
+  xmat=matrix(rep(betahat,length(mixsd)),ncol=length(mixsd))
+  omegamatrix=t(t(dnorm(xmat,mean=mu,sd=sdmat))*pimean)
+  omegamatrix=omegamatrix /rowSums(omegamatrix)
+  pinew=normalize(colSums(omegamatrix))
+  munew=sum(omegamatrix*xmat/(sdmat^2))/sum(omegamatrix/(sdmat^2))
+  mupi=c(munew,pinew)
+  return(mupi)
 }
 
 nonzeromeanEMobj = function(mupi,betahat,sebetahat,mixsd){
-	mu=mupi[1]
-	pimean=mupi[-1]
-	sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) 
-	xmat=matrix(rep(betahat,length(mixsd)),ncol=length(mixsd))
-	
-	omegamatrix=t(t(dnorm(xmat,mean=mu,sd=sdmat))*pimean)
-	omegamatrix=omegamatrix /rowSums(omegamatrix)
-	NegativeQ=-sum(omegamatrix*dnorm(xmat,mean=mu,sd=sdmat,log=TRUE))
-	return(NegativeQ)
+  mu=mupi[1]
+  pimean=mupi[-1]
+  sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) 
+  xmat=matrix(rep(betahat,length(mixsd)),ncol=length(mixsd))	
+  omegamatrix=t(t(dnorm(xmat,mean=mu,sd=sdmat))*pimean)
+  omegamatrix=omegamatrix /rowSums(omegamatrix)
+  NegativeQ=-sum(omegamatrix*dnorm(xmat,mean=mu,sd=sdmat,log=TRUE))
+  return(NegativeQ)
 }
 
 
