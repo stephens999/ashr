@@ -22,7 +22,7 @@
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)
 #' @param nullweight scalar, the weight put on the prior under "nullbiased" specification, see \code{prior}
 #' @param randomstart logical, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
-#' @param nonzeromean logical, indicating whether to use a nonzero mean unimodal mixture(defaults to "FALSE")
+#' @param nonzeromode logical, indicating whether to use a non-zero unimodal mixture(default is "FALSE")
 #' @param pointmass logical, indicating whether to use a point mass at zero as one of components for a mixture distribution
 #' @param onlylogLR logical, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, lfdr...
 #' @param prior string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component)
@@ -53,6 +53,8 @@
 #' \item{data}{a list consisting the input betahat and sebetahat}
 #' \item{df}{the specified degrees of freedom for (t) distribution of betahat/sebetahat}
 #'
+#' @seealso \code{\link{ashci}} for computation of credible intervals after getting the ash object return by \code{ash()}
+#'
 #' @export
 #' @examples 
 #' beta = c(rep(0,100),rnorm(100))
@@ -62,7 +64,9 @@
 #' summary(beta.ash)
 #' plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 #' 
-#' betahat=betahat+1000
+#' CIMatrix=ashci(beta.ash,level=0.95) 
+#' 
+#' betahat=betahat+5
 #' beta.ash = ash(betahat, sebetahat)
 #' summary(beta.ash)
 #' plot(betahat,beta.ash$PosteriorMean)
@@ -72,7 +76,7 @@
 ash = function(betahat,sebetahat,method = c("shrink","fdr"), 
                mixcompdist = c("uniform","halfuniform","normal"),
                lambda1=1,lambda2=0,nullcheck=TRUE,df=NULL,randomstart=FALSE,
-               nullweight=10,nonzeromean=FALSE, 
+               nullweight=10,nonzeromode=FALSE, 
                pointmass = FALSE, 
                onlylogLR = FALSE, 
                prior=c("uniform","nullbiased"), 
@@ -158,13 +162,13 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     null.comp=1 #null.comp also not used, but required 
   } else {
     if(is.null(mixsd)){
-      if(nonzeromean){
+      if(nonzeromode){
         mixsd = autoselect.mixsd(betahat[completeobs]-mean(betahat[completeobs]),sebetahat[completeobs],gridmult)
         if(pointmass){ mixsd = c(0,mixsd) }
-        nonzeromean.fit=nonzeromeanEM(betahat[completeobs], sebetahat[completeobs], mixsd=mixsd, mixcompdist=mixcompdist,df=df,maxiter=maxiter)
-        betahat[completeobs]= betahat[completeobs] - nonzeromean.fit$nonzeromean
+        nonzeromode.fit=nonzeromodeEM(betahat[completeobs], sebetahat[completeobs], mixsd=mixsd, mixcompdist=mixcompdist,df=df,maxiter=maxiter)
+        betahat[completeobs]= betahat[completeobs] - nonzeromode.fit$nonzeromode
       	}
-      else if(nonzeromean & !is.null(df)){
+      else if(nonzeromode & !is.null(df)){
       #  stop("Error: Nonzero mean only implemented for df=NULL")
       }
         mixsd = autoselect.mixsd(betahat[completeobs],sebetahat[completeobs],gridmult)
@@ -214,19 +218,19 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   pi.fit=EMest(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx, df=df)  
   
   #A stringent criteria based on central limit theorem is set to give the user warning message.
-  #if(!nonzeromean){
+  #if(!nonzeromode){
   #  maxsd=max(mixsd)
   #	maxse=quantile(sebetahat[completeobs],0.999)
   #	thresholdval=qnorm(0.999,mean=0,sd=maxse+maxsd)
   #	currentval=abs(sum(betahat[completeobs])/sqrt(length(betahat[completeobs])))
   #	if(currentval>thresholdval){
-  #		print("Caution:It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromean=TRUE when applying ash()")
+  #		print("Caution:It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromode=TRUE when applying ash()")
   #	}
   #}
-  if(!nonzeromean){
+  if(!nonzeromode){
     zvalue=betahat[completeobs]/sebetahat[completeobs]
   	abststat=abs(mean(zvalue)/sd(zvalue))*sqrt(length(zvalue))
-    if(abststat>2.5758){print("Caution:It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromean=TRUE when applying ash()")}
+    if(abststat>2.5758){print("Caution:It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromode=TRUE when applying ash()")}
   }
   
   if (!onlylogLR){
@@ -271,17 +275,17 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   if (!minimaloutput)
       logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
   
-  if(nonzeromean){
+  if(nonzeromode){
       #Adding back the nonzero mean
-      betahat[completeobs]= betahat[completeobs]+nonzeromean.fit$nonzeromean
+      betahat[completeobs]= betahat[completeobs]+nonzeromode.fit$nonzeromode
       if(mixcompdist=="normal"){
-      	pi.fit$g$mean = rep(nonzeromean.fit$nonzeromean,length(pi.fit$g$pi))
+      	pi.fit$g$mean = rep(nonzeromode.fit$nonzeromode,length(pi.fit$g$pi))
       }
       else if(mixcompdist=="uniform"|mixcompdist=="halfuniform"){
-      	pi.fit$g$a = pi.fit$g$a + nonzeromean.fit$nonzeromean
-      	pi.fit$g$b = pi.fit$g$b + nonzeromean.fit$nonzeromean
+      	pi.fit$g$a = pi.fit$g$a + nonzeromode.fit$nonzeromode
+      	pi.fit$g$b = pi.fit$g$b + nonzeromode.fit$nonzeromode
       }
-      PosteriorMean = PosteriorMean + nonzeromean.fit$nonzeromean      
+      PosteriorMean = PosteriorMean + nonzeromode.fit$nonzeromode      
   }	   
   
   if (onlylogLR)
@@ -452,7 +456,7 @@ compute_lfsra = function(PositiveProb, NegativeProb,ZeroProb){
 #' @export
 #' 
 #' 
-nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,retol=1e-6,maxiter=5000){
+nonzeromodeEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,retol=1e-6,maxiter=5000){
   if(is.null(pi.init)){
     pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi
   }
@@ -470,38 +474,38 @@ nonzeromeanEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.ini
   if(length(sebetahat)==1){
     sebetahat = rep(sebetahat,length(betahat))
   }
-  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist occcur in nonzeromeanEM()")
+  if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist occcur in nonzeromodeEM()")
 
 
   if(mixcompdist=="normal" & is.null(df)){
     g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
     mupi=c(mean(betahat),pi.init)
-    res=squarem(par=mupi,fixptfn=nonzeromeanEMfixpoint,objfn=nonzeromeanEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))
+    res=squarem(par=mupi,fixptfn=nonzeromodeEMfixpoint,objfn=nonzeromodeEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol))
   }
   else if(mixcompdist=="normal" & !is.null(df)){
     stop("method comp_postsd of normal mixture not yet written for t likelihood")
-    #print("Warning:method comp_postsd of normal mixture not written for df!=NULL, nonzeroMean would return the naive estimator")
-    #return(list(nonzeromean=mean(betahat)))
+    #print("Warning:method comp_postsd of normal mixture not written for df!=NULL, nonzeromode would return the naive estimator")
+    #return(list(nonzeromode=mean(betahat)))
     #g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
     #mupi=c(mean(betahat),pi.init)
-    #res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
+    #res=squarem(par=mupi,fixptfn=nonzeromodeEMoptimfixpoint,objfn=nonzeromodeEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
   }
   else if(mixcompdist=="uniform"){
     g=unimix(pi.init,-mixsd,mixsd)
     mupi=c(mean(betahat),pi.init)    
-    res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
+    res=squarem(par=mupi,fixptfn=nonzeromodeEMoptimfixpoint,objfn=nonzeromodeEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
   }
   else if(mixcompdist=="halfuniform"){
     g=unimix(c(pi.init, pi.init)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))
     mupi=c(mean(betahat),pi.init/2,pi.init/2)
-    res=squarem(par=mupi,fixptfn=nonzeromeanEMoptimfixpoint,objfn=nonzeromeanEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
+    res=squarem(par=mupi,fixptfn=nonzeromodeEMoptimfixpoint,objfn=nonzeromodeEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol))
   }
   
-  return(list(nonzeromean=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))
+  return(list(nonzeromode=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))
 }
 
 
-nonzeromeanEMoptimfixpoint = function(mupi,betahat,sebetahat,g,df){
+nonzeromodeEMoptimfixpoint = function(mupi,betahat,sebetahat,g,df){
   mu=mupi[1]
   pimean=mupi[-1]	
   matrix_lik=t(compdens_conv(g,betahat-mu,sebetahat,df))
@@ -509,13 +513,13 @@ nonzeromeanEMoptimfixpoint = function(mupi,betahat,sebetahat,g,df){
   m.rowsum=rowSums(m)
   classprob=m/m.rowsum #an n by k matrix	
   pinew=normalize(colSums(classprob))
-  munew=optimize(f=nonzeromeanEMoptim,interval=c(min(betahat),max(betahat)), pinew=pinew,betahat=betahat,sebetahat=sebetahat,g=g,df=df)$minimum
+  munew=optimize(f=nonzeromodeEMoptim,interval=c(min(betahat),max(betahat)), pinew=pinew,betahat=betahat,sebetahat=sebetahat,g=g,df=df)$minimum
   mupi=c(munew,pinew)
   return(mupi)
 }
 
 
-nonzeromeanEMoptimobj = function(mupi,betahat,sebetahat,g,df){
+nonzeromodeEMoptimobj = function(mupi,betahat,sebetahat,g,df){
   mu=mupi[1]
   pimean=mupi[-1]
   matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))
@@ -526,7 +530,7 @@ nonzeromeanEMoptimobj = function(mupi,betahat,sebetahat,g,df){
 }
 
 
-nonzeromeanEMoptim = function(mu,pinew,betahat,sebetahat,g,df){
+nonzeromodeEMoptim = function(mu,pinew,betahat,sebetahat,g,df){
   matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))
   m = t(pinew * t(matrix_lik))
   m.rowsum = rowSums(m)
@@ -535,7 +539,7 @@ nonzeromeanEMoptim = function(mu,pinew,betahat,sebetahat,g,df){
 }
 
 
-nonzeromeanEMfixpoint = function(mupi,betahat,sebetahat,mixsd){
+nonzeromodeEMfixpoint = function(mupi,betahat,sebetahat,mixsd){
   mu=mupi[1]
   pimean=mupi[-1]
   sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) 
@@ -548,7 +552,7 @@ nonzeromeanEMfixpoint = function(mupi,betahat,sebetahat,mixsd){
   return(mupi)
 }
 
-nonzeromeanEMobj = function(mupi,betahat,sebetahat,mixsd){
+nonzeromodeEMobj = function(mupi,betahat,sebetahat,mixsd){
   mu=mupi[1]
   pimean=mupi[-1]
   sdmat = sqrt(outer(sebetahat ^2,mixsd^2,"+")) 

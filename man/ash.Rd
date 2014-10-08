@@ -6,7 +6,7 @@
 ash(betahat, sebetahat, method = c("shrink", "fdr"),
   mixcompdist = c("uniform", "halfuniform", "normal"), lambda1 = 1,
   lambda2 = 0, nullcheck = TRUE, df = NULL, randomstart = FALSE,
-  nullweight = 10, nonzeromean = FALSE, pointmass = FALSE,
+  nullweight = 10, nonzeromode = FALSE, pointmass = FALSE,
   onlylogLR = FALSE, prior = c("uniform", "nullbiased"), mixsd = NULL,
   VB = FALSE, gridmult = sqrt(2), minimaloutput = FALSE,
   multiseqoutput = FALSE, g = NULL, maxiter = 5000, cxx = FALSE)
@@ -35,7 +35,7 @@ in which all weight is on the first component}
 
 \item{nullweight}{scalar, the weight put on the prior under "nullbiased" specification, see \code{prior}}
 
-\item{nonzeromean}{logical, indicating whether to use a nonzero mean unimodal mixture(defaults to "FALSE")}
+\item{nonzeromode}{logical, indicating whether to use a non-zero unimodal mixture(default is "FALSE")}
 
 \item{pointmass}{logical, indicating whether to use a point mass at zero as one of components for a mixture distribution}
 
@@ -92,9 +92,14 @@ beta.ash = ash(betahat, sebetahat)
 summary(beta.ash)
 plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 
-betahat=betahat+1000
+CIMatrix=ashci(beta.ash,level=0.95)
+
+betahat=betahat+5
 beta.ash = ash(betahat, sebetahat)
 summary(beta.ash)
 plot(betahat,beta.ash$PosteriorMean)
+}
+\seealso{
+\code{\link{ashci}} for computation of credible intervals after getting the ash object return by \code{ash()}
 }
 
