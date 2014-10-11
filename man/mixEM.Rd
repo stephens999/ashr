@@ -3,7 +3,8 @@
 \alias{mixEM}
 \title{Estimate mixture proportions of a mixture model by EM algorithm}
 \usage{
-mixEM(matrix_lik, prior, pi.init = NULL, tol = 1e-07, maxiter = 5000)
+mixEM(matrix_lik, prior, pi.init = NULL, tol = 1e-07, maxiter = 5000,
+  trace = FALSE)
 }
 \arguments{
 \item{matrix_lik,}{a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.}
@@ -15,6 +16,8 @@ mixEM(matrix_lik, prior, pi.init = NULL, tol = 1e-07, maxiter = 5000)
 \item{tol,}{the tolerance for convergence of log-likelihood.}
 
 \item{maxiter}{the maximum number of iterations performed}
+
+\item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.}
 }
 \value{
 A list, including the estimates (pihat), the log likelihood for each interation (B)

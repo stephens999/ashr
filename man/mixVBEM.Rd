@@ -3,9 +3,12 @@
 \alias{mixVBEM}
 \title{Estimate posterior distribution on mixture proportions of a mixture model by a Variational Bayes EM algorithm}
 \usage{
-mixVBEM(matrix_lik, prior, pi.init = NULL, tol = 1e-07, maxiter = 5000)
+mixVBEM(matrix_lik, prior, pi.init = NULL, tol = 1e-07, maxiter = 5000,
+  trace = FALSE)
 }
 \arguments{
+\item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.}
+
 \item{matrix_lik:}{a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.}
 
 \item{prior:}{a k vector of the parameters of the Dirichlet prior on \eqn{\pi}. Recommended to be rep(1,k)}

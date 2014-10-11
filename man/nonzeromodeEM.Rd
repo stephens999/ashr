@@ -4,7 +4,7 @@
 \title{Estimate unimodal nonzero mean of a mixture model by EM algorithm}
 \usage{
 nonzeromodeEM(betahat, sebetahat, mixsd, mixcompdist, df = NULL,
-  pi.init = NULL, retol = 1e-06, maxiter = 5000)
+  pi.init = NULL, retol = 1e-05, maxiter = 500, trace = trace)
 }
 \arguments{
 \item{betahat,}{a p vector of estimates}
@@ -16,6 +16,8 @@ nonzeromodeEM(betahat, sebetahat, mixsd, mixcompdist, df = NULL,
 \item{retol,}{the relative tolerance for estimate of nonzero mean}
 
 \item{maxiter}{the maximum number of iterations performed}
+
+\item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.}
 
 \item{mixsd:}{vector of sds for underlying mixture components}
 }

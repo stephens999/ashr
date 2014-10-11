@@ -9,7 +9,8 @@ ash(betahat, sebetahat, method = c("shrink", "fdr"),
   nullweight = 10, nonzeromode = FALSE, pointmass = FALSE,
   onlylogLR = FALSE, prior = c("uniform", "nullbiased"), mixsd = NULL,
   VB = FALSE, gridmult = sqrt(2), minimaloutput = FALSE,
-  multiseqoutput = FALSE, g = NULL, maxiter = 5000, cxx = FALSE)
+  multiseqoutput = FALSE, g = NULL, maxiter = 5000, retol = 1e-05,
+  trace = FALSE, cxx = FALSE)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -51,7 +52,11 @@ in which all weight is on the first component}
 
 \item{g}{the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)}
 
-\item{maxiter}{maximum number of iterations of the EM algorithm}
+\item{maxiter}{maximum number of iterations of the EM algorithm.}
+
+\item{retol}{the relelative precision for the mode of mixture when nonzeromode=TRUE, the default value is 1e-5.}
+
+\item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.}
 
 \item{cxx}{flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point.}
 
