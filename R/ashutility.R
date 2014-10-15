@@ -88,20 +88,22 @@ get_pi0 = function(a){
 #' @param a the fitted ash object
 #' @param betahat the data
 #' @param betahatsd the observed standard errors
-#' @param zscores indicates whether ash object was originally fit to z scores 
-#' @details None
+#' @param zscores indicates whether ash object was originally fit to z scores but you want the likelihood for the betahats 
+#' @details See example in CompareBetahatvsZscoreAnalysis.rmd
 #' 
 #' @export
 #' 
 #'
-loglik.ash = function(a,betahat,betahatsd,zscores=FALSE){
-  g=a$fitted.g
-  FUN="+"
-  if(zscores==TRUE){
-    g$sd = sqrt(g$sd^2+1) 
-    FUN="*"
+loglik.ash = function(a,betahat,betahatsd,df,zscores=FALSE){
+  if(missing(df)){
+    stop("error: must supply df for loglik.ash")
   }
-  return(loglik_conv(g,betahat, betahatsd,FUN))
+  g=a$fitted.g
+  if(zscores==TRUE){
+      return(loglik_conv(g,betahat/betahatsd,1,df)-sum(log(betahatsd)))
+  } else {
+      return(loglik_conv(g,betahat,betahatsd,df))
+  }
 }
 
 #' @title Density method for ash object

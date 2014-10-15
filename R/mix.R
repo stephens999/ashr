@@ -436,7 +436,7 @@ compdens.unimix = function(x,y,log=FALSE){
   return(matrix(dunif(d, x$a, x$b, log),nrow=k))  
 }
 
-#density of convolution of each component of a unif mixture with N(0,s) at x
+#density of convolution of each component of a unif mixture with s*t_nu() at x
 # x an n-vector
 #return a k by n matrix
 compdens_conv.unimix = function(m,x,s,v, FUN="+"){
