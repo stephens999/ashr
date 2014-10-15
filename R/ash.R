@@ -35,7 +35,8 @@
 #' @param retol the relelative precision for the mode of mixture when nonzeromode=TRUE, the default value is 1e-5.
 #' @param trace a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.
 #' @param cxx flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point. 
-#'
+#' @param model c("EE","ES") specifies whether to assume exchangeable effects (EE) or exchangeable standardized effects (ES).
+#' 
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
 #' \item{fitted.g}{fitted mixture, either a normalmix or unimix}
 #' \item{logLR}{logP(D|mle(pi)) - logP(D|null)}
@@ -89,7 +90,8 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
                maxiter = 5000,
                retol=1e-5,
                trace=FALSE,
-               cxx=FALSE){
+               cxx=FALSE,
+               model=c("EE","ES")){
   
   #method provides a convenient interface to set a particular combinations of parameters for prior an
   #If method is supplied, use it to set up specific values for these parameters; provide warning if values
@@ -127,7 +129,14 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   
   if(gridmult<=1&multiseqoutput!=TRUE)
     stop("gridmult must be > 1")
+  model = match.arg(model)
+  if(model=="ES"){
+    betahat = betahat/sebetahat
+    sebetahat=1
+    warning("Posterior quantities computed under the ES model are for the standarized effects and not the effects themselves")
+  }
   mixcompdist = match.arg(mixcompdist)
+  
   if(mixcompdist=="normal" & !is.null(df)){
     stop("Error:Normal mixture for student-t likelihood is not yet implemented")
   }
@@ -305,7 +314,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   else if (multiseqoutput)
       return(list(fitted.g = pi.fit$g, logLR = logLR, PosteriorMean = PosteriorMean, PosteriorSD = PosteriorSD, call= match.call(),df=df))
   else{
-      result = list(fitted.g = pi.fit$g, logLR = logLR, PosteriorMean = PosteriorMean, PosteriorSD = PosteriorSD, PositiveProb = PositiveProb, NegativeProb = NegativeProb, ZeroProb = ZeroProb, lfsr = lfsr,lfsra = lfsra, lfdr = lfdr, qvalue = qvalue, fit = pi.fit, lambda1 = lambda1, lambda2 = lambda2, call = match.call(), data = list(betahat = betahat, sebetahat=sebetahat),df=df)
+      result = list(fitted.g = pi.fit$g, logLR = logLR, PosteriorMean = PosteriorMean, PosteriorSD = PosteriorSD, PositiveProb = PositiveProb, NegativeProb = NegativeProb, ZeroProb = ZeroProb, lfsr = lfsr,lfsra = lfsra, lfdr = lfdr, qvalue = qvalue, fit = pi.fit, lambda1 = lambda1, lambda2 = lambda2, call = match.call(), data = list(betahat = betahat, sebetahat=sebetahat),df=df,model=model)
       class(result) = "ash"
       return(result)
   }

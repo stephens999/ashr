@@ -88,18 +88,22 @@ get_pi0 = function(a){
 #' @param a the fitted ash object
 #' @param betahat the data
 #' @param betahatsd the observed standard errors
-#' @param zscores indicates whether ash object was originally fit to z scores but you want the likelihood for the betahats 
+#' @param model: indicates whether you want the likelihood under the EE or ES model 
 #' @details See example in CompareBetahatvsZscoreAnalysis.rmd
 #' 
 #' @export
 #' 
 #'
-loglik.ash = function(a,betahat,betahatsd,df,zscores=FALSE){
+loglik.ash = function(a,betahat,betahatsd,df,model=c("EE","ES")){
   if(missing(df)){
     stop("error: must supply df for loglik.ash")
   }
+  model = match.arg(model) 
+  if(a$model != model){
+    warning("Model used to fit ash does not match model used to compute loglik! Probably you have made a mistake!")
+  }
   g=a$fitted.g
-  if(zscores==TRUE){
+  if(model=="ES"){
       return(loglik_conv(g,betahat/betahatsd,1,df)-sum(log(betahatsd)))
   } else {
       return(loglik_conv(g,betahat,betahatsd,df))
