@@ -94,9 +94,9 @@ get_pi0 = function(a){
 #' @export
 #' 
 #'
-loglik.ash = function(a,betahat,betahatsd,df,model=c("EE","ES")){
+calc_loglik = function(a,betahat,betahatsd,df,model=c("EE","ES")){
   if(missing(df)){
-    stop("error: must supply df for loglik.ash")
+    stop("error: must supply df for calc_loglik")
   }
   model = match.arg(model) 
   if(a$model != model){
@@ -109,6 +109,36 @@ loglik.ash = function(a,betahat,betahatsd,df,model=c("EE","ES")){
       return(loglik_conv(g,betahat,betahatsd,df))
   }
 }
+
+#' @title Compute loglikelihood for data usign the prior g (usually from an ash fit)
+#'
+#' @description Return the log-likelihood of the data betahat, with standard errors betahatsd, 
+#' under the fitted distribution in the ash object. 
+#' 
+#'
+#' @param g the prior for effects or standardized effects
+#' @param betahat the data
+#' @param betahatsd the observed standard errors
+#' @param model: indicates whether you want the likelihood under the EE or ES model 
+#' @details See example in CompareBetahatvsZscoreAnalysis.rmd
+#' 
+#' @export
+#' 
+#'
+calc_gloglik = function(g,betahat,betahatsd,df,model=c("EE","ES")){
+  if(missing(df)){
+    stop("error: must supply df for calc_loglik")
+  }
+  model = match.arg(model) 
+  if(model=="ES"){
+    return(loglik_conv(g,betahat/betahatsd,1,df)-sum(log(betahatsd)))
+  } else {
+    return(loglik_conv(g,betahat,betahatsd,df))
+  }
+}
+
+
+
 
 #' @title Density method for ash object
 #'

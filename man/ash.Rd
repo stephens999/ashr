@@ -10,7 +10,7 @@ ash(betahat, sebetahat, method = c("shrink", "fdr"),
   onlylogLR = FALSE, prior = c("uniform", "nullbiased"), mixsd = NULL,
   VB = FALSE, gridmult = sqrt(2), minimaloutput = FALSE,
   multiseqoutput = FALSE, g = NULL, maxiter = 5000, retol = 1e-05,
-  trace = FALSE, cxx = FALSE)
+  trace = FALSE, cxx = FALSE, model = c("EE", "ES"))
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -61,11 +61,14 @@ in which all weight is on the first component}
 \item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.}
 
 \item{cxx}{flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point.}
+
+\item{model}{c("EE","ES") specifies whether to assume exchangeable effects (EE) or exchangeable standardized effects (ES).}
 }
 \value{
 ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
 \item{fitted.g}{fitted mixture, either a normalmix or unimix}
-\item{logLR}{logP(D|mle(pi)) - logP(D|null)}
+\item{logLR}{log P(D|mle(pi)) - log P(D|null)}
+\item{loglik}{log P(D|mle(pi))}
 \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
 \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
 \item{PositiveProb}{A vector of posterior probability that beta is positive}

@@ -39,7 +39,8 @@
 #' 
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
 #' \item{fitted.g}{fitted mixture, either a normalmix or unimix}
-#' \item{logLR}{logP(D|mle(pi)) - logP(D|null)}
+#' \item{logLR}{log P(D|mle(pi)) - log P(D|null)}
+#' \item{loglik}{log P(D|mle(pi))}
 #' \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
 #' \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
 #' \item{PositiveProb}{A vector of posterior probability that beta is positive}
@@ -129,14 +130,15 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   
   if(gridmult<=1&multiseqoutput!=TRUE)
     stop("gridmult must be > 1")
-  model = match.arg(model)
-  if(model=="ES"){
-    betahat = betahat/sebetahat
-    sebetahat=1
-    warning("Posterior quantities computed under the ES model are for the standarized effects and not the effects themselves")
-  }
-  mixcompdist = match.arg(mixcompdist)
   
+  model = match.arg(model)
+  if(model=="ES"){ #for ES model, standardize
+    betahat = betahat/sebetahat
+    sebetahat.orig = sebetahat #store so that can be reinstated later
+    sebetahat=1
+  }
+  
+  mixcompdist = match.arg(mixcompdist)
   if(mixcompdist=="normal" & !is.null(df)){
     stop("Error:Normal mixture for student-t likelihood is not yet implemented")
   }
@@ -170,7 +172,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   }
   
   if(missing(trace)){
-    if(n>500){
+    if(n>50000){
       trace=TRUE
     }else {trace=FALSE}
   }
@@ -307,6 +309,15 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
       PosteriorMean = PosteriorMean + nonzeromode.fit$nonzeromode      
   }	   
   
+  if(model=="ES"){
+    betahat=betahat*sebetahat.orig
+    sebetahat = sebetahat.orig
+    PosteriorMean = PosteriorMean * sebetahat
+    PosteriorSD= PosteriorSD * sebetahat
+  }
+  
+  loglik = calc_gloglik(pi.fit$g, betahat, sebetahat,df, model) 
+  
   if (onlylogLR)
       return(list(fitted.g=pi.fit$g, logLR = logLR, df=df))
   else if (minimaloutput)
@@ -314,7 +325,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   else if (multiseqoutput)
       return(list(fitted.g = pi.fit$g, logLR = logLR, PosteriorMean = PosteriorMean, PosteriorSD = PosteriorSD, call= match.call(),df=df))
   else{
-      result = list(fitted.g = pi.fit$g, logLR = logLR, PosteriorMean = PosteriorMean, PosteriorSD = PosteriorSD, PositiveProb = PositiveProb, NegativeProb = NegativeProb, ZeroProb = ZeroProb, lfsr = lfsr,lfsra = lfsra, lfdr = lfdr, qvalue = qvalue, fit = pi.fit, lambda1 = lambda1, lambda2 = lambda2, call = match.call(), data = list(betahat = betahat, sebetahat=sebetahat),df=df,model=model)
+      result = list(fitted.g = pi.fit$g, logLR = logLR, loglik=loglik, PosteriorMean = PosteriorMean, PosteriorSD = PosteriorSD, PositiveProb = PositiveProb, NegativeProb = NegativeProb, ZeroProb = ZeroProb, lfsr = lfsr,lfsra = lfsra, lfdr = lfdr, qvalue = qvalue, fit = pi.fit, lambda1 = lambda1, lambda2 = lambda2, call = match.call(), data = list(betahat = betahat, sebetahat=sebetahat),df=df,model=model)
       class(result) = "ash"
       return(result)
   }
