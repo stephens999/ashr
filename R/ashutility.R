@@ -180,7 +180,9 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #' @details Uses default optimization function and perform component-wise credible interval computation. The computation cost is linear of the length of betahat.
 #'
 #' @param a the fitted ash object 
-#' @param levels, the level for the credible interval, (default=0.95)
+#' @param levels the level for the credible interval, (default=0.95)
+#' @param trace a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.
+#' @param tol the desired accuracy, default value is 1e-5.
 #' 
 #' @return A matrix, with first column being the posterior mean, second and third column being the lower bound and upper bound for the credible interval. 
 #'  
@@ -196,30 +198,90 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #' 
 #' 
 #' 
-ashci = function (a,level=0.95){
-  options(warn=-1)
+#todo/issue
+#1.Could do parallel computing to reduce the computation time
+#
+#2.Optimization function does not work well for discountinous function, even
+#if it's a monotone one. Current remedy is to set a more conservative value for 
+#the searching interval from the mixture
+#
+ashci = function (a,level=0.95,tol=1e-5,trace=FALSE){
+  #options(warn=-1)
   x=a$data$betahat
   s=a$data$sebetahat
   m=a$fitted.g
   df=a$df
-  if(class(m)=="normalmix"){
-    lower=min(x)-qt(level,df=1)*(max(m$sd)+max(abs(s)))
-    upper=max(x)+qt(level,df=1)*(max(m$sd)+max(abs(s)))
-  } else{
-    lower=min(c(m$a,m$b))
-    upper=max(c(m$a,m$b))
+  model=a$model
+  percentage=1
+  
+  if(model=="ES"){ #for ES model, standardize
+  	x=x/s
+	a$PosteriorMean=a$PosteriorMean/s
+  	sebetahat.orig=s
+  	s=rep(1,length(x))
   }
 
-  CImatrix=matrix(NA,nrow=length(x),ncol=3)	
-  colnames(CImatrix)=c("Posterior Mean",(1-level)/2,(1+level)/2)
+  if(missing(trace)){
+    if(length(x)>=1000){
+      trace=TRUE  #component-wise computation takes more time
+    }else {trace=FALSE}
+  }
+  if(trace==TRUE){
+  	cat("Computation time would be linear w.r.t sample size, progress would be printed to the screen \n")
+  	tic()
+  }
+  
+  if(is.null(df)){
+  	errorspan=qnorm(level)
+  } else{
+  	errorspan=qt(level,df)
+  }
+  
+  CImatrix=matrix(NA,nrow=length(x),ncol=3)
   CImatrix[,1]=a$PosteriorMean
-	
-  if( class(a$fitted.g) == "normalmix" | class(a$fitted.g) == "unimix" ){
+  colnames(CImatrix)=c("Posterior Mean",(1-level)/2,(1+level)/2)
+  
+  if( class(m) == "normalmix" | class(m) == "unimix" ){
     for(i in 1:length(x)){
-	  CImatrix[i,2]=optim(par=a$PosteriorMean[i],f=ci.lower,m=m,x=x[i],s=s[i],level=level,df=df,method="Brent",lower=lower,upper=upper)$par
-	  CImatrix[i,3]=optim(par=a$PosteriorMean[i],f=ci.upper,m=m,x=x[i],s=s[i],level=level,df=df,method="Brent",lower=lower,upper=upper)$par
+      #Now the search interval is better restricted, avoiding the crash of optimize() due to discontinuity of cdf_post
+      #The discontinuity is due to the pointmass component of the mixture
+      cumpi=cumsum(comppostprob(m,x[i],s[i],df))-level
+      maxposition=min(which(cumpi>0))
+      if(class(m)=="normalmix"){
+      	maxsd=m$sd[maxposition]
+      	lower=a$PosteriorMean[i]-errorspan*maxsd
+      	upper=a$PosteriorMean[i]+errorspan*maxsd
+	  }else{
+	    lower=min(c(m$a[1: maxposition],m$b[1: maxposition]))
+        upper=max(c(m$a[1: maxposition],m$b[1: maxposition])) 	
+	  }
+      
+      CImatrix[i,2]=optimize(f=ci.lower,interval=c(lower,a$PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,
+	  df=df, tol=tol)$minimum
+	  
+	  CImatrix[i,3]=optimize(f=ci.upper,interval=c(a$PosteriorMean[i],upper),m=m,x=x[i],s=s[i],level=level,
+	  df=df, tol=tol)$minimum
+	  
+	  #CImatrix[i,2]=optim(par=a$PosteriorMean[i],f=ci.lower,m=m,x=x[i],s=s[i],level=level,
+	  #df=df,method="Brent",lower=lower,upper=upper)$par
+	  #CImatrix[i,3]=optim(par=a$PosteriorMean[i],f=ci.upper,m=m,x=x[i],s=s[i],level=level,
+	  #df=df,method="Brent",lower=lower,upper=upper)$par	  
+	  if(trace==TRUE & percentage <=100){
+	  	currentpercentage=round(i*100/length(x))
+	  	if(currentpercentage == percentage){
+	  		cat("Current computation progress", percentage,"%, seconds ")
+	  		toc()
+	  		percentage = percentage + 1
+	  	}
+	  }	  
+
 	}
   } else{stop(paste("Invalid class",class(m)))}
+  
+  if(model=="ES"){
+    CImatrix=CImatrix*sebetahat.orig
+  }
+  #CImatrix=signif(CImatrix,digits=round(1-log(tol)/log(10)))
   return(CImatrix)
 }
 
@@ -232,5 +294,8 @@ ci.upper=function(z,m,x,s,level,df){
 	tailprob=1-cdf_post(m,z,x,s,df)
 	return(abs(tailprob-(1-level)/2))
 }
+
+
+
 
 
