@@ -210,12 +210,10 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #
 ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5,trace=FALSE){
   #options(warn=-1)
-  completeobs =!is.na(a$lfsr)
   if(missing(betaindex)){
   	betaindex =(a$lfsr<=lfsrcriteria)
   	betaindex[is.na(betaindex)]=FALSE #Some lfsrs would have NA
-  }
-  
+  }  
   x=a$data$betahat[betaindex]
   s=a$data$sebetahat[betaindex]
   PosteriorMean=a$PosteriorMean[betaindex]
@@ -223,7 +221,6 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5,trace=FALSE)
   df=a$df
   model=a$model
   percentage=1
-  
   
   if(model=="ES"){ #for ES model, standardize
   	x=x/s
@@ -256,16 +253,16 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5,trace=FALSE)
     for(i in 1:length(x)){
       #Now the search interval is better restricted, avoiding the crash of optimize() due to discontinuity of cdf_post
       #The discontinuity is due to the pointmass component of the mixture
-      cumpi=cumsum(comppostprob(m,x[i],s[i],df))-level
-      maxposition=min(which(cumpi>0))
+      #cumpi=cumsum(comppostprob(m,x[i],s[i],df))-level
+      #maxposition=min(which(cumpi>0))
       if(class(m)=="normalmix"){
-      	maxsd=m$sd[maxposition]
+      	#maxsd=m$sd[maxposition]
       	#lower=PosteriorMean[i]-errorspan*maxsd
       	#upper=PosteriorMean[i]+errorspan*maxsd
       	lower=-Inf
       	upper=Inf
 	  }else{
-	    #lower=min(c(m$a[1: maxposition],m$b[1: maxposition]))
+        #lower=min(c(m$a[1: maxposition],m$b[1: maxposition]))
         #upper=max(c(m$a[1: maxposition],m$b[1: maxposition])) 	
         lower=min(c(m$a,m$b))
         upper=max(c(m$a,m$b))
@@ -286,10 +283,8 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5,trace=FALSE)
 	  	if(currentpercentage == percentage){
 	  		cat("Current computation progress", percentage,"%, seconds ")
 	  		toc()
-	  		percentage = percentage + 1
-	  	}
+	  		percentage = percentage + 1}
 	  }	  
-
 	}
   } else{stop(paste("Invalid class",class(m)))}
   
@@ -305,12 +300,12 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5,trace=FALSE)
 
 ci.lower=function(z,m,x,s,level,df){
 	tailprob=cdf_post(m,z,x,s,df)
-	return(abs(tailprob-(1-level)/2))
+	return((tailprob-(1-level)/2)^2)
 }
 
 ci.upper=function(z,m,x,s,level,df){
 	tailprob=1-cdf_post(m,z,x,s,df)
-	return(abs(tailprob-(1-level)/2))
+	return((tailprob-(1-level)/2)^2)
 }
 
 
