@@ -3,10 +3,15 @@
 \alias{ashci}
 \title{Credible Interval Computation for the ash object}
 \usage{
-ashci(a, level = 0.95, tol = 1e-05, trace = FALSE)
+ashci(a, level = 0.95, betaindex, lfsrcriteria = 0.05, tol = 1e-05,
+  trace = FALSE)
 }
 \arguments{
 \item{a}{the fitted ash object}
+
+\item{betaindex}{a vector consisting of locations of betahat where you would like to compute the credible interval}
+
+\item{lfsrcriteria}{a scalar, in which the function would autoselect betahats based on lfsr value smaller than lfsrcriteria when index is not supplied. Setting it to 1 would compute credible interval for all observations.}
 
 \item{tol}{the desired accuracy, default value is 1e-5.}
 
@@ -15,7 +20,7 @@ ashci(a, level = 0.95, tol = 1e-05, trace = FALSE)
 \item{levels}{the level for the credible interval, (default=0.95)}
 }
 \value{
-A matrix, with first column being the posterior mean, second and third column being the lower bound and upper bound for the credible interval.
+A matrix, with first column being the location,second column being lfsr, 3rd column being posterior mean,4th and 5th column being the lower bound and upper bound for the credible interval.
 }
 \description{
 Given the ash object return by the main function ash, this function computes the corresponding credible interval of the mixture model.
@@ -30,5 +35,8 @@ betahat = rnorm(40,beta,sebetahat)
 beta.ash = ash(betahat, sebetahat)
 
 CImatrix=ashci(beta.ash,level=0.95)
+
+CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
+CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)
 }
 

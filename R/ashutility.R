@@ -180,11 +180,13 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #' @details Uses default optimization function and perform component-wise credible interval computation. The computation cost is linear of the length of betahat.
 #'
 #' @param a the fitted ash object 
+#' @param betaindex a vector consisting of locations of betahat where you would like to compute the credible interval
+#' @param lfsrcriteria a scalar, in which the function would autoselect betahats based on lfsr value smaller than lfsrcriteria when index is not supplied. Setting it to 1 would compute credible interval for all observations.
 #' @param levels the level for the credible interval, (default=0.95)
 #' @param trace a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.
 #' @param tol the desired accuracy, default value is 1e-5.
 #' 
-#' @return A matrix, with first column being the posterior mean, second and third column being the lower bound and upper bound for the credible interval. 
+#' @return A matrix, with first column being the location,second column being lfsr, 3rd column being posterior mean,4th and 5th column being the lower bound and upper bound for the credible interval. 
 #'  
 #' @export
 #' @examples 
@@ -195,7 +197,8 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #' 
 #' CImatrix=ashci(beta.ash,level=0.95)
 #' 
-#' 
+#' CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
+#' CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)
 #' 
 #' 
 #todo/issue
@@ -205,18 +208,26 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #if it's a monotone one. Current remedy is to set a more conservative value for 
 #the searching interval from the mixture
 #
-ashci = function (a,level=0.95,tol=1e-5,trace=FALSE){
+ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5,trace=FALSE){
   #options(warn=-1)
-  x=a$data$betahat
-  s=a$data$sebetahat
+  completeobs =!is.na(a$lfsr)
+  if(missing(betaindex)){
+  	betaindex =(a$lfsr<=lfsrcriteria)
+  	betaindex[is.na(betaindex)]=FALSE #Some lfsrs would have NA
+  }
+  
+  x=a$data$betahat[betaindex]
+  s=a$data$sebetahat[betaindex]
+  PosteriorMean=a$PosteriorMean[betaindex]
   m=a$fitted.g
   df=a$df
   model=a$model
   percentage=1
   
+  
   if(model=="ES"){ #for ES model, standardize
   	x=x/s
-	a$PosteriorMean=a$PosteriorMean/s
+	PosteriorMean=PosteriorMean/s
   	sebetahat.orig=s
   	s=rep(1,length(x))
   }
@@ -237,9 +248,9 @@ ashci = function (a,level=0.95,tol=1e-5,trace=FALSE){
   	errorspan=qt(level,df)
   }
   
-  CImatrix=matrix(NA,nrow=length(x),ncol=3)
-  CImatrix[,1]=a$PosteriorMean
-  colnames(CImatrix)=c("Posterior Mean",(1-level)/2,(1+level)/2)
+  CImatrix=matrix(NA,nrow=length(x),ncol=5)
+  CImatrix[,3]=PosteriorMean
+  colnames(CImatrix)=c("Index(Location)","lfsr","Posterior Mean",(1-level)/2,(1+level)/2)
   
   if( class(m) == "normalmix" | class(m) == "unimix" ){
     for(i in 1:length(x)){
@@ -249,17 +260,21 @@ ashci = function (a,level=0.95,tol=1e-5,trace=FALSE){
       maxposition=min(which(cumpi>0))
       if(class(m)=="normalmix"){
       	maxsd=m$sd[maxposition]
-      	lower=a$PosteriorMean[i]-errorspan*maxsd
-      	upper=a$PosteriorMean[i]+errorspan*maxsd
+      	#lower=PosteriorMean[i]-errorspan*maxsd
+      	#upper=PosteriorMean[i]+errorspan*maxsd
+      	lower=-Inf
+      	upper=Inf
 	  }else{
-	    lower=min(c(m$a[1: maxposition],m$b[1: maxposition]))
-        upper=max(c(m$a[1: maxposition],m$b[1: maxposition])) 	
+	    #lower=min(c(m$a[1: maxposition],m$b[1: maxposition]))
+        #upper=max(c(m$a[1: maxposition],m$b[1: maxposition])) 	
+        lower=min(c(m$a,m$b))
+        upper=max(c(m$a,m$b))
 	  }
       
-      CImatrix[i,2]=optimize(f=ci.lower,interval=c(lower,a$PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,
-	  df=df, tol=tol)$minimum
+      CImatrix[i,4]=optimize(f=ci.lower,interval=c(lower,PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,
+      df=df, tol=tol)$minimum
 	  
-	  CImatrix[i,3]=optimize(f=ci.upper,interval=c(a$PosteriorMean[i],upper),m=m,x=x[i],s=s[i],level=level,
+	  CImatrix[i,5]=optimize(f=ci.upper,interval=c(PosteriorMean[i],upper),m=m,x=x[i],s=s[i],level=level,
 	  df=df, tol=tol)$minimum
 	  
 	  #CImatrix[i,2]=optim(par=a$PosteriorMean[i],f=ci.lower,m=m,x=x[i],s=s[i],level=level,
@@ -281,6 +296,9 @@ ashci = function (a,level=0.95,tol=1e-5,trace=FALSE){
   if(model=="ES"){
     CImatrix=CImatrix*sebetahat.orig
   }
+  numericindex=c(1:length(a$data$betahat))[betaindex]
+  CImatrix[,1]=numericindex
+  CImatrix[,2]=a$lfsr[betaindex]
   #CImatrix=signif(CImatrix,digits=round(1-log(tol)/log(10)))
   return(CImatrix)
 }
