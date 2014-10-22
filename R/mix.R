@@ -60,9 +60,15 @@ comp_mean.default = function(m){
 }
 
 #number of components
+#' @title ncomp
+#' @export
+#' 
 ncomp = function(m){
   UseMethod("ncomp")
 }
+#' @title ncomp.default
+#' @export
+#' 
 ncomp.default = function(m){
   return(length(m$pi))
 }
@@ -177,9 +183,17 @@ dens_conv.default = function(m,x,s,v,FUN="+"){
 #output a k by n vector of probabilities
 #computed by weighting the component densities by pi
 #and then normalizing
+#' @title comppostprob
+#' 
+#' @export
+#'
 comppostprob=function(m,x,s,v){
  UseMethod("comppostprob") 
 }
+#' @title comppostprob.default
+#' 
+#' @export
+#'
 comppostprob.default = function(m,x,s,v){
   tmp= (t(m$pi * compdens_conv(m,x,s,v))/dens_conv(m,x,s,v))
   ismissing = (is.na(x) | is.na(s))
@@ -211,9 +225,17 @@ cdf_post.default=function(m,c,betahat,sebetahat,v){
 
 #output posterior mean for beta for prior mixture m,
 #given observations betahat, sebetahat, df v
+#' @title postmean
+#' 
+#' @export
+#'
 postmean = function(m, betahat,sebetahat,v){
   UseMethod("postmean")
 }
+#' @title postmean.default
+#' 
+#' @export
+#'
 postmean.default = function(m,betahat,sebetahat,v){
   colSums(comppostprob(m,betahat,sebetahat,v) * comp_postmean(m,betahat,sebetahat,v))
 }
@@ -231,9 +253,17 @@ postmean2.default = function(m,betahat,sebetahat,v){
 
 #output posterior sd for beta for prior mixture m,
 #given observations betahat, sebetahat, df v
+#' @title postsd
+#' 
+#' @export
+#'
 postsd = function(m,betahat,sebetahat,v){
   UseMethod("postsd")
 }
+#' @title postsd.default
+#' 
+#' @export
+#'
 postsd.default = function(m,betahat,sebetahat,v){
   sqrt(postmean2(m,betahat,sebetahat,v)-postmean(m,betahat,sebetahat,v)^2)
 }
@@ -407,6 +437,252 @@ comp_postsd.normalmix = function(m,betahat,sebetahat,v){
   t(sqrt(outer(sebetahat^2,m$sd^2,FUN="*")/outer(sebetahat^2,m$sd^2,FUN="+")))
 }
 
+#find log likelihood of data, when 
+#the mixture m is convolved with l-comp normal mixture
+#in betahat with mixture sd betahatsd, mixture proportion pilik
+#betahatsd is an n by l matrix
+#betahat is an n vector
+#v is the degree of freedom
+#pilik is an l vector
+#' @title loglik_conv_mixlik
+#' 
+#' @export
+#' 
+loglik_conv_mixlik = function(m,betahat,betahatsd,v,pilik,FUN="+"){
+  UseMethod("loglik_conv_mixlik")
+}
+#' @title loglik_conv.default
+#' 
+#' @export
+#' 
+loglik_conv_mixlik.default = function(m,betahat,betahatsd,v,pilik,FUN="+"){
+  sum(log(dens_conv_mixlik(m,betahat,betahatsd,v,pilik,FUN)))
+}
+
+#compute the density of the components of the mixture m
+#when convoluted with l-components normal mixture with standard deviation s
+#or C (scale vector) multiplies scaled (se) student.t l-components mixture with df v
+#with mixture proportion pilik
+#the density is evaluated at x
+#x is an n-vector
+#s and pilik are n by l matrices
+#v and c are l-vectors
+#m is a mixture with k components
+#output is a (k*l) by n matrix of densities
+#' @title compdens_conv_mixlik
+#' 
+#' @export
+#'
+compdens_conv_mixlik = function(m,x,s,v,pilik,FUN="+"){
+  UseMethod("compdens_conv_mixlik")
+}
+compdens_conv_mixlik.default = function(m,x,s,v,pilik,FUN="+"){
+  dens=NULL
+  for (i in 1:dim(pilik)[2]){
+    dens=rbind(dens,pilik[,i]*compdens_conv(m,x,s[,i],v[i],FUN))
+  }
+  return(dens)
+}
+
+#compute density of mixture m convoluted with l-components
+#normal mixture of sd (s) or student t mixture with df v
+#with mixture proportion pilik
+#at locations x
+#m is a mixture
+#x is an n vector
+#s and pilik are n by l matrices
+#' @title dens_conv_mixlik
+#' 
+#' @export
+#'
+dens_conv_mixlik = function(m,x,s,v,pilik,FUN="+"){
+  UseMethod("dens_conv_mixlik")
+}
+dens_conv_mixlik.default = function(m,x,s,v,pilik,FUN="+"){
+  l=dim(pilik)[2]
+  colSums(rep(m$pi,l) * compdens_conv_mixlik(m,x,s,v,pilik,FUN))
+}
+
+#compute the posterior prob that each observation
+#came from each component of the mixture m
+#output a k by n vector of probabilities
+#computed by weighting the component densities by pi
+#and then normalizing
+#when likelihood is an l-components normal mixture or student t mixture
+#with mixture proportion pilik
+#' @title comppostprob_mixlik
+#' 
+#' @export
+#'
+comppostprob_mixlik=function(m,x,s,v,pilik){
+  UseMethod("comppostprob_mixlik") 
+}
+comppostprob_mixlik.default = function(m,x,s,v,pilik){
+  l=dim(pilik)[2]
+  k=length(m$pi)
+  tmp= (t(rep(m$pi,l) * compdens_conv_mixlik(m,x,s,v,pilik))/dens_conv_mixlik(m,x,s,v,pilik))
+  ismissing = (is.na(x) | apply(is.na(s),1,sum))
+  tmp[ismissing,]=rep(m$pi,l)/l
+  group=rep(1:k,l)
+  return(rowsum(t(tmp),group))
+}
+
+#compute the posterior prob that each observation
+#came from each component of the mixture m and the likelihood mixture
+#output a (k*l) by n vector of probabilities
+#computed by weighting the component densities by pi
+#and then normalizing
+#when likelihood is an l-components normal mixture or student t mixture
+#with mixture proportion pilik
+#' @title comppostprob_mixlik2
+#' 
+#' @export
+#'
+comppostprob_mixlik2=function(m,x,s,v,pilik){
+  UseMethod("comppostprob_mixlik2") 
+}
+comppostprob_mixlik2.default = function(m,x,s,v,pilik){
+  l=dim(pilik)[2]
+  k=length(m$pi)
+  tmp= (t(rep(m$pi,l) * compdens_conv_mixlik(m,x,s,v,pilik))/dens_conv_mixlik(m,x,s,v,pilik))
+  ismissing = (is.na(x) | apply(is.na(s),1,sum))
+  tmp[ismissing,]=rep(m$pi,l)/l
+  return(t(tmp))
+}
+
+# evaluate cdf of posterior distribution of beta at c
+# m is the prior on beta, a mixture
+# c is location of evaluation
+# assumption is betahat | beta \sim 
+# l-components normal mixture with sd sebetahat
+# and mixture proportion pilik
+# m is a mixture with k components
+# c a scalar
+# betahat is an n vector 
+# sebetahat and pilik are n by l matrices 
+# output is a (k*l) by n matrix
+#' @title compcdf_post_mixlik
+#' 
+#' @export
+#'
+compcdf_post_mixlik=function(m,c,betahat,sebetahat,v,pilik){
+  UseMethod("compcdf_post_mixlik")
+}
+compcdf_post_mixlik.default=function(m,c,betahat,sebetahat,v,pilik){
+  cdf=NULL
+  for (i in 1:dim(pilik)[2]){
+    cdf=rbind(cdf,pilik[,i]*compcdf_post(m,c,betahat,sebetahat[,i],v[i]))
+  }
+  cdf
+}
+
+cdf_post_mixlik = function(m,c,betahat,sebetahat,v,pilik){
+  UseMethod("cdf_post_mixlik")
+}
+cdf_post_mixlik.default=function(m,c,betahat,sebetahat,v,pilik){
+  colSums(comppostprob_mixlik2(m,betahat,sebetahat,v,pilik)*
+            compcdf_post_mixlik(m,c,betahat,sebetahat,v,pilik))
+}
+
+#output posterior mean for beta for prior mixture m,
+#given observations betahat, sebetahat, df v
+#from l-components mixture likelihood
+#with mixture proportion pilik
+#' @title postmean_mixlik
+#' 
+#' @export
+#'
+postmean_mixlik = function(m, betahat,sebetahat,v,pilik){
+  UseMethod("postmean_mixlik")
+}
+postmean_mixlik.default = function(m,betahat,sebetahat,v,pilik){
+  colSums(comppostprob_mixlik2(m,betahat,sebetahat,v,pilik) * comp_postmean_mixlik(m,betahat,sebetahat,v,pilik))
+}
+
+#output posterior mean-squared value for beta for prior mixture m,
+#given observations betahat, sebetahat, df v
+#from l-components mixture likelihood
+#with mixture proportion pilik
+#' @title postmean2_mixlik
+#' 
+#' @export
+#'
+postmean2_mixlik = function(m, betahat,sebetahat,v,pilik){
+  UseMethod("postmean2_mixlik")
+}
+postmean2_mixlik.default = function(m,betahat,sebetahat,v,pilik){
+  colSums(comppostprob_mixlik2(m,betahat,sebetahat,v,pilik) * comp_postmean2_mixlik(m,betahat,sebetahat,v,pilik))
+}
+
+#output posterior sd for beta for prior mixture m,
+#given observations betahat, sebetahat, df v
+#from l-components mixture likelihood
+#with mixture proportion pilik
+#' @title postsd_mixlik
+#' 
+#' @export
+#'
+postsd_mixlik = function(m,betahat,sebetahat,v,pilik){
+  UseMethod("postsd_mixlik")
+}
+postsd_mixlik.default = function(m,betahat,sebetahat,v,pilik){
+  sqrt(postmean2_mixlik(m,betahat,sebetahat,v,pilik)-postmean_mixlik(m,betahat,sebetahat,v,pilik)^2)
+}
+
+#output posterior mean-squared value for beta for prior mixture m,
+#given observations betahat, sebetahat, df v
+#from l-components mixture likelihood
+#with mixture proportion pilik
+#' @title comp_postmean2_mixlik
+#' 
+#' @export
+#'
+comp_postmean2_mixlik = function(m,betahat,sebetahat,v,pilik){
+  UseMethod("comp_postmean2_mixlik")
+}
+comp_postmean2_mixlik.default = function(m,betahat,sebetahat,v,pilik){
+  comp_postsd_mixlik(m,betahat,sebetahat,v,pilik)^2 + 
+    comp_postmean_mixlik(m,betahat,sebetahat,v,pilik)^2
+}
+
+#output posterior mean for beta for each component of prior mixture m,
+#given observations betahat, sebetahat, df v
+#from l-components mixture likelihood
+#with mixture proportion pilik
+#' @title comp_postmean_mixlik
+#' 
+#' @export
+#'
+comp_postmean_mixlik=function(m,betahat,sebetahat,v,pilik){
+  UseMethod("comp_postmean_mixlik")
+}
+comp_postmean_mixlik.default=function(m,betahat,sebetahat,v,pilik){
+  mean=NULL
+  for (i in 1:dim(pilik)[2]){
+    mean=rbind(mean,comp_postmean(m,betahat,sebetahat[,i],v[i]))
+  }
+  return(mean)
+}
+
+#output posterior sd for beta for each component of prior mixture m,
+#given observations betahat, sebetahat, df v
+#from l-components mixture likelihood
+#with mixture proportion pilik
+#' @title comp_postsd_mixlik
+#' 
+#' @export
+#'
+comp_postsd_mixlik=function(m,betahat,sebetahat,v,pilik){
+  UseMethod("comp_postsd_mixlik")
+}
+comp_postsd_mixlik.default=function(m,betahat,sebetahat,v,pilik){
+  sd=NULL
+  for (i in 1:dim(pilik)[2]){
+    sd=rbind(sd,comp_postsd(m,betahat,sebetahat[,i],v[i]))
+  }
+  return(sd)
+}
+
 
 ############################### METHODS FOR unimix class ###########################
 
@@ -567,4 +843,98 @@ my_etrunct= function(a,b,v){
 }
 
 
+############################### METHODS FOR igmix class ###########################
 
+#' @title Constructor for igmix class
+#'
+#' @description Creates an object of class igmix (finite mixture of univariate inverse-gammas)
+#' 
+#' @details None
+#' 
+#' @param pi: vector of mixture proportions
+#' @param alpha: vector of shape parameters
+#' @param beta: vector of rate parameters
+#' 
+#' @return an object of class igmix
+#' 
+#' @export
+#' 
+#' @examples igmix(c(0.5,0.5),c(1,1),c(1,2))
+#' 
+igmix = function(pi,alpha,beta){
+  structure(data.frame(pi,alpha,beta),class="igmix")
+}
+
+comp_sd.igmix = function(m){
+  m$beta/(m$alpha-1)/sqrt(m$alpha-2)
+}
+
+comp_mean.igmix = function(m){
+  m$beta/(m$alpha-1)
+}
+
+compdens.igmix = function(x,y,log=FALSE){
+  k=ncomp(x)
+  n=length(y)
+  d = matrix(rep(y,rep(k,n)),nrow=k)
+  return(matrix(dgamma(1/d, shape=x$alpha, rate=outer(m$beta,1/y^2),log),nrow=k))  
+}
+
+#density of product of each component of a inverse-gamma mixture with Gamma(v/2,v/2) at s
+# s an n-vector at which density is to be evaluated
+#return a k by n matrix
+compdens_conv.igmix = function(m,x,s,v,FUN="+"){  
+  k=ncomp(m)
+  n=length(s)
+  dens = t(exp(v/2*log(v/2)-lgamma(v/2)
+               +(v/2-1)*outer(log(s^2),rep(1,k))
+               +outer(rep(1,n),m$alpha*log(m$beta)-lgamma(m$alpha)+lgamma(m$alpha+v/2))
+               -outer(rep(1,n),m$alpha+v/2)*log(outer(v/2*s^2,m$beta,FUN="+"))))
+  return(dens)
+  
+}
+
+comp_cdf.igmix = function(x,y,lower.tail=TRUE){
+  vapply(y,pigamma,x$alpha,x$alpha,x$beta,lower.tail)
+}
+
+#c is a scalar
+#m a mixture with k components
+#betahat a vector of n observations
+#sebetahat an n vector of standard errors
+#return a k by n matrix of the posterior cdf
+compcdf_post.igmix=function(m,c,betahat,sebetahat,v){
+  #compute posterior shape (alpha1) and rate (beta1)
+  alpha1 = m$alpha+v/2
+  beta1 = outer(m$beta,v/2*sebetahat^2,FUN="+")
+  ismissing = is.na(sebetahat)
+  beta1[,ismissing]=m$beta
+  
+  return(t(pigamma(c,alpha1,beta1)))
+}
+
+#return posterior mean for each component of prior m, given observations sebetahat
+#input, m is a mixture with k components
+#betahat, sebetahat are n vectors
+#output is a k by n matrix
+comp_postmean.igmix = function(m,betahat,sebetahat,v){
+  k = length(m$pi)
+  n=length(sebetahat)
+  tmp=outer(v/2*sebetahat^2,m$beta,FUN="+")/outer(rep(1,n),m$alpha+v/2-1)
+  ismissing = is.na(sebetahat)
+  tmp[ismissing,]=m$beta/(m$alpha-1) #return prior mean when missing data
+  t(tmp)
+}
+
+
+#return posterior standard deviation for each component of prior m, given observations betahat and sebetahat
+#input, m is a mixture with k components
+#betahat, sebetahat are n vectors
+#output is a k by n matrix
+comp_postsd.igmix = function(m,betahat,sebetahat,v){
+  k = length(m$pi)
+  n=length(sebetahat)
+  alpha1 = outer(rep(1,n),m$alpha+v/2-1)
+  beta1 = outer(v/2*sebetahat^2,m$beta,FUN="+")
+  return(t(beta1/(alpha1-1)/sqrt(alpha1-2)))
+}
