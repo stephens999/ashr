@@ -209,7 +209,7 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #the searching interval from the mixture
 #
 ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5,trace=FALSE){
-  #options(warn=-1)
+  options(warn=-1)
   if(missing(betaindex)){
   	betaindex =(a$lfsr<=lfsrcriteria)
   	betaindex[is.na(betaindex)]=FALSE #Some lfsrs would have NA
@@ -244,7 +244,6 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5,trace=FALSE)
   } else{
   	errorspan=qt(level,df)
   }
-  
   CImatrix=matrix(NA,nrow=length(x),ncol=5)
   CImatrix[,3]=PosteriorMean
   colnames(CImatrix)=c("Index(Location)","lfsr","Posterior Mean",(1-level)/2,(1+level)/2)
@@ -253,21 +252,20 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5,trace=FALSE)
     for(i in 1:length(x)){
       #Now the search interval is better restricted, avoiding the crash of optimize() due to discontinuity of cdf_post
       #The discontinuity is due to the pointmass component of the mixture
-      #cumpi=cumsum(comppostprob(m,x[i],s[i],df))-level
-      #maxposition=min(which(cumpi>0))
+      cumpi=cumsum(comppostprob(m,x[i],s[i],df))-level
+      maxposition=min(which(cumpi>0))
       if(class(m)=="normalmix"){
-      	#maxsd=m$sd[maxposition]
-      	#lower=PosteriorMean[i]-errorspan*maxsd
-      	#upper=PosteriorMean[i]+errorspan*maxsd
-      	lower=-Inf
-      	upper=Inf
+      	maxsd=m$sd[maxposition]
+      	lower=PosteriorMean[i]-errorspan*maxsd
+      	upper=PosteriorMean[i]+errorspan*maxsd
+      	#lower=-Inf
+      	#upper=Inf
 	  }else{
-        #lower=min(c(m$a[1: maxposition],m$b[1: maxposition]))
-        #upper=max(c(m$a[1: maxposition],m$b[1: maxposition])) 	
-        lower=min(c(m$a,m$b))
-        upper=max(c(m$a,m$b))
+        lower=min(c(m$a[1: maxposition],m$b[1: maxposition]))
+        upper=max(c(m$a[1: maxposition],m$b[1: maxposition])) 	
+        #lower=min(c(m$a,m$b))
+        #upper=max(c(m$a,m$b))
 	  }
-      
       CImatrix[i,4]=optimize(f=ci.lower,interval=c(lower,PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,
       df=df, tol=tol)$minimum
 	  
@@ -307,8 +305,4 @@ ci.upper=function(z,m,x,s,level,df){
 	tailprob=1-cdf_post(m,z,x,s,df)
 	return((tailprob-(1-level)/2)^2)
 }
-
-
-
-
 
