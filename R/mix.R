@@ -754,6 +754,8 @@ compcdf_post.unimix=function(m,c,betahat,sebetahat,v){
   }
   subset = (m$a == m$b) #subset of components with trivial cdf
   tmp[subset,]= rep(m$a[subset] <= c,n)
+  tmpnaive=matrix(rep((c-m$a)/(m$b-m$a),length(betahat)),nrow=k,ncol=n)
+  tmp[is.nan(tmp)]= tmpnaive[is.nan(tmp)]
   tmp
 }
 
