@@ -248,10 +248,10 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   #		print("Caution:It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromode=TRUE when applying ash()")
   #	}
   #}
-  if(!nonzeromode){
+  if(!nonzeromode&length(completeobs)>1){
     zvalue=betahat[completeobs]/sebetahat[completeobs]
     abststat=abs(mean(zvalue)/sd(zvalue))*sqrt(length(zvalue))
-    if(abststat>3.2905){print("Caution:It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromode=TRUE when applying ash()")}
+    if(abststat>3.2905){warning("It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromode=TRUE when applying ash()")}
   }
   
   if (!onlylogLR){
