@@ -8,6 +8,7 @@ Description: TBA
 Depends:
     truncnorm,
     SQUAREM,
+    doParallel,
     Rcpp (>= 0.10.5)
 LinkingTo: Rcpp
 Suggests:

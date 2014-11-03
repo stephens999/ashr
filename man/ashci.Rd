@@ -4,7 +4,7 @@
 \title{Credible Interval Computation for the ash object}
 \usage{
 ashci(a, level = 0.95, betaindex, lfsrcriteria = 0.05, tol = 1e-05,
-  trace = FALSE)
+  trace = FALSE, ncores = FALSE)
 }
 \arguments{
 \item{a}{the fitted ash object}
@@ -16,6 +16,8 @@ ashci(a, level = 0.95, betaindex, lfsrcriteria = 0.05, tol = 1e-05,
 \item{tol}{the desired accuracy, default value is 1e-5.}
 
 \item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.}
+
+\item{ncores}{Whether to use parallel computing, defaults to FALSE, user could specify number of cores they would like to use. Further, if user does not specify and we have over 1000 entries to compute,  then the function would perform parallel computation  using number of CPU cores on the current host.}
 
 \item{levels}{the level for the credible interval, (default=0.95)}
 }
@@ -38,5 +40,6 @@ CImatrix=ashci(beta.ash,level=0.95)
 
 CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
 CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)
+CImatrix3=ashci(beta.ash,level=0.95, betaindex=c(1:length(beta)),ncores=4)
 }
 

@@ -5,7 +5,18 @@
 \usage{
 comp_postmean2_mixlik(m, betahat, sebetahat, v, pilik)
 }
+\arguments{
+\item{m}{mixture distribution}
+
+\item{betahat}{the data}
+
+\item{sebetahat}{the observed standard errors}
+
+\item{v}{degree of freedom of error distribution}
+
+\item{pilik}{mixture proportion}
+}
 \description{
-comp_postmean2_mixlik
+output posterior mean-squared value for beta
 }
 

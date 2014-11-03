@@ -5,7 +5,23 @@
 \usage{
 compcdf_post_mixlik(m, c, betahat, sebetahat, v, pilik)
 }
+\arguments{
+\item{m}{prior on beta, a mixture}
+
+\item{c}{location of evaluation}
+
+\item{betahat}{the data}
+
+\item{sebetahat}{the observed standard errors}
+
+\item{v}{degree of freedom of error distribution}
+
+\item{pilik}{mixture proportion}
+}
+\value{
+it returns a (k*l) by n matrix
+}
 \description{
-compcdf_post_mixlik
+evaluate cdf of posterior distribution of beta at c
 }
 

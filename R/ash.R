@@ -1,7 +1,7 @@
 #' @useDynLib ashr
 #todo
 #
-#' @title Main Adaptive SHrinkage function
+#' @title Main Adaptive Shrinkage function
 #'
 #' @description Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
 #' shrinkage to them, using Empirical Bayes methods, to compute shrunk estimates for beta.
@@ -55,9 +55,12 @@
 #' \item{lambda2}{additive "inflation factor"}
 #' \item{call}{a call in which all of the specified arguments are specified by their full names}
 #' \item{data}{a list consisting the input betahat and sebetahat}
+#' \item{excludeindex}{the vector of index of observations with 0 standard error, if none, then it would return NULL}
 #' \item{df}{the specified degrees of freedom for (t) distribution of betahat/sebetahat}
+#' \item{model}{either "EE" or "ES", denoting whether exchangeable effects (EE) or exchangeable standardized effects (ES) has been used}
 #'
 #' @seealso \code{\link{ashci}} for computation of credible intervals after getting the ash object return by \code{ash()}
+#' @seealso \code{\link{ashm}} for Multi-model Adaptive Shrinkage function
 #'
 #' @export
 #' @examples 
@@ -69,11 +72,13 @@
 #' plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 #' 
 #' CIMatrix=ashci(beta.ash,level=0.95) 
-#' 
+#' print(CIMatrix)
+#'
 #' betahat=betahat+5
 #' beta.ash = ash(betahat, sebetahat)
 #' summary(beta.ash)
 #' plot(betahat,beta.ash$PosteriorMean)
+#'
 #Things to do:
 # check sampling routine
 # check number of iterations
@@ -98,6 +103,8 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   #If method is supplied, use it to set up specific values for these parameters; provide warning if values
   #are also specified by user
   #If method is not supplied use the user-supplied values (or defaults if user does not specify them)
+  
+
   
   if(!missing(method)){
     method = match.arg(method) 
@@ -130,7 +137,15 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   
   if(gridmult<=1&multiseqoutput!=TRUE)
     stop("gridmult must be > 1")
-  
+    
+  #Dealing with precise input of betahat, currently we exclude them from the 
+  betahat.input=betahat
+  sebetahat.input=sebetahat
+  excludeindex=c(1:length(sebetahat.input))[sebetahat.input==0]
+  if(length(excludeindex)==0) excludeindex=NULL
+  betahat= betahat.input[sebetahat.input!=0]
+  sebetahat= sebetahat.input[sebetahat.input!=0]  
+
   model = match.arg(model)
   if(model=="ES"){ #for ES model, standardize
     betahat = betahat/sebetahat
@@ -190,9 +205,9 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
         betahat[completeobs]= betahat[completeobs] - nonzeromode.fit$nonzeromode
       }
       else if(nonzeromode & !is.null(df)){
-      #  stop("Error: Nonzero mean only implemented for df=NULL")
+      # stop("Error: Nonzero mean only implemented for df=NULL")
       }
-        mixsd = autoselect.mixsd(betahat[completeobs],sebetahat[completeobs],gridmult)
+      mixsd = autoselect.mixsd(betahat[completeobs],sebetahat[completeobs],gridmult)
     }
     if(pointmass){
       mixsd = c(0,mixsd)
@@ -325,7 +340,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   else if (multiseqoutput)
       return(list(fitted.g = pi.fit$g, logLR = logLR, PosteriorMean = PosteriorMean, PosteriorSD = PosteriorSD, call= match.call(),df=df))
   else{
-      result = list(fitted.g = pi.fit$g, logLR = logLR, loglik=loglik, PosteriorMean = PosteriorMean, PosteriorSD = PosteriorSD, PositiveProb = PositiveProb, NegativeProb = NegativeProb, ZeroProb = ZeroProb, lfsr = lfsr,lfsra = lfsra, lfdr = lfdr, qvalue = qvalue, fit = pi.fit, lambda1 = lambda1, lambda2 = lambda2, call = match.call(), data = list(betahat = betahat, sebetahat=sebetahat),df=df,model=model)
+      result = list(fitted.g = pi.fit$g, logLR = logLR, loglik=loglik, PosteriorMean = PosteriorMean, PosteriorSD = PosteriorSD, PositiveProb = PositiveProb, NegativeProb = NegativeProb, ZeroProb = ZeroProb, lfsr = lfsr,lfsra = lfsra, lfdr = lfdr, qvalue = qvalue, fit = pi.fit, lambda1 = lambda1, lambda2 = lambda2, call = match.call(), data = list(betahat = betahat, sebetahat=sebetahat),excludeindex= excludeindex,df=df,model=model)
       class(result) = "ash"
       return(result)
   }
@@ -948,6 +963,7 @@ qval.from.lfdr = function(lfdr){
 # that should be used, based on the values of betahat and sebetahat
 # mult is the multiplier by which the sds differ across the grid
 autoselect.mixsd = function(betahat,sebetahat,mult){
+  sebetahat=sebetahat[sebetahat!=0] #To avoid exact measure causing (usually by mistake)
   sigmaamin = min(sebetahat)/10 #so that the minimum is small compared with measurement precision
   if(all(betahat^2<sebetahat^2)){
     sigmaamax = 8*sigmaamin #to deal with the occassional odd case where this could happen; 8 is arbitrary
