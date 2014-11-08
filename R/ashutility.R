@@ -184,6 +184,8 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #' @param betaindex a vector consisting of locations of betahat where you would like to compute the credible interval
 #' @param lfsrcriteria a scalar, in which the function would autoselect betahats based on lfsr value smaller than lfsrcriteria when index is not supplied. Setting it to 1 would compute credible interval for all observations.
 #' @param tol the desired accuracy, default value is 1e-5.
+#' @param maxcounts a positive integer used as the maximum iterations to carry additional optimization on a refined interval,when you see Actual cdf deviates from (1-level)/2,(1+level)/2 by too much, try to increase this number. (default is 100) 
+#' @param shrinkingcoefficient A positive real number smaller than 1 (default is 0.9), used to shrink to search interval for lower and upper bound of the credible interval
 #' @param trace a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.
 #' @param ncores Whether to use parallel computing, defaults to FALSE, user could specify number of cores they would like to use. Further, if user does not specify and we have over 1000 entries to compute,  then the function would perform parallel computation  using number of CPU cores on the current host.
 #' @return A matrix, with first column being the location,second column being lfsr, 3rd column being posterior mean,4th and 5th column being the lower bound and upper bound for the credible interval. 
@@ -196,22 +198,32 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #' beta.ash = ash(betahat, sebetahat)
 #' 
 #' CImatrix=ashci(beta.ash,level=0.95)
-#' 
+#' print(CImatrix)
+#'
 #' CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
 #' CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)
 #' CImatrix3=ashci(beta.ash,level=0.95, betaindex=c(1:length(beta)),ncores=4)
+#' print(CImatrix1)
+#' print(CImatrix2)
+#' print(CImatrix3)
 #' 
-#' 
-#todo/issue
+#' #A larger example
+#' beta = c(rep(0,1000),rnorm(1000))
+#' sebetahat = abs(rnorm(2000,0,1))
+#' betahat = rnorm(2000,beta,sebetahat)
+#' beta.ash = ash(betahat, sebetahat)
+#' CImatrix4 = ashci(beta.ash,level=0.95, betaindex=c(1:length(beta)),ncores=4)
+#todo/issue=> all set!
 #1.Could do parallel computing to reduce the computation time
+#1. Done by doParallel
 #
 #2.Optimization function does not work well for discountinous function, even
 #if it's a monotone one. Current remedy is to set a more conservative value for 
 #the searching interval from the mixture
+#2.Done by shrinking searching interval using while loop
 #
-ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5,trace=FALSE,ncores=FALSE){
-  options(warn=-1)
-
+ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=100,shrinkingcoefficient=0.9,trace=FALSE,ncores=FALSE){
+  options(warn=-1)  
   if(missing(betaindex)){
   	betaindex =(a$lfsr<=lfsrcriteria)
   	betaindex[is.na(betaindex)]=FALSE #Some lfsrs would have NA
@@ -237,21 +249,22 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5,trace=FALSE,
   	errorspan=qt(level,df)
   }
   
-  CImatrix=matrix(NA,nrow=length(x),ncol=5)
+  CImatrix=matrix(NA,nrow=length(x),ncol=7)
   CImatrix[,3]=PosteriorMean
-  colnames(CImatrix)=c("Index(Location)","lfsr","Posterior Mean",(1-level)/2,(1+level)/2)  
+  colnames(CImatrix)=c("Index(Location)","lfsr","Posterior Mean",(1-level)/2,(1+level)/2,"Actual cdf(lower) ","Actual cdf(upper)")  
+  
+  if(missing(trace)){
+    if(length(x)>=1000){
+      trace=TRUE  #component-wise computation takes more time
+    }else {trace=FALSE}
+  }
   
   if(missing(ncores)){
   	if(length(x)>1000) ncores=detectCores()
   }
   if(ncores==FALSE){
   ## Proceed with sequential computation
-  if(missing(trace)){
-    if(length(x)>=1000){
-      trace=TRUE  #component-wise computation takes more time
-    }else {trace=FALSE}
-  }
-  if(trace==TRUE){
+    if(trace==TRUE){
   	cat("Computation time would be linear w.r.t sample size, progress would be printed to the screen \n")
   	tic()
   }
@@ -268,16 +281,39 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5,trace=FALSE,
         lower=min(c(m$a[1: maxposition],m$b[1: maxposition]))
         upper=max(c(m$a[1: maxposition],m$b[1: maxposition])) 	
 	  }
+	  
+	  #Calculating the lower bound
       CImatrix[i,4]=optimize(f=ci.lower,interval=c(lower,PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,
       df=df, tol=tol)$minimum
+	  CImatrix[i,6]=cdf_post(m,CImatrix[i,4],x[i],s[i],df)
+	  #If the actual cdf deviates by too much, refine the optimization search interval
+	  #currently we set maximum value of execution to maxcounts to avoid dead loop
+	  counts=0
+	  intervallength=PosteriorMean[i]-lower
+	  while(abs(CImatrix[i,6]-(1-level)/2)>(10*tol) & counts<maxcounts){
+	  	intervallength= intervallength* shrinkingcoefficient
+        CImatrix[i,4]=optimize(f=ci.lower,interval=c(PosteriorMean[i]-intervallength,
+        PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,df=df, tol=tol)$minimum
+	    CImatrix[i,6]=cdf_post(m,CImatrix[i,4],x[i],s[i],df)	  
+	    counts=counts+1	
+	  }
 	  
+	  #Calculating the upper bound
 	  CImatrix[i,5]=optimize(f=ci.upper,interval=c(PosteriorMean[i],upper),m=m,x=x[i],s=s[i],level=level,
 	  df=df, tol=tol)$minimum
+	  CImatrix[i,7]=cdf_post(m,CImatrix[i,5],x[i],s[i],df)
+	  #If the actual cdf deviates by too much, refine the optimization search interval
+	  #currently we set maximum value of execution to maxcounts to avoid dead loop
+	  counts=0
+	  intervallength=upper-PosteriorMean[i]
+	  while(abs(CImatrix[i,7]-(1+level)/2)>(10*tol) & counts<maxcounts){
+	  	intervallength= intervallength*shrinkingcoefficient
+	    CImatrix[i,5]=optimize(f=ci.upper,interval=c(PosteriorMean[i],PosteriorMean[i]+intervallength),m=m,x=x[i],s=s[i],level=level,
+	    df=df, tol=tol)$minimum
+	    CImatrix[i,7]=cdf_post(m,CImatrix[i,5],x[i],s[i],df)  	
+	    counts=counts+1		    
+	  }
 	  
-	  #CImatrix[i,2]=optim(par=a$PosteriorMean[i],f=ci.lower,m=m,x=x[i],s=s[i],level=level,
-	  #df=df,method="Brent",lower=lower,upper=upper)$par
-	  #CImatrix[i,3]=optim(par=a$PosteriorMean[i],f=ci.upper,m=m,x=x[i],s=s[i],level=level,
-	  #df=df,method="Brent",lower=lower,upper=upper)$par	  
 	  if(trace==TRUE & percentage <=100){
 	  	currentpercentage=round(i*100/length(x))
 	  	if(currentpercentage == percentage){
@@ -288,9 +324,14 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5,trace=FALSE,
 	}
   } else{
   ## Proceed with parallel computation
+    #if(trace==TRUE){
+  	#cat("Computation time would be linear w.r.t sample size, parallel computation progress would be printed to the screen \n")
+  	#tic()
+    #}
+    percentagevector=rep(1,ncores)
     cl <- makePSOCKcluster(ncores)#This number corresponding to number of workers
     registerDoParallel(cl)
-    CImatrix[,4:5]=foreach(i=1:length(x), .combine='rbind') %dopar% {
+    CImatrix[,4:7]=foreach(i=1:length(x), .combine='rbind') %dopar% {
       cumpi=cumsum(ashr:::comppostprob(m,x[i],s[i],df))-level
       maxposition=min(which(cumpi>0))
       if(class(m)=="normalmix"){
@@ -301,23 +342,52 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5,trace=FALSE,
         lower=min(c(m$a[1: maxposition],m$b[1: maxposition]))
         upper=max(c(m$a[1: maxposition],m$b[1: maxposition])) 	
 	  }
+	  
+	  #Calculating the lower bound	  
       CIentryl=optimize(f=ashr:::ci.lower,interval=c(lower,PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,
       df=df, tol=tol)$minimum	  
+	  cdfl=cdf_post(m, CIentryl,x[i],s[i],df)
+	  #If the actual cdf deviates by too much, refine the optimization search interval
+	  #currently we set maximum value of execution to maxcounts to avoid dead loop
+	  counts=0
+	  intervallength=PosteriorMean[i]-lower	  
+	  while(abs(cdfl-(1-level)/2)>(10*tol) & counts<maxcounts){
+	  	intervallength= intervallength*shrinkingcoefficient
+        CIentryl=optimize(f=ashr:::ci.lower,interval=c(PosteriorMean[i]-intervallength,
+        PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,df=df, tol=tol)$minimum	  
+	    cdfl=cdf_post(m, CIentryl,x[i],s[i],df)
+	    counts=counts+1	
+	  }
+	  
+	  #Calculating the upper bound
 	  CIentryu=optimize(f=ashr:::ci.upper,interval=c(PosteriorMean[i],upper),m=m,x=x[i],s=s[i],level=level,
 	  df=df, tol=tol)$minimum
-	  c(CIentryl, CIentryu)
+	  cdfu=cdf_post(m, CIentryu,x[i],s[i],df)
+	  #If the actual cdf deviates by too much, refine the optimization search interval
+	  #currently we set maximum value of execution to maxcounts to avoid dead loop
+	  counts=0
+	  intervallength=upper-PosteriorMean[i]
+	  while(abs(cdfu-(1+level)/2)>(10*tol) & counts<maxcounts){
+	  	intervallength= intervallength*shrinkingcoefficient
+	    CIentryu=optimize(f=ashr:::ci.upper,interval=c(PosteriorMean[i],PosteriorMean[i]+intervallength),m=m,x=x[i],s=s[i],level=level,
+	    df=df, tol=tol)$minimum
+	    cdfu=cdf_post(m, CIentryu,x[i],s[i],df)
+	    counts=counts+1		    
+	  }
+	  	  
+	  #sending the result back to master
+	  c(CIentryl, CIentryu,cdfl,cdfu)
 	}
    stopCluster(cl)
   }
-  
-  
   if(model=="ES"){
     CImatrix=CImatrix*sebetahat.orig
   }
   numericindex=c(1:length(a$data$betahat))[betaindex]
   CImatrix[,1]=numericindex
   CImatrix[,2]=a$lfsr[betaindex]
-  #CImatrix=signif(CImatrix,digits=round(1-log(tol)/log(10)))
+  CImatrix=signif(CImatrix,digits=round(1-log(tol)/log(10)))
+  #CImatrix[,6:7]=round(CImatrix[,6:7],5)
   return(CImatrix)
 }
 
