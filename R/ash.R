@@ -965,7 +965,7 @@ qval.from.lfdr = function(lfdr){
 autoselect.mixsd = function(betahat,sebetahat,mult){
   sebetahat=sebetahat[sebetahat!=0] #To avoid exact measure causing (usually by mistake)
   sigmaamin = min(sebetahat)/10 #so that the minimum is small compared with measurement precision
-  if(all(betahat^2<sebetahat^2)){
+  if(all(betahat^2<=sebetahat^2)){
     sigmaamax = 8*sigmaamin #to deal with the occassional odd case where this could happen; 8 is arbitrary
   }else{
     sigmaamax = 2*sqrt(max(betahat^2-sebetahat^2)) #this computes a rough largest value you'd want to use, based on idea that sigmaamax^2 + sebetahat^2 should be at least betahat^2   
