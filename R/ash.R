@@ -138,7 +138,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
   if(gridmult<=1&multiseqoutput!=TRUE)
     stop("gridmult must be > 1")
     
-  #Dealing with precise input of betahat, currently we exclude them from the 
+  #Dealing with precise input of betahat, currently we exclude them from the EM algorithm
   betahat.input=betahat
   sebetahat.input=sebetahat
   excludeindex=c(1:length(sebetahat.input))[sebetahat.input==0]

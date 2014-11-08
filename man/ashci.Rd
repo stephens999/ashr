@@ -4,7 +4,8 @@
 \title{Credible Interval Computation for the ash object}
 \usage{
 ashci(a, level = 0.95, betaindex, lfsrcriteria = 0.05, tol = 1e-05,
-  trace = FALSE, ncores = FALSE)
+  maxcounts = 100, shrinkingcoefficient = 0.9, trace = FALSE,
+  ncores = FALSE)
 }
 \arguments{
 \item{a}{the fitted ash object}
@@ -14,6 +15,10 @@ ashci(a, level = 0.95, betaindex, lfsrcriteria = 0.05, tol = 1e-05,
 \item{lfsrcriteria}{a scalar, in which the function would autoselect betahats based on lfsr value smaller than lfsrcriteria when index is not supplied. Setting it to 1 would compute credible interval for all observations.}
 
 \item{tol}{the desired accuracy, default value is 1e-5.}
+
+\item{maxcounts}{a positive integer used as the maximum iterations to carry additional optimization on a refined interval,when you see Actual cdf deviates from (1-level)/2,(1+level)/2 by too much, try to increase this number. (default is 100)}
+
+\item{shrinkingcoefficient}{A positive real number smaller than 1 (default is 0.9), used to shrink to search interval for lower and upper bound of the credible interval}
 
 \item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.}
 
@@ -37,9 +42,20 @@ betahat = rnorm(40,beta,sebetahat)
 beta.ash = ash(betahat, sebetahat)
 
 CImatrix=ashci(beta.ash,level=0.95)
+print(CImatrix)
 
 CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
 CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)
 CImatrix3=ashci(beta.ash,level=0.95, betaindex=c(1:length(beta)),ncores=4)
+print(CImatrix1)
+print(CImatrix2)
+print(CImatrix3)
+
+#A larger example
+beta = c(rep(0,1000),rnorm(1000))
+sebetahat = abs(rnorm(2000,0,1))
+betahat = rnorm(2000,beta,sebetahat)
+beta.ash = ash(betahat, sebetahat)
+CImatrix4 = ashci(beta.ash,level=0.95, betaindex=c(1:length(beta)),ncores=4)
 }
 
