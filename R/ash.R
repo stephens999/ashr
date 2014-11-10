@@ -245,9 +245,16 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),mixsd)
     if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)
     if(mixcompdist=="halfuniform"){
-      g = unimix(c(pi,pi)/2,c(-mixsd,rep(0,k)),c(rep(0,k),mixsd))
-      prior = rep(prior, 2)
-      pi = rep(pi, 2)
+      if(min(mixsd)>0){ #simply reflect the components
+        g = unimix(c(pi,pi)/2,c(-mixsd,rep(0,k)),c(rep(0,k),mixsd))
+        prior = rep(prior, 2)
+        pi = rep(pi, 2)
+      } else { #define two sets of components, but don't duplicate null component
+        null.comp=which.min(mixsd)
+        g = unimix(c(pi,pi[-null.comp])/2,c(-mixsd,rep(0,k-1)),c(rep(0,k),mixsd[-null.comp]))
+        prior = c(prior,prior[-null.comp])
+        pi = c(pi,pi[-null.comp])
+      }
     }
   }
   
