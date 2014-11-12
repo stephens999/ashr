@@ -49,13 +49,13 @@
 #' \item{lfsr}{The local false sign rate}
 #' \item{lfsra}{The local false sign rate(adjusted)}
 #' \item{lfdr}{A vector of estimated local false discovery rate}
-#' \item{qvalue}{A vector of q values given estimated local false discovery rates, and estimate of (tail) False Discovery Rate}
+#' \item{qvalue}{A vector of q values}
 #' \item{fit}{The fitted mixture object by \code{\link{mixEM}} or \code{\link{mixVBEM}} }
 #' \item{lambda1}{multiplicative "inflation factor"}
 #' \item{lambda2}{additive "inflation factor"}
 #' \item{call}{a call in which all of the specified arguments are specified by their full names}
 #' \item{data}{a list consisting the input betahat and sebetahat}
-#' \item{excludeindex}{the vector of index of observations with 0 standard error, if none, then it would return NULL}
+#' \item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
 #' \item{df}{the specified degrees of freedom for (t) distribution of betahat/sebetahat}
 #' \item{model}{either "EE" or "ES", denoting whether exchangeable effects (EE) or exchangeable standardized effects (ES) has been used}
 #'
