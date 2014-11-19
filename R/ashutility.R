@@ -369,7 +369,8 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
 	  intervallength=upper-PosteriorMean[i]
 	  while(abs(cdfu-(1+level)/2)>(10*tol) & counts<maxcounts){
 	  	intervallength= intervallength*shrinkingcoefficient
-	    CIentryu=optimize(f=ashr:::ci.upper,interval=c(PosteriorMean[i],PosteriorMean[i]+intervallength),m=m,x=x[i],s=s[i],level=level,
+	    CIentryu=optimize(f=ashr:::ci.upper,interval=c(PosteriorMean[i],PosteriorMean[i]+intervallength),
+	    m=m,x=x[i],s=s[i],level=level,
 	    df=df, tol=tol)$minimum
 	    cdfu=cdf_post(m, CIentryu,x[i],s[i],df)
 	    counts=counts+1		    
