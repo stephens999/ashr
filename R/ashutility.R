@@ -89,7 +89,7 @@ get_pi0 = function(a){
 #' @param betahat the data
 #' @param betahatsd the observed standard errors
 #' @param model indicates whether you want the likelihood under the EE or ES model 
-#' @param alpha a scalar performing transformation on betahat and sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~ g()},and eqn{\hat{beta_j} / s_j^alpha ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ES model. \eqn{alpha} should be in between 0 and 1, inclusively. 
+#' @param alpha a scalar performing transformation on betahat and sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~ g()},and eqn{betahat_j / s_j^alpha ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ES model. \eqn{alpha} should be in between 0 and 1, inclusively. 
 #' @details See example in CompareBetahatvsZscoreAnalysis.rmd
 #' 
 #' @export
@@ -412,7 +412,7 @@ ci.upper=function(z,m,x,s,level,df){
 
 #' @title Multi-model Adaptive Shrinkage function 
 #'
-#' @description This is a wrapper function that takes a grid value of \eqn{\alpha} and then consider the model \eqn{\beta_j / s_j^{\alpha} ~ g()},and eqn{\hat{beta_j} / s_j^{\alpha} ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{\alpha=0} we have the EE model, when \eqn{\alpha=1}, we have the ES model. \eqn{\alpha} should be in between 0 and 1, inclusively. This wrapper function would select the best \eqn{\alpha} and reports the ash item based on that \eqn{\alpha}.
+#' @description This is a wrapper function that takes a grid value of \eqn{alpha} and then consider the model \eqn{betahat_j / s_j^{alpha} ~ g()},and eqn{beta_j / s_j^{alpha} ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ES model. \eqn{alpha} should be in between 0 and 1, inclusively. This wrapper function would select the best \eqn{alpha} and reports the ash item based on that \eqn{alpha}.
 
 #'
 #' @seealso \code{\link{ash}} the main function that this wrapper function is calling

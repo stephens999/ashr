@@ -18,6 +18,6 @@ compcdf_post(m, c, betahat, sebetahat, v)
 a k by n matrix
 }
 \description{
-evaluate cdf of posterior distribution of beta at c,m is the prior on beta, a mixture,c is location of evaluation assumption is betahat | beta \sim N(beta,sebetahat)
+evaluate cdf of posterior distribution of beta at c,m is the prior on beta, a mixture,c is location of evaluation assumption is betahat | beta ~ N(beta,sebetahat)
 }
 

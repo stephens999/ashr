@@ -14,7 +14,7 @@ calc_loglik(a, betahat, betahatsd, df, model = c("EE", "ES"), alpha = 0)
 
 \item{model}{indicates whether you want the likelihood under the EE or ES model}
 
-\item{alpha}{a scalar performing transformation on betahat and sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~ g()},and eqn{\hat{beta_j} / s_j^alpha ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ES model. \eqn{alpha} should be in between 0 and 1, inclusively.}
+\item{alpha}{a scalar performing transformation on betahat and sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~ g()},and eqn{betahat_j / s_j^alpha ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ES model. \eqn{alpha} should be in between 0 and 1, inclusively.}
 }
 \description{
 Return the log-likelihood of the data betahat, with standard errors betahatsd,

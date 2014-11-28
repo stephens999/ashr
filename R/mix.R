@@ -251,7 +251,7 @@ comppostprob.default = function(m,x,s,v){
 
 
 #' @title compcdf_post
-#' @description evaluate cdf of posterior distribution of beta at c,m is the prior on beta, a mixture,c is location of evaluation assumption is betahat | beta \sim N(beta,sebetahat)
+#' @description evaluate cdf of posterior distribution of beta at c,m is the prior on beta, a mixture,c is location of evaluation assumption is betahat | beta ~ N(beta,sebetahat)
 #' @param c a scalar
 #' @param betahat an n vector of observations
 #' @param sebetahat an n vector of standard errors
