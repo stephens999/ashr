@@ -5,7 +5,16 @@
 \usage{
 comppostprob(m, x, s, v)
 }
+\arguments{
+\item{m}{mixture distribution}
+
+\item{x}{an n vector}
+
+\item{s}{an n vector or integer}
+
+\item{v}{degree of freedom of error distribution}
+}
 \description{
-comppostprob
+compute the posterior prob that each observation came from each component of the mixture m,output a k by n vector of probabilities computed by weighting the component densities by pi and then normalizing
 }
 

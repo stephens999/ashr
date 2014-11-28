@@ -5,7 +5,18 @@
 \usage{
 dens_conv_mixlik(m, x, s, v, pilik, FUN = "+")
 }
+\arguments{
+\item{m}{mixture distribution}
+
+\item{x}{an n vector}
+
+\item{s}{normal mixture of sd(s), n-by-l matrix}
+
+\item{v}{degree of freedom of error distribution}
+
+\item{pilik}{mixture proportion , n-by-l matrix}
+}
 \description{
-dens_conv_mixlik
+compute density of mixture m convoluted with l-components normal mixture of sd (s) or student t mixture with df v with mixture proportion pilik at locations x
 }
 

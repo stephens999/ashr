@@ -43,6 +43,7 @@ beta.ash = ash(betahat, sebetahat)
 
 CImatrix=ashci(beta.ash,level=0.95)
 print(CImatrix)
+print(CIMatrix[order(CIMatrix[,2]),]) # Sorted according to the lfsr
 
 CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
 CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)

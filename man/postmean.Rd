@@ -5,6 +5,15 @@
 \usage{
 postmean(m, betahat, sebetahat, v)
 }
+\arguments{
+\item{m}{mixture distribution with k components}
+
+\item{betahat}{an n vector of observations}
+
+\item{sebetahat}{an n vector of standard errors}
+
+\item{v}{degree of freedom of error distribution}
+}
 \description{
 postmean
 }

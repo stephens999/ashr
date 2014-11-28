@@ -5,7 +5,16 @@
 \usage{
 loglik_conv(m, betahat, betahatsd, v, FUN = "+")
 }
+\arguments{
+\item{m}{mixture distribution with k components}
+
+\item{betahat}{an n vector of observations}
+
+\item{v}{degree of freedom of error distribution}
+
+\item{sebetahat}{an n vector of standard errors}
+}
 \description{
-loglik_conv
+find log likelihood of data in betahat, when the mixture m is convolved with a normal with sd betahatsd
 }
 

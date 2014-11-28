@@ -5,6 +5,15 @@
 \usage{
 \method{loglik_conv}{default}(m, betahat, betahatsd, v, FUN = "+")
 }
+\arguments{
+\item{m}{mixture distribution with k components}
+
+\item{betahat}{an n vector of observations}
+
+\item{v}{degree of freedom of error distribution}
+
+\item{sebetahat}{an n vector of standard errors}
+}
 \description{
 loglik_conv.default
 }

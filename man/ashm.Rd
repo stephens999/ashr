@@ -40,7 +40,7 @@ ashm returns a list of objects
 \item{allash}{the fitted ash of various models}
 }
 \description{
-This is a wrapper function that takes a grid value of \eqn{\alpha} and then consider the model \eqn{\beta_j / s_j^{\alpha} ~ g()},when \eqn{\alpha=0} we have the EE model, when \eqn{\alpha=1}, we have the ES model. \eqn{\alpha} should be in between 0 and 1, inclusively. This wrapper function would select the best \eqn{\alpha} and reports the ash item based on that \eqn{\alpha}.
+This is a wrapper function that takes a grid value of \eqn{\alpha} and then consider the model \eqn{\beta_j / s_j^{\alpha} ~ g()},and eqn{\hat{beta_j} / s_j^{\alpha} ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{\alpha=0} we have the EE model, when \eqn{\alpha=1}, we have the ES model. \eqn{\alpha} should be in between 0 and 1, inclusively. This wrapper function would select the best \eqn{\alpha} and reports the ash item based on that \eqn{\alpha}.
 }
 \details{
 All other inputs are exactly the same as the main function ash, and would pass to the main function to evaluate the likelihood.
@@ -51,8 +51,9 @@ sebetahat = abs(rnorm(200,0,1))
 betahat = rnorm(200,beta,sebetahat)
 beta.ashm = ashm(betahat, sebetahat,alpha=6)
 beta.ashm4 = ashm(betahat, sebetahat,alpha=6,ncores=4)
-print(beta.ashm[[1]])
-print(beta.ashm[[2]])
+print(beta.ashm[[1]])  #best ash object
+print(beta.ashm[[2]])  #corresponding model type
+print(beta.ashm[[3]])  #log-likelihood for all models
 }
 \seealso{
 \code{\link{ash}} the main function that this wrapper function is calling

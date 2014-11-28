@@ -88,25 +88,30 @@ get_pi0 = function(a){
 #' @param a the fitted ash object
 #' @param betahat the data
 #' @param betahatsd the observed standard errors
-#' @param model: indicates whether you want the likelihood under the EE or ES model 
+#' @param model indicates whether you want the likelihood under the EE or ES model 
+#' @param alpha a scalar performing transformation on betahat and sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~ g()},and eqn{\hat{beta_j} / s_j^alpha ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ES model. \eqn{alpha} should be in between 0 and 1, inclusively. 
 #' @details See example in CompareBetahatvsZscoreAnalysis.rmd
 #' 
 #' @export
 #' 
 #'
-calc_loglik = function(a,betahat,betahatsd,df,model=c("EE","ES")){
+calc_loglik = function(a,betahat,betahatsd,df,model=c("EE","ES"),alpha=0){
   if(missing(df)){
     stop("error: must supply df for calc_loglik")
   }
-  model = match.arg(model) 
+  g=a$fitted.g
+
+  if(missing(alpha)){
+  	  model = match.arg(model) 
   if(a$model != model){
     warning("Model used to fit ash does not match model used to compute loglik! Probably you have made a mistake!")
   }
-  g=a$fitted.g
   if(model=="ES"){
       return(loglik_conv(g,betahat/betahatsd,1,df)-sum(log(betahatsd)))
   } else {
       return(loglik_conv(g,betahat,betahatsd,df))
+  }}else{
+      return(loglik_conv(g,betahat/(betahatsd^alpha),betahatsd^(1-alpha),df)-alpha*sum(log(betahatsd)))
   }
 }
 
@@ -199,6 +204,7 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #' 
 #' CImatrix=ashci(beta.ash,level=0.95)
 #' print(CImatrix)
+#' print(CIMatrix[order(CIMatrix[,2]),]) # Sorted according to the lfsr
 #'
 #' CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
 #' CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)
@@ -406,7 +412,7 @@ ci.upper=function(z,m,x,s,level,df){
 
 #' @title Multi-model Adaptive Shrinkage function 
 #'
-#' @description This is a wrapper function that takes a grid value of \eqn{\alpha} and then consider the model \eqn{\beta_j / s_j^{\alpha} ~ g()},when \eqn{\alpha=0} we have the EE model, when \eqn{\alpha=1}, we have the ES model. \eqn{\alpha} should be in between 0 and 1, inclusively. This wrapper function would select the best \eqn{\alpha} and reports the ash item based on that \eqn{\alpha}.
+#' @description This is a wrapper function that takes a grid value of \eqn{\alpha} and then consider the model \eqn{\beta_j / s_j^{\alpha} ~ g()},and eqn{\hat{beta_j} / s_j^{\alpha} ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{\alpha=0} we have the EE model, when \eqn{\alpha=1}, we have the ES model. \eqn{\alpha} should be in between 0 and 1, inclusively. This wrapper function would select the best \eqn{\alpha} and reports the ash item based on that \eqn{\alpha}.
 
 #'
 #' @seealso \code{\link{ash}} the main function that this wrapper function is calling
@@ -439,11 +445,11 @@ ci.upper=function(z,m,x,s,level,df){
 #' betahat = rnorm(200,beta,sebetahat)
 #' beta.ashm = ashm(betahat, sebetahat,alpha=6)
 #' beta.ashm4 = ashm(betahat, sebetahat,alpha=6,ncores=4)
-#' print(beta.ashm[[1]])
-#' print(beta.ashm[[2]])
+#' print(beta.ashm[[1]])  #best ash object
+#' print(beta.ashm[[2]])  #corresponding model type
+#' print(beta.ashm[[3]])  #log-likelihood for all models
 #' 
-
-
+#' 
 ashm=function(betahat,sebetahat,method = c("shrink","fdr"), 
                mixcompdist = c("uniform","halfuniform","normal"),
                lambda1=1,lambda2=0,df=NULL,
@@ -457,11 +463,12 @@ ashm=function(betahat,sebetahat,method = c("shrink","fdr"),
   	#Set the number of cores equal to system capacity
   }
   
+  allash=list()
+  loglikvector=rep(NA,length(alpha))
+   
   if(ncores==FALSE){
   	##Usual loop without parallel computation
     sink("/dev/null")
-    allash=list()
-    loglikvector=rep(NA,length(alpha))
     for(i in 1:length(alpha)){
       betahati= betahat/(sebetahat^alpha[i])
       sebetahati= sebetahat^(1-alpha[i])	
@@ -469,7 +476,7 @@ ashm=function(betahat,sebetahat,method = c("shrink","fdr"),
       lambda2=lambda2, df=df,nullweight= nullweight,
       nonzeromode= nonzeromode,model="EE")
 	  allash[[i]]=beta.ash
-	  loglikvector[i]= beta.ash$fit$loglik
+	  loglikvector[i]=calc_loglik(beta.ash,betahat,sebetahat,df,alpha=alpha[i])
     }
     sink()
   } else{
@@ -488,18 +495,20 @@ ashm=function(betahat,sebetahat,method = c("shrink","fdr"),
     }
     stopCluster(cl)
     for(i in 1:length(alpha)){
-	  loglikvector[i]= allash[[i]]$fit$loglik
-    } 	
+	  loglikvector[i]=calc_loglik(allash[[i]],betahat,sebetahat,df,alpha=alpha[i])
+    }
   }
-  modelindex=which(loglikvector==max(loglikvector))
+  
+  modelindex=which.max(loglikvector)
   beta.ash= allash[[modelindex]]
   model=alpha[modelindex]
   if(model==0){
   	model="EE"
   } else if(model==1){
-  	  	model="ES"
+    model="ES"
+  } else{
+  	model=model
   }
   beta.ash[["model"]]=model
-  return(list(beta.ash, loglikvector, allash))
+  return(list(bestash = beta.ash, model=model,loglikevector = loglikvector,allash = allash))
 }
-

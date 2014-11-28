@@ -5,7 +5,18 @@
 \usage{
 comppostprob_mixlik2(m, x, s, v, pilik)
 }
+\arguments{
+\item{m}{mixture distribution}
+
+\item{x}{an n vector}
+
+\item{s}{normal mixture of sd(s), n-by-l matrix}
+
+\item{v}{degree of freedom of error distribution}
+
+\item{pilik}{mixture proportion , n-by-l matrix}
+}
 \description{
-comppostprob_mixlik2
+compute the posterior prob that each observation came from each component of the mixture m and the likelihood mixture, output a (k*l) by n vector of probabilities computed by weighting the component densities by pi and then normalizing, when likelihood is an l-components normal mixture or student t mixture with mixture proportion pilik.
 }
 
