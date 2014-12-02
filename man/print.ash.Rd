@@ -3,7 +3,12 @@
 \alias{print.ash}
 \title{Print method for ash object}
 \usage{
-\method{print}{ash}(a)
+\method{print}{ash}(x, ...)
+}
+\arguments{
+\item{x}{the fitted ash object}
+
+\item{...}{not used, included for consistency as an S3 generic/method.}
 }
 \description{
 Print the fitted distribution of beta values in the EB hierarchical model

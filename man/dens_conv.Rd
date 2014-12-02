@@ -13,6 +13,8 @@ dens_conv(m, x, s, v, FUN = "+")
 \item{s}{an n vector or integer}
 
 \item{v}{degree of freedom of error distribution}
+
+\item{FUN}{default is "+"}
 }
 \description{
 compute density of mixture m convoluted with normal of sd (s) or student t with df v at locations x

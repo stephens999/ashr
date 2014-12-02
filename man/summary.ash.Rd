@@ -3,7 +3,12 @@
 \alias{summary.ash}
 \title{Summary method for ash object}
 \usage{
-\method{summary}{ash}(a)
+\method{summary}{ash}(object, ...)
+}
+\arguments{
+\item{object}{the fitted ash object}
+
+\item{...}{not used, included for consistency as an S3 generic/method.}
 }
 \description{
 Print summary of fitted ash object

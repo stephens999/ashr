@@ -5,6 +5,13 @@
 \usage{
 \method{mixcdf}{default}(x, y, lower.tail = TRUE)
 }
+\arguments{
+\item{x}{a mixture (eg of type normalmix or unimix)}
+
+\item{y}{locations at which cdf to be computed}
+
+\item{lower.tail}{boolean indicating whether to report lower tail}
+}
 \description{
 mixcdf.default
 }

@@ -10,6 +10,8 @@ ashci(a, level = 0.95, betaindex, lfsrcriteria = 0.05, tol = 1e-05,
 \arguments{
 \item{a}{the fitted ash object}
 
+\item{level}{the level for the credible interval, (default=0.95)}
+
 \item{betaindex}{a vector consisting of locations of betahat where you would like to compute the credible interval}
 
 \item{lfsrcriteria}{a scalar, in which the function would autoselect betahats based on lfsr value smaller than lfsrcriteria when index is not supplied. Setting it to 1 would compute credible interval for all observations.}
@@ -23,8 +25,6 @@ ashci(a, level = 0.95, betaindex, lfsrcriteria = 0.05, tol = 1e-05,
 \item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.}
 
 \item{ncores}{Whether to use parallel computing, defaults to FALSE, user could specify number of cores they would like to use. Further, if user does not specify and we have over 1000 entries to compute,  then the function would perform parallel computation  using number of CPU cores on the current host.}
-
-\item{levels}{the level for the credible interval, (default=0.95)}
 }
 \value{
 A matrix, with first column being the location,second column being lfsr, 3rd column being posterior mean,4th and 5th column being the lower bound and upper bound for the credible interval.
@@ -43,7 +43,7 @@ beta.ash = ash(betahat, sebetahat)
 
 CImatrix=ashci(beta.ash,level=0.95)
 print(CImatrix)
-print(CIMatrix[order(CIMatrix[,2]),]) # Sorted according to the lfsr
+print(CImatrix[order(CImatrix[,2]),]) # Sorted according to the lfsr
 
 CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
 CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)

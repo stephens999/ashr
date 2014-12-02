@@ -10,7 +10,7 @@ normalmix(pi, mean, sd)
 
 \item{mean}{vector of means}
 
-\item{sd:}{vector of standard deviations}
+\item{sd}{vector of standard deviations}
 }
 \value{
 an object of class normalmix

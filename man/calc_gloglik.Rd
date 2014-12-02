@@ -12,7 +12,9 @@ calc_gloglik(g, betahat, betahatsd, df, model = c("EE", "ES"))
 
 \item{betahatsd}{the observed standard errors}
 
-\item{model:}{indicates whether you want the likelihood under the EE or ES model}
+\item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat}
+
+\item{model}{indicates whether you want the likelihood under the EE or ES model}
 }
 \description{
 Return the log-likelihood of the data betahat, with standard errors betahatsd,

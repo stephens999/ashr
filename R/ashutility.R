@@ -6,13 +6,15 @@
 #' @description Print summary of fitted ash object
 #'
 #' @details \code{\link{summary}} prints the fitted mixture, the fitted log likelihood with 10 digits and a flag to indicate convergence
+#' @param object the fitted ash object 
+#' @param ... not used, included for consistency as an S3 generic/method.
 #'
 #' @export
 #' 
-summary.ash=function(a){
-  print(a$fitted.g)
-  print(tail(a$fit$loglik,1),digits=10)
-  print(a$fit$converged)
+summary.ash=function(object,...){
+  print(object$fitted.g)
+  print(tail(object$fit$loglik,1),digits=10)
+  print(object$fit$converged)
 }
 
 #' @title Print method for ash object
@@ -20,17 +22,23 @@ summary.ash=function(a){
 #' @description Print the fitted distribution of beta values in the EB hierarchical model
 #'
 #' @details None
+#' @param x the fitted ash object 
+#' @param ... not used, included for consistency as an S3 generic/method.
 #' 
 #' @export
 #' 
-print.ash =function(a){
-  print(a$fitted.g)
+print.ash =function(x,...){
+  print(x$fitted.g)
 }
 
 #' @title Plot method for ash object
 #'
 #' @description Plot the density of the underlying fitted distribution
 #'
+#' @param a the fitted ash object 
+#' @param xmin xlim lower range
+#' @param xmax xlim upper range
+#' @param ... Arguments to be passed to methods,such as graphical parameters (see \code{\link[graphics]{plot}})
 #' @details None
 #' 
 #' @export
@@ -88,6 +96,7 @@ get_pi0 = function(a){
 #' @param a the fitted ash object
 #' @param betahat the data
 #' @param betahatsd the observed standard errors
+#' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat
 #' @param model indicates whether you want the likelihood under the EE or ES model 
 #' @param alpha a scalar performing transformation on betahat and sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~ g()},and eqn{betahat_j / s_j^alpha ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ES model. \eqn{alpha} should be in between 0 and 1, inclusively. 
 #' @details See example in CompareBetahatvsZscoreAnalysis.rmd
@@ -124,7 +133,8 @@ calc_loglik = function(a,betahat,betahatsd,df,model=c("EE","ES"),alpha=0){
 #' @param g the prior for effects or standardized effects
 #' @param betahat the data
 #' @param betahatsd the observed standard errors
-#' @param model: indicates whether you want the likelihood under the EE or ES model 
+#' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat
+#' @param model indicates whether you want the likelihood under the EE or ES model 
 #' @details See example in CompareBetahatvsZscoreAnalysis.rmd
 #' 
 #' @export
@@ -151,13 +161,16 @@ calc_gloglik = function(g,betahat,betahatsd,df,model=c("EE","ES")){
 #'
 #' @param a the fitted ash object
 #' @param x the vector of locations at which density is to be computed
+#' @param ... Not used, included for consistency as an S3 generic/method.
 #'
 #' @details None
 #' 
 #' @export
 #' 
 #'
-density.ash=function(a,x){list(x=x,y=dens(a$fitted.g,x))}
+density.ash=function(a,x,...){
+	list(x=x,y=dens(a$fitted.g,x))
+}
 
 #' @title cdf method for ash object
 #'
@@ -185,7 +198,7 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #' @details Uses default optimization function and perform component-wise credible interval computation. The computation cost is linear of the length of betahat.
 #'
 #' @param a the fitted ash object 
-#' @param levels the level for the credible interval, (default=0.95)
+#' @param level the level for the credible interval, (default=0.95)
 #' @param betaindex a vector consisting of locations of betahat where you would like to compute the credible interval
 #' @param lfsrcriteria a scalar, in which the function would autoselect betahats based on lfsr value smaller than lfsrcriteria when index is not supplied. Setting it to 1 would compute credible interval for all observations.
 #' @param tol the desired accuracy, default value is 1e-5.
@@ -204,7 +217,7 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #' 
 #' CImatrix=ashci(beta.ash,level=0.95)
 #' print(CImatrix)
-#' print(CIMatrix[order(CIMatrix[,2]),]) # Sorted according to the lfsr
+#' print(CImatrix[order(CImatrix[,2]),]) # Sorted according to the lfsr
 #'
 #' CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
 #' CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)

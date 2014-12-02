@@ -7,17 +7,17 @@ mixVBEM(matrix_lik, prior, pi.init = NULL, tol = 1e-07, maxiter = 5000,
   trace = FALSE)
 }
 \arguments{
+\item{matrix_lik}{a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.}
+
+\item{prior}{a k vector of the parameters of the Dirichlet prior on \eqn{\pi}. Recommended to be rep(1,k)}
+
+\item{pi.init}{the initial value of the posterior parameters. If not specified defaults to the prior parameters.}
+
+\item{tol}{the tolerance for convergence of log-likelihood bound.}
+
+\item{maxiter}{the maximum number of iterations performed}
+
 \item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.}
-
-\item{matrix_lik:}{a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.}
-
-\item{prior:}{a k vector of the parameters of the Dirichlet prior on \eqn{\pi}. Recommended to be rep(1,k)}
-
-\item{post.init:}{the initial value of the posterior parameters. If not specified defaults to the prior parameters.}
-
-\item{tol:}{the tolerance for convergence of log-likelihood bound.}
-
-\item{maxiter:}{the maximum number of iterations performed}
 }
 \value{
 A list, whose components include point estimates (pihat),

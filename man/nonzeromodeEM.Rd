@@ -7,23 +7,27 @@ nonzeromodeEM(betahat, sebetahat, mixsd, mixcompdist, df = NULL,
   pi.init = NULL, retol = 1e-05, maxiter = 500, trace = trace)
 }
 \arguments{
-\item{betahat,}{a p vector of estimates}
+\item{betahat}{a p vector of estimates.}
 
-\item{sebetahat,}{a p vector of corresponding standard errors}
+\item{sebetahat}{a p vector of corresponding standard errors.}
 
-\item{pi.init,}{the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).}
+\item{mixsd}{vector of sds for underlying mixture components.}
 
-\item{retol,}{the relative tolerance for estimate of nonzero mean}
+\item{mixcompdist}{distribution of components in mixture ( "uniform","halfuniform" or "normal").}
 
-\item{maxiter}{the maximum number of iterations performed}
+\item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian).}
 
-\item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.}
+\item{pi.init}{the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).}
 
-\item{mixsd:}{vector of sds for underlying mixture components}
+\item{retol}{the relative tolerance for estimate of nonzero mean,default is 1e-5.}
+
+\item{maxiter}{the maximum number of iterations performed, default is 500.}
+
+\item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user, default is FALSE.}
 }
 \value{
 A list, including the estimates (\eqn{\mu}) and (\eqn{\pi}), the log likelihood for each iteration (NQ)
-and a flag to indicate convergence
+and a flag to indicate convergence.
 }
 \description{
 Given the data, standard error of the data and standard deviations of the Gaussian mixture model, estimate the mean of a unimodal Gaussian mixture by an EM algorithm.
@@ -33,6 +37,5 @@ Fits a k component mixture model \deqn{f(x|\pi) = \sum_k \pi_k f_k(x)} to indepe
 and identically distributed data \eqn{x_1,\dots,x_n}.
 Estimates unimodal mean \eqn{\mu} by EM algorithm. Uses the SQUAREM package to accelerate convergence of EM. Used by the ash main function; there is no need for a user to call this
 function separately, but it is exported for convenience.
-Currently works for mixcompdist="normal", while "uniform" abd "halfuniform" would only return the naive mean
 }
 

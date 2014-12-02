@@ -5,6 +5,15 @@
 \usage{
 \method{comppostprob}{default}(m, x, s, v)
 }
+\arguments{
+\item{m}{mixture distribution}
+
+\item{x}{an n vector}
+
+\item{s}{an n vector or integer}
+
+\item{v}{degree of freedom of error distribution}
+}
 \description{
 comppostprob.default
 }

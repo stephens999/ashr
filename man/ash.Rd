@@ -50,6 +50,10 @@ in which all weight is on the first component}
 
 \item{gridmult}{the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)}
 
+\item{minimaloutput}{if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue)}
+
+\item{multiseqoutput}{if TRUE, just outputs the fitted g, logLR, PosteriorMean, PosteriorSD, function call and df}
+
 \item{g}{the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)}
 
 \item{maxiter}{maximum number of iterations of the EM algorithm.}
@@ -61,8 +65,6 @@ in which all weight is on the first component}
 \item{cxx}{flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point.}
 
 \item{model}{c("EE","ES") specifies whether to assume exchangeable effects (EE) or exchangeable standardized effects (ES).}
-
-\item{minimal_output}{if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue)}
 }
 \value{
 ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr

@@ -3,12 +3,14 @@
 \alias{density.ash}
 \title{Density method for ash object}
 \usage{
-\method{density}{ash}(a, x)
+\method{density}{ash}(a, x, ...)
 }
 \arguments{
 \item{a}{the fitted ash object}
 
 \item{x}{the vector of locations at which density is to be computed}
+
+\item{...}{Not used, included for consistency as an S3 generic/method.}
 }
 \description{
 Return the density of the underlying fitted distribution

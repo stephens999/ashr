@@ -13,6 +13,8 @@
 \item{s}{an n vector of standard errors}
 
 \item{v}{degree of freedom of error distribution}
+
+\item{FUN}{default is "+"}
 }
 \value{
 a k by n matrix

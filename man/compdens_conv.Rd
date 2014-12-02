@@ -13,6 +13,8 @@ compdens_conv(m, x, s, v, FUN = "+")
 \item{s}{an n vector or integer}
 
 \item{v}{degree of freedom of error distribution}
+
+\item{FUN}{default is "+"}
 }
 \value{
 a k by n matrix of densities

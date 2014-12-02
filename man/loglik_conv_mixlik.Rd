@@ -10,11 +10,13 @@ loglik_conv_mixlik(m, betahat, betahatsd, v, pilik, FUN = "+")
 
 \item{betahat}{an n vector}
 
+\item{betahatsd}{an n-by-l matrix}
+
 \item{v}{degree of freedom of error distribution}
 
 \item{pilik}{an l vector}
 
-\item{sebetahat}{an n-by-l matrix}
+\item{FUN}{default is "+"}
 }
 \description{
 find log likelihood of data, when the mixture m is convolved with l-comp normal mixture in betahat with mixture sd betahatsd, mixture proportion pilik.

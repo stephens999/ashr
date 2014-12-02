@@ -5,6 +5,15 @@
 \usage{
 \method{plot}{ash}(a, xmin, xmax, ...)
 }
+\arguments{
+\item{a}{the fitted ash object}
+
+\item{xmin}{xlim lower range}
+
+\item{xmax}{xlim upper range}
+
+\item{...}{Arguments to be passed to methods,such as graphical parameters (see \code{\link[graphics]{plot}})}
+}
 \description{
 Plot the density of the underlying fitted distribution
 }

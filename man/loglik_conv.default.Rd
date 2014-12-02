@@ -10,9 +10,11 @@
 
 \item{betahat}{an n vector of observations}
 
+\item{betahatsd}{an n vector of standard errors}
+
 \item{v}{degree of freedom of error distribution}
 
-\item{sebetahat}{an n vector of standard errors}
+\item{FUN}{default is "+"}
 }
 \description{
 loglik_conv.default

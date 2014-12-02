@@ -10,7 +10,7 @@ mixcdf(x, y, lower.tail = TRUE)
 
 \item{y}{locations at which cdf to be computed}
 
-\item{lower.tail:}{boolean indicating whether to report lower tail}
+\item{lower.tail}{boolean indicating whether to report lower tail}
 }
 \value{
 an object of class normalmix

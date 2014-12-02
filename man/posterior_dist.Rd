@@ -6,11 +6,11 @@
 posterior_dist(g, betahat, sebetahat)
 }
 \arguments{
+\item{g}{a normalmix with components indicating the prior; works only if g has means 0}
+
 \item{betahat}{(n vector of observations)}
 
 \item{sebetahat}{(n vector of standard errors/deviations of observations)}
-
-\item{g:}{a normalmix with components indicating the prior; works only if g has means 0}
 }
 \value{
 A list, (pi1,mu1,sigma1) whose components are each k by n matrices

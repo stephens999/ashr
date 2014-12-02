@@ -10,9 +10,11 @@ loglik_conv(m, betahat, betahatsd, v, FUN = "+")
 
 \item{betahat}{an n vector of observations}
 
+\item{betahatsd}{an n vector of standard errors}
+
 \item{v}{degree of freedom of error distribution}
 
-\item{sebetahat}{an n vector of standard errors}
+\item{FUN}{default is "+"}
 }
 \description{
 find log likelihood of data in betahat, when the mixture m is convolved with a normal with sd betahatsd

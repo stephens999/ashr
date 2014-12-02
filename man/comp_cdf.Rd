@@ -10,7 +10,7 @@ comp_cdf(x, y, lower.tail = TRUE)
 
 \item{y}{locations at which cdf to be computed}
 
-\item{lower.tail:}{boolean indicating whether to report lower tail}
+\item{lower.tail}{boolean indicating whether to report lower tail}
 }
 \value{
 it returns a vector of probabilities, with length equals to number of components in x

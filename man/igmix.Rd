@@ -6,11 +6,11 @@
 igmix(pi, alpha, beta)
 }
 \arguments{
-\item{pi:}{vector of mixture proportions}
+\item{pi}{vector of mixture proportions}
 
-\item{alpha:}{vector of shape parameters}
+\item{alpha}{vector of shape parameters}
 
-\item{beta:}{vector of rate parameters}
+\item{beta}{vector of rate parameters}
 }
 \value{
 an object of class igmix

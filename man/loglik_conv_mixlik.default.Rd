@@ -6,6 +6,19 @@
 \method{loglik_conv_mixlik}{default}(m, betahat, betahatsd, v, pilik,
   FUN = "+")
 }
+\arguments{
+\item{m}{mixture distribution}
+
+\item{betahat}{an n vector}
+
+\item{betahatsd}{an n-by-l matrix}
+
+\item{v}{degree of freedom of error distribution}
+
+\item{pilik}{an l vector}
+
+\item{FUN}{default is "+"}
+}
 \description{
 loglik_conv.default
 }

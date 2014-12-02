@@ -6,6 +6,8 @@
 compcdf_post(m, c, betahat, sebetahat, v)
 }
 \arguments{
+\item{m}{mixture distribution with k components}
+
 \item{c}{a scalar}
 
 \item{betahat}{an n vector of observations}
