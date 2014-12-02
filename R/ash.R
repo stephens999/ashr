@@ -883,7 +883,9 @@ diriKL = function(p,q){
 }
 
 #helper function for VBEM
-VB.update = function(matrix_lik,pipost,n,k,prior){
+VB.update = function(matrix_lik,pipost,prior){
+  n=dim(matrix_lik)[1]
+  k=dim(matrix_lik)[2]
   avgpipost = matrix(exp(rep(digamma(pipost),n)-rep(digamma(sum(pipost)),k*n)),ncol=k,byrow=TRUE)
   classprob = avgpipost * matrix_lik
   classprob = classprob/rowSums(classprob) # n by k matrix

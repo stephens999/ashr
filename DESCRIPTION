@@ -9,6 +9,7 @@ Depends:
     truncnorm,
     SQUAREM,
     doParallel,
+    pscl,
     Rcpp (>= 0.10.5)
 LinkingTo: Rcpp
 Suggests:
