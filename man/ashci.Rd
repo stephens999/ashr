@@ -47,16 +47,16 @@ print(CImatrix[order(CImatrix[,2]),]) # Sorted according to the lfsr
 
 CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
 CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)
-CImatrix3=ashci(beta.ash,level=0.95, betaindex=c(1:length(beta)),ncores=4)
+#CImatrix3=ashci(beta.ash,level=0.95, betaindex=c(1:length(beta)),ncores=4)
 print(CImatrix1)
 print(CImatrix2)
-print(CImatrix3)
+#print(CImatrix3)
 
-#A larger example
-beta = c(rep(0,1000),rnorm(1000))
-sebetahat = abs(rnorm(2000,0,1))
-betahat = rnorm(2000,beta,sebetahat)
-beta.ash = ash(betahat, sebetahat)
-CImatrix4 = ashci(beta.ash,level=0.95, betaindex=c(1:length(beta)),ncores=4)
+##A larger example
+#beta = c(rep(0,1000),rnorm(1000))
+#sebetahat = abs(rnorm(2000,0,1))
+#betahat = rnorm(2000,beta,sebetahat)
+#beta.ash = ash(betahat, sebetahat)
+#CImatrix4 = ashci(beta.ash,level=0.95, betaindex=c(1:length(beta)),ncores=4)
 }
 
