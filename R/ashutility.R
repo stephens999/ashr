@@ -35,23 +35,26 @@ print.ash =function(x,...){
 #'
 #' @description Plot the density of the underlying fitted distribution
 #'
-#' @param a the fitted ash object 
-#' @param xmin xlim lower range
-#' @param xmax xlim upper range
+#' @param x the fitted ash object
 #' @param ... Arguments to be passed to methods,such as graphical parameters (see \code{\link[graphics]{plot}})
+#' @param xmin xlim lower range, default is the lowest value of betahat
+#' @param xmax xlim upper range, default is the highest value of betahat
 #' @details None
 #' 
 #' @export
 #' 
-plot.ash = function(a,xmin,xmax,...){
-  x = seq(xmin,xmax,length=1000)
-  y = density(a,x)
+plot.ash = function(x,...,xmin,xmax){
+  if(missing(xmin)){xmin=min(x$data$betahat)}
+  if(missing(xmax)){xmax=max(x$data$betahat)}
+  xgrid = seq(xmin,xmax,length=1000)
+  y = get_density(x,xgrid)
   plot(y,type="l",...)
 }
 
 #compute the predictive density of an observation
 #given the fitted ash object a and the vector se of standard errors
 #not implemented yet
+#todo
 predictive=function(a,se){
   
 }
@@ -97,8 +100,8 @@ get_pi0 = function(a){
 #' @param betahat the data
 #' @param betahatsd the observed standard errors
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat
-#' @param model indicates whether you want the likelihood under the EE or ES model 
-#' @param alpha a scalar performing transformation on betahat and sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~ g()},and eqn{betahat_j / s_j^alpha ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ES model. \eqn{alpha} should be in between 0 and 1, inclusively. 
+#' @param model indicates whether you want the likelihood under the EE or ES model
+#' @param alpha a scalar performing transformation on betahat and sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~ g()},and eqn{betahat_j / s_j^alpha ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ES model. \eqn{alpha} should be in between 0 and 1, inclusively. Default is alpha=0.
 #' @details See example in CompareBetahatvsZscoreAnalysis.rmd
 #' 
 #' @export
@@ -109,19 +112,15 @@ calc_loglik = function(a,betahat,betahatsd,df,model=c("EE","ES"),alpha=0){
     stop("error: must supply df for calc_loglik")
   }
   g=a$fitted.g
-
   if(missing(alpha)){
-  	  model = match.arg(model) 
-  if(a$model != model){
-    warning("Model used to fit ash does not match model used to compute loglik! Probably you have made a mistake!")
-  }
-  if(model=="ES"){
-      return(loglik_conv(g,betahat/betahatsd,1,df)-sum(log(betahatsd)))
-  } else {
-      return(loglik_conv(g,betahat,betahatsd,df))
-  }}else{
-      return(loglik_conv(g,betahat/(betahatsd^alpha),betahatsd^(1-alpha),df)-alpha*sum(log(betahatsd)))
-  }
+    model = match.arg(model) 
+    if(a$model != model){
+      warning("Model used to fit ash does not match model used to compute loglik! Probably you have made a mistake!")
+    }
+    if(model=="ES"){ alpha=1
+	} else {alpha=0}
+  }  
+  return(loglik_conv(g,betahat/(betahatsd^alpha),betahatsd^(1-alpha),df)-alpha*sum(log(betahatsd)))
 }
 
 #' @title Compute loglikelihood for data usign the prior g (usually from an ash fit)
@@ -159,17 +158,16 @@ calc_gloglik = function(g,betahat,betahatsd,df,model=c("EE","ES")){
 #'
 #' @description Return the density of the underlying fitted distribution
 #'
-#' @param a the fitted ash object
+#' @param m the fitted ash object
 #' @param x the vector of locations at which density is to be computed
-#' @param ... Not used, included for consistency as an S3 generic/method.
 #'
 #' @details None
 #' 
 #' @export
 #' 
 #'
-density.ash=function(a,x,...){
-	list(x=x,y=dens(a$fitted.g,x))
+get_density=function(m,x){
+	list(x=x,y=dens(m$fitted.g,x))
 }
 
 #' @title cdf method for ash object
@@ -233,13 +231,13 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #' beta.ash = ash(betahat, sebetahat)
 #' CImatrix4 = ashci(beta.ash,level=0.95, betaindex=c(1:length(beta)),ncores=4)
 #todo/issue=> all set!
-#1.Could do parallel computing to reduce the computation time
-#1. Done by doParallel
+#1.Q:Could do parallel computing to reduce the computation time
+#1.A:Done by doParallel
 #
-#2.Optimization function does not work well for discountinous function, even
+#2.Q:Optimization function does not work well for discountinous function, even
 #if it's a monotone one. Current remedy is to set a more conservative value for 
 #the searching interval from the mixture
-#2.Done by shrinking searching interval using while loop
+#2.A:Done by shrinking searching interval using while loop
 #
 ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=100,shrinkingcoefficient=0.9,trace=FALSE,ncores=FALSE){
   options(warn=-1)  
