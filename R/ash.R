@@ -437,12 +437,12 @@ nonzeromodeEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.ini
   else if(mixcompdist=="uniform"){
     g=unimix(pi.init,-mixsd,mixsd)
     mupi=c(mean(betahat),pi.init)    
-    res=squarem(par=mupi,fixptfn=nonzeromodeEMoptimfixpoint,objfn=nonzeromodeEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol,trace=trace,,K=K))
+    res=squarem(par=mupi,fixptfn=nonzeromodeEMoptimfixpoint,objfn=nonzeromodeEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol,trace=trace,K=K))
   }
   else if(mixcompdist=="halfuniform"){
     g=unimix(c(pi.init, pi.init)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))
     mupi=c(mean(betahat),pi.init/2,pi.init/2)
-    res=squarem(par=mupi,fixptfn=nonzeromodeEMoptimfixpoint,objfn=nonzeromodeEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol,trace=trace,,K=K))
+    res=squarem(par=mupi,fixptfn=nonzeromodeEMoptimfixpoint,objfn=nonzeromodeEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol,trace=trace,K=K))
   }
   if(trace==TRUE){toc()}
   return(list(nonzeromode=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))
