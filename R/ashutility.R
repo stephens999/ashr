@@ -188,6 +188,27 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 }
 
 
+#Functions from MATLAB packages, used to measure performance and to show progress
+tic <- function(gcFirst = TRUE, type=c("elapsed", "user.self", "sys.self"))
+{
+   type <- match.arg(type)
+   assign(".type", type, envir=baseenv())
+   if(gcFirst) gc(FALSE)
+   tic <- proc.time()[type]         
+   assign(".tic", tic, envir=baseenv())
+   invisible(tic)
+}
+
+toc <- function()
+{
+   type <- get(".type", envir=baseenv())
+   toc <- proc.time()[type]
+   tic <- get(".tic", envir=baseenv())
+   print(toc - tic)
+   invisible(toc)
+}
+
+
 
 #' @title Credible Interval Computation for the ash object
 #'
@@ -244,7 +265,7 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
   if(missing(betaindex)){
   	betaindex =(a$lfsr<=lfsrcriteria)
   	betaindex[is.na(betaindex)]=FALSE #Some lfsrs would have NA
-  }  
+  }
   x=a$data$betahat[betaindex]
   s=a$data$sebetahat[betaindex]
   PosteriorMean=a$PosteriorMean[betaindex]

@@ -34,11 +34,13 @@
 #' @param minimaloutput if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue) 
 #' @param multiseqoutput if TRUE, just outputs the fitted g, logLR, PosteriorMean, PosteriorSD, function call and df
 #' @param g the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
+#' @param K An integer denoting the order of the SQUAREM scheme. Default is 1,i.e. first-order schemes, which is adequate for most problems. K=2,3 may provide greater speed in some problems, although they are less reliable than the first-order schemes.
 #' @param maxiter maximum number of iterations of the EM algorithm.
 #' @param retol the relelative precision for the mode of mixture when nonzeromode=TRUE, the default value is 1e-5.
 #' @param trace a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.
 #' @param cxx flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point. 
 #' @param model c("EE","ES") specifies whether to assume exchangeable effects (EE) or exchangeable standardized effects (ES).
+#' @param control A list of control parameters specifing any changes to default values of algorithm control parameters. Full names of control list elements must be specified, otherwise, user-specifications are ignored. See Details.
 #' 
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
 #' \item{fitted.g}{fitted mixture, either a normalmix or unimix}
@@ -82,6 +84,10 @@
 #' summary(beta.ash)
 #' plot(betahat,beta.ash$PosteriorMean)
 #'
+#' #Testing the non-zero mode feature
+#' betahat=betahat+5
+#' betan.ash=ash(betahat, sebetahat,nonzeromode=TRUE)
+#' plot(betahat, betan.ash$PosteriorMean)
 #Things to do:
 # check sampling routine
 # check number of iterations
@@ -96,19 +102,20 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
                minimaloutput=FALSE,
                multiseqoutput=FALSE,
                g=NULL,
+               K=1,
                maxiter = 5000,
                retol=1e-5,
                trace=FALSE,
                cxx=FALSE,
-               model=c("EE","ES")){
+               model=c("EE","ES")
+               ){
   
   #method provides a convenient interface to set a particular combinations of parameters for prior an
   #If method is supplied, use it to set up specific values for these parameters; provide warning if values
   #are also specified by user
   #If method is not supplied use the user-supplied values (or defaults if user does not specify them)
   
-
-  
+  squaremK=K #A longer name within the algorithm for easiler debugging purpose.
   if(!missing(method)){
     method = match.arg(method) 
     if(method=="shrink"){
@@ -204,7 +211,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
       if(nonzeromode){
         mixsd = autoselect.mixsd(betahat[completeobs]-mean(betahat[completeobs]),sebetahat[completeobs],gridmult)
         if(pointmass){ mixsd = c(0,mixsd) }
-        nonzeromode.fit=nonzeromodeEM(betahat[completeobs], sebetahat[completeobs], mixsd=mixsd, mixcompdist=mixcompdist,df=df,retol=retol,maxiter=round(maxiter/10),trace=trace)
+        nonzeromode.fit=nonzeromodeEM(betahat[completeobs], sebetahat[completeobs], mixsd=mixsd, mixcompdist=mixcompdist,df=df,retol=retol,maxiter=round(maxiter/10),trace=trace,K=squaremK)
         betahat[completeobs]= betahat[completeobs] - nonzeromode.fit$nonzeromode
       }
       else if(nonzeromode & !is.null(df)){
@@ -261,7 +268,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     }
   }
   
-  pi.fit=EMest(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx, df=df,trace=trace)  
+  pi.fit=EMest(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx, df=df,trace=trace,K=squaremK)  
   
   #A stringent criteria based on central limit theorem is set to give the user warning message.
   #if(!nonzeromode){
@@ -277,7 +284,7 @@ ash = function(betahat,sebetahat,method = c("shrink","fdr"),
     zvalue=betahat[completeobs]/sebetahat[completeobs]
     abststat=abs(mean(zvalue)/sd(zvalue))*sqrt(length(zvalue))
     if(!is.na(abststat)){
-    if(abststat>3.2905){warning("It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromode=TRUE when applying ash()")}}
+    if(abststat>3.2905){print("Warning: It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromode=TRUE when applying ash()")}}
   }
   
   if (!onlylogLR){
@@ -388,6 +395,8 @@ compute_lfsra = function(PositiveProb, NegativeProb,ZeroProb){
 #' @param retol the relative tolerance for estimate of nonzero mean,default is 1e-5.
 #' @param maxiter the maximum number of iterations performed, default is 500.
 #' @param trace a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user, default is FALSE.
+#' @param K An integer denoting the order of the SQUAREM scheme. Default is 1,i.e. first-order schemes, which is adequate for most problems. K=2,3 may provide greater speed in some problems, although they are less reliable than the first-order schemes.
+
 #' 
 #' @return A list, including the estimates (\eqn{\mu}) and (\eqn{\pi}), the log likelihood for each iteration (NQ)
 #' and a flag to indicate convergence.
@@ -395,7 +404,7 @@ compute_lfsra = function(PositiveProb, NegativeProb,ZeroProb){
 #' @export
 #' 
 #' 
-nonzeromodeEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,retol=1e-5,maxiter=500,trace=trace){
+nonzeromodeEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,retol=1e-5,maxiter=500,trace=trace,K=1){
   if(is.null(pi.init)){
     pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi
   }
@@ -420,7 +429,7 @@ nonzeromodeEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.ini
   if(mixcompdist=="normal" & is.null(df)){
     g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
     mupi=c(mean(betahat),pi.init)
-    res=squarem(par=mupi,fixptfn=nonzeromodeEMfixpoint,objfn=nonzeromodeEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol,trace=trace))
+    res=squarem(par=mupi,fixptfn=nonzeromodeEMfixpoint,objfn=nonzeromodeEMobj,betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=list(maxiter=maxiter,tol=tol,trace=trace,K=K))
   }
   else if(mixcompdist=="normal" & !is.null(df)){
     stop("method comp_postsd of normal mixture not yet written for t likelihood")
@@ -428,12 +437,12 @@ nonzeromodeEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.ini
   else if(mixcompdist=="uniform"){
     g=unimix(pi.init,-mixsd,mixsd)
     mupi=c(mean(betahat),pi.init)    
-    res=squarem(par=mupi,fixptfn=nonzeromodeEMoptimfixpoint,objfn=nonzeromodeEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol,trace=trace))
+    res=squarem(par=mupi,fixptfn=nonzeromodeEMoptimfixpoint,objfn=nonzeromodeEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol,trace=trace,,K=K))
   }
   else if(mixcompdist=="halfuniform"){
     g=unimix(c(pi.init, pi.init)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))
     mupi=c(mean(betahat),pi.init/2,pi.init/2)
-    res=squarem(par=mupi,fixptfn=nonzeromodeEMoptimfixpoint,objfn=nonzeromodeEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol,trace=trace))
+    res=squarem(par=mupi,fixptfn=nonzeromodeEMoptimfixpoint,objfn=nonzeromodeEMoptimobj,betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=list(maxiter=maxiter,tol=tol,trace=trace,,K=K))
   }
   if(trace==TRUE){toc()}
   return(list(nonzeromode=res$par[1],pi=res$par[-1],NQ=-res$value.objfn,niter = res$iter, converged=res$convergence,post=res$par))
@@ -517,7 +526,8 @@ nonzeromodeEMobj = function(mupi,betahat,sebetahat,mixsd){
 #' @param pi.init the initial value of the posterior parameters. If not specified defaults to the prior parameters.
 #' @param tol the tolerance for convergence of log-likelihood bound.
 #' @param maxiter the maximum number of iterations performed
-#' @param trace a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE. 
+#' @param trace a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.
+#' @param K An integer denoting the order of the SQUAREM scheme. Default is 1,i.e. first-order schemes, which is adequate for most problems. K=2,3 may provide greater speed in some problems, although they are less reliable than the first-order schemes.
 #' 
 #' @return A list, whose components include point estimates (pihat), 
 #' the parameters of the fitted posterior on \eqn{\pi} (pipost),
@@ -526,12 +536,12 @@ nonzeromodeEMobj = function(mupi,betahat,sebetahat,mixsd){
 #'  
 #' @export
 #' 
-mixVBEM = function(matrix_lik, prior, pi.init = NULL,tol=1e-7, maxiter=5000,trace=FALSE){
+mixVBEM = function(matrix_lik, prior, pi.init = NULL,tol=1e-7, maxiter=5000,trace=FALSE,K=1){
   k=ncol(matrix_lik)
   if(is.null(pi.init)){
     pi.init = rep(1,k)# Use as starting point for pi
   } 
-  res = squarem(par=pi.init,fixptfn=VBfixpoint, objfn=VBnegpenloglik,matrix_lik=matrix_lik, prior=prior, control=list(maxiter=maxiter,tol=tol,trace=trace))
+  res = squarem(par=pi.init,fixptfn=VBfixpoint, objfn=VBnegpenloglik,matrix_lik=matrix_lik, prior=prior, control=list(maxiter=maxiter,tol=tol,trace=trace,K=K))
   return(list(pihat = res$par/sum(res$par), B=res$value.objfn, niter = res$iter, converged=res$convergence,post=res$par))
 }
 
@@ -580,6 +590,7 @@ VBpenloglik = function(pipost, matrix_lik, prior){
 #' @param tol, the tolerance for convergence of log-likelihood.
 #' @param maxiter the maximum number of iterations performed
 #' @param trace a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.
+#' @param K An integer denoting the order of the SQUAREM scheme. Default is 1,i.e. first-order schemes, which is adequate for most problems. K=2,3 may provide greater speed in some problems, although they are less reliable than the first-order schemes.
 #' 
 #' @return A list, including the estimates (pihat), the log likelihood for each interation (B)
 #' and a flag to indicate convergence
@@ -587,12 +598,12 @@ VBpenloglik = function(pipost, matrix_lik, prior){
 #' @export
 #' 
 #' 
-mixEM = function(matrix_lik, prior, pi.init = NULL,tol=1e-7, maxiter=5000,trace=FALSE){
+mixEM = function(matrix_lik, prior, pi.init = NULL,tol=1e-7, maxiter=5000,trace=FALSE,K=1){
   k=dim(matrix_lik)[2]
   if(is.null(pi.init)){
     pi.init = rep(1/k,k)# Use as starting point for pi
   } 
-  res = squarem(par=pi.init,fixptfn=fixpoint, objfn=negpenloglik,matrix_lik=matrix_lik, prior=prior, control=list(maxiter=maxiter,tol=tol,trace=trace))
+  res = squarem(par=pi.init,fixptfn=fixpoint, objfn=negpenloglik,matrix_lik=matrix_lik, prior=prior, control=list(maxiter=maxiter,tol=tol,trace=trace,K=K))
   return(list(pihat = normalize(pmax(0,res$par)), B=res$value.objfn, 
               niter = res$iter, converged=res$convergence))
 }
@@ -674,7 +685,23 @@ gradient = function(matrix_lik){
 # }
 
 
-#estimate mixture proportions of sigmaa by EM algorithm
+#' @title estimate mixture proportions of sigmaa by EM algorithm
+#'
+#' @param betahat (n vector of observations) 
+#' @param sebetahat (n vector of standard errors/deviations of observations)
+#' @param g the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
+#' @param prior string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component)
+#' @param null.comp the position of the null component
+#' @param nullcheck  whether to check that any fitted model exceeds the "null" likelihood
+#' in which all weight is on the first component
+#' @param VB whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}
+#' @param maxiter maximum number of iterations of the EM algorithm.
+#' @param cxx flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point. 
+#' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)
+#' @param trace a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.
+#' @param K An integer denoting the order of the SQUAREM scheme. Default is 1,i.e. first-order schemes, which is adequate for most problems. K=2,3 may provide greater speed in some problems, although they are less reliable than the first-order schemes.
+#' @return A list, including the final loglikelihood, the null loglikelihood, a n by k likelihoodmatrix with (j,k)th element equal to \eqn{f_k(x_j)},and a flag to indicate convergence.
+#
 #prior gives the parameter of a Dirichlet prior on pi
 #(prior is used to encourage results towards smallest value of sigma when
 #likelihood is flat)
@@ -684,7 +711,8 @@ gradient = function(matrix_lik){
 #of mixture proportions of sigmaa by variational Bayes method
 #(use Dirichlet prior and approximate Dirichlet posterior)
 #if cxx TRUE use cpp version of R function mixEM
-EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE, maxiter=5000, cxx=FALSE, df=NULL,trace=FALSE){ 
+
+EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE, maxiter=5000, cxx=FALSE, df=NULL,trace=FALSE,K=1){ 
   
   
   pi.init = g$pi
@@ -706,7 +734,7 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE, 
   #}
   
   if(VB==TRUE){
-    EMfit=mixVBEM(matrix_lik,prior,maxiter=maxiter,trace)}
+    EMfit=mixVBEM(matrix_lik,prior,maxiter=maxiter,trace,K=K)}
   else{
     if (cxx==TRUE){
       EMfit = cxxMixEM(matrix_lik,prior,pi.init,1e-5, maxiter) #currently use different convergence criteria for cxx version 
@@ -715,7 +743,7 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE, 
       }
     }
     else{
-      EMfit = mixEM(matrix_lik,prior,pi.init,tol, maxiter,trace)
+      EMfit = mixEM(matrix_lik,prior,pi.init,tol, maxiter,trace,K=K)
       if(!EMfit$converged & !(maxiter==1)){
         warning("EM algorithm in function mixEM failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
       }
