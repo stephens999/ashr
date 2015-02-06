@@ -36,7 +36,7 @@
 #' @param g the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
 #' @param K An integer denoting the order of the SQUAREM scheme. Default is 1,i.e. first-order schemes, which is adequate for most problems. K=2,3 may provide greater speed in some problems, although they are less reliable than the first-order schemes.
 #' @param maxiter maximum number of iterations of the EM algorithm.
-#' @param retol the relelative precision for the mode of mixture when nonzeromode=TRUE, the default value is 1e-5.
+#' @param retol the relative precision for the mode of mixture when nonzeromode=TRUE, the default value is 1e-5.
 #' @param trace a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.
 #' @param cxx flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point. 
 #' @param model c("EE","ES") specifies whether to assume exchangeable effects (EE) or exchangeable standardized effects (ES).
