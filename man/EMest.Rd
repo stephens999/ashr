@@ -5,8 +5,7 @@
 \title{estimate mixture proportions of sigmaa by EM algorithm}
 \usage{
 EMest(betahat, sebetahat, g, prior, null.comp = 1, nullcheck = TRUE,
-  VB = FALSE, maxiter = 5000, cxx = FALSE, df = NULL, trace = FALSE,
-  K = 1)
+  VB = FALSE, cxx = FALSE, df = NULL, control = list())
 }
 \arguments{
 \item{betahat}{(n vector of observations)}
@@ -24,15 +23,11 @@ in which all weight is on the first component}
 
 \item{VB}{whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}}
 
-\item{maxiter}{maximum number of iterations of the EM algorithm.}
-
 \item{cxx}{flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point.}
 
 \item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)}
 
-\item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.}
-
-\item{K}{An integer denoting the order of the SQUAREM scheme. Default is 1,i.e. first-order schemes, which is adequate for most problems. K=2,3 may provide greater speed in some problems, although they are less reliable than the first-order schemes.}
+\item{control}{A list of control parameters for the SQUAREM algorithm, default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE).}
 }
 \value{
 A list, including the final loglikelihood, the null loglikelihood, a n by k likelihoodmatrix with (j,k)th element equal to \eqn{f_k(x_j)},and a flag to indicate convergence.

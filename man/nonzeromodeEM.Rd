@@ -5,7 +5,7 @@
 \title{Estimate unimodal nonzero mean of a mixture model by EM algorithm}
 \usage{
 nonzeromodeEM(betahat, sebetahat, mixsd, mixcompdist, df = NULL,
-  pi.init = NULL, retol = 1e-05, maxiter = 500, trace = trace, K = 1)
+  pi.init = NULL, control = list())
 }
 \arguments{
 \item{betahat}{a p vector of estimates.}
@@ -20,13 +20,7 @@ nonzeromodeEM(betahat, sebetahat, mixsd, mixcompdist, df = NULL,
 
 \item{pi.init}{the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).}
 
-\item{retol}{the relative tolerance for estimate of nonzero mean,default is 1e-5.}
-
-\item{maxiter}{the maximum number of iterations performed, default is 500.}
-
-\item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user, default is FALSE.}
-
-\item{K}{An integer denoting the order of the SQUAREM scheme. Default is 1,i.e. first-order schemes, which is adequate for most problems. K=2,3 may provide greater speed in some problems, although they are less reliable than the first-order schemes.}
+\item{control}{A list of control parameters for the SQUAREM algorithm, default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE).}
 }
 \value{
 A list, including the estimates (\eqn{\mu}) and (\eqn{\pi}), the log likelihood for each iteration (NQ)

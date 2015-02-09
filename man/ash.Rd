@@ -10,8 +10,8 @@ ash(betahat, sebetahat, method = c("shrink", "fdr"),
   nullweight = 10, nonzeromode = FALSE, pointmass = FALSE,
   onlylogLR = FALSE, prior = c("uniform", "nullbiased"), mixsd = NULL,
   VB = FALSE, gridmult = sqrt(2), minimaloutput = FALSE,
-  multiseqoutput = FALSE, g = NULL, K = 1, maxiter = 5000,
-  retol = 1e-05, trace = FALSE, cxx = FALSE, model = c("EE", "ES"))
+  multiseqoutput = FALSE, g = NULL, cxx = FALSE, model = c("EE", "ES"),
+  control = list())
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -57,19 +57,11 @@ in which all weight is on the first component}
 
 \item{g}{the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)}
 
-\item{K}{An integer denoting the order of the SQUAREM scheme. Default is 1,i.e. first-order schemes, which is adequate for most problems. K=2,3 may provide greater speed in some problems, although they are less reliable than the first-order schemes.}
-
-\item{maxiter}{maximum number of iterations of the EM algorithm.}
-
-\item{retol}{the relelative precision for the mode of mixture when nonzeromode=TRUE, the default value is 1e-5.}
-
-\item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.}
-
 \item{cxx}{flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point.}
 
 \item{model}{c("EE","ES") specifies whether to assume exchangeable effects (EE) or exchangeable standardized effects (ES).}
 
-\item{control}{A list of control parameters specifing any changes to default values of algorithm control parameters. Full names of control list elements must be specified, otherwise, user-specifications are ignored. See Details.}
+\item{control}{A list of control parameters for the SQUAREM algorithm, default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User may supply changes to this list of parameter, say, control=list(maxiter=10000,trace=TRUE)}
 }
 \value{
 ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
@@ -112,15 +104,14 @@ plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 CIMatrix=ashci(beta.ash,level=0.95)
 print(CIMatrix)
 
-betahat=betahat+5
-beta.ash = ash(betahat, sebetahat)
-summary(beta.ash)
-plot(betahat,beta.ash$PosteriorMean)
-
 #Testing the non-zero mode feature
 betahat=betahat+5
+beta.ash = ash(betahat, sebetahat)
+plot(betahat,beta.ash$PosteriorMean)
+summary(beta.ash)
 betan.ash=ash(betahat, sebetahat,nonzeromode=TRUE)
 plot(betahat, betan.ash$PosteriorMean)
+summary(betan.ash)
 }
 \seealso{
 \code{\link{ashci}} for computation of credible intervals after getting the ash object return by \code{ash()}

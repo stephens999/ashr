@@ -4,8 +4,7 @@
 \alias{mixEM}
 \title{Estimate mixture proportions of a mixture model by EM algorithm}
 \usage{
-mixEM(matrix_lik, prior, pi.init = NULL, tol = 1e-07, maxiter = 5000,
-  trace = FALSE, K = 1)
+mixEM(matrix_lik, prior, pi.init = NULL, control = list())
 }
 \arguments{
 \item{matrix_lik,}{a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.}
@@ -14,13 +13,7 @@ mixEM(matrix_lik, prior, pi.init = NULL, tol = 1e-07, maxiter = 5000,
 
 \item{pi.init,}{the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).}
 
-\item{tol,}{the tolerance for convergence of log-likelihood.}
-
-\item{maxiter}{the maximum number of iterations performed}
-
-\item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.}
-
-\item{K}{An integer denoting the order of the SQUAREM scheme. Default is 1,i.e. first-order schemes, which is adequate for most problems. K=2,3 may provide greater speed in some problems, although they are less reliable than the first-order schemes.}
+\item{control}{A list of control parameters for the SQUAREM algorithm, default value is set to be control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE).}
 }
 \value{
 A list, including the estimates (pihat), the log likelihood for each interation (B)
