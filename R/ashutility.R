@@ -118,7 +118,7 @@ calc_loglik = function(a,betahat,betahatsd,df,model=c("EE","ES"),alpha=0){
       warning("Model used to fit ash does not match model used to compute loglik! Probably you have made a mistake!")
     }
     if(model=="ES"){ alpha=1
-	} else {alpha=0}
+    } else {alpha=0}
   }  
   return(loglik_conv(g,betahat/(betahatsd^alpha),betahatsd^(1-alpha),df)-alpha*sum(log(betahatsd)))
 }
@@ -167,7 +167,7 @@ calc_gloglik = function(g,betahat,betahatsd,df,model=c("EE","ES")){
 #' 
 #'
 get_density=function(m,x){
-	list(x=x,y=dens(m$fitted.g,x))
+  list(x=x,y=dens(m$fitted.g,x))
 }
 
 #' @title cdf method for ash object
@@ -191,21 +191,21 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #Functions from MATLAB packages, used to measure performance and to show progress
 tic <- function(gcFirst = TRUE, type=c("elapsed", "user.self", "sys.self"))
 {
-   type <- match.arg(type)
-   assign(".type", type, envir=baseenv())
-   if(gcFirst) gc(FALSE)
-   tic <- proc.time()[type]         
-   assign(".tic", tic, envir=baseenv())
-   invisible(tic)
+  type <- match.arg(type)
+  assign(".type", type, envir=baseenv())
+  if(gcFirst) gc(FALSE)
+  tic <- proc.time()[type]         
+  assign(".tic", tic, envir=baseenv())
+  invisible(tic)
 }
 
 toc <- function()
 {
-   type <- get(".type", envir=baseenv())
-   toc <- proc.time()[type]
-   tic <- get(".tic", envir=baseenv())
-   print(toc - tic)
-   invisible(toc)
+  type <- get(".type", envir=baseenv())
+  toc <- proc.time()[type]
+  tic <- get(".tic", envir=baseenv())
+  print(toc - tic)
+  invisible(toc)
 }
 
 
@@ -263,8 +263,8 @@ toc <- function()
 ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=100,shrinkingcoefficient=0.9,trace=FALSE,ncores=FALSE){
   options(warn=-1)  
   if(missing(betaindex)){
-  	betaindex =(a$lfsr<=lfsrcriteria)
-  	betaindex[is.na(betaindex)]=FALSE #Some lfsrs would have NA
+    betaindex =(a$lfsr<=lfsrcriteria)
+    betaindex[is.na(betaindex)]=FALSE #Some lfsrs would have NA
   }
   x=a$data$betahat[betaindex]
   s=a$data$sebetahat[betaindex]
@@ -276,15 +276,15 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
   
   if( class(m) != "normalmix" && class(m) != "unimix" ){stop(paste("Invalid class",class(m)))}
   if(model=="ES"){ #for ES model, standardize
-  	x=x/s
-	PosteriorMean=PosteriorMean/s
-  	sebetahat.orig=s
-  	s=rep(1,length(x))
+    x=x/s
+    PosteriorMean=PosteriorMean/s
+    sebetahat.orig=s
+    s=rep(1,length(x))
   }
   if(is.null(df)){
-  	errorspan=qnorm(level)
+    errorspan=qnorm(level)
   } else{
-  	errorspan=qt(level,df)
+    errorspan=qt(level,df)
   }
   
   CImatrix=matrix(NA,nrow=length(x),ncol=7)
@@ -298,73 +298,73 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
   }
   
   if(missing(ncores)){
-  	if(length(x)>1000) ncores=detectCores()
+    if(length(x)>1000) ncores=detectCores()
   }
   if(ncores==FALSE){
-  ## Proceed with sequential computation
+    ## Proceed with sequential computation
     if(trace==TRUE){
-  	cat("Computation time would be linear w.r.t sample size, progress would be printed to the screen \n")
-  	tic()
-  }
+      cat("Computation time would be linear w.r.t sample size, progress would be printed to the screen \n")
+      tic()
+    }
     for(i in 1:length(x)){
       #Now the search interval is better restricted, avoiding the crash of optimize() due to discontinuity of cdf_post
       #The discontinuity is due to the pointmass component of the mixture
       cumpi=cumsum(comppostprob(m,x[i],s[i],df))-level
       maxposition=min(which(cumpi>0))
       if(class(m)=="normalmix"){
-      	maxsd=m$sd[maxposition]
-      	lower=PosteriorMean[i]-errorspan*maxsd
-      	upper=PosteriorMean[i]+errorspan*maxsd
-	  }else{
+        maxsd=m$sd[maxposition]
+        lower=PosteriorMean[i]-errorspan*maxsd
+        upper=PosteriorMean[i]+errorspan*maxsd
+      }else{
         lower=min(c(m$a[1: maxposition],m$b[1: maxposition]))
         upper=max(c(m$a[1: maxposition],m$b[1: maxposition])) 	
-	  }
-	  
-	  #Calculating the lower bound
+      }
+      
+      #Calculating the lower bound
       CImatrix[i,4]=optimize(f=ci.lower,interval=c(lower,PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,
-      df=df, tol=tol)$minimum
-	  CImatrix[i,6]=cdf_post(m,CImatrix[i,4],x[i],s[i],df)
-	  #If the actual cdf deviates by too much, refine the optimization search interval
-	  #currently we set maximum value of execution to maxcounts to avoid dead loop
-	  counts=0
-	  intervallength=PosteriorMean[i]-lower
-	  while(abs(CImatrix[i,6]-(1-level)/2)>(10*tol) & counts<maxcounts){
-	  	intervallength= intervallength* shrinkingcoefficient
+                             df=df, tol=tol)$minimum
+      CImatrix[i,6]=cdf_post(m,CImatrix[i,4],x[i],s[i],df)
+      #If the actual cdf deviates by too much, refine the optimization search interval
+      #currently we set maximum value of execution to maxcounts to avoid dead loop
+      counts=0
+      intervallength=PosteriorMean[i]-lower
+      while(abs(CImatrix[i,6]-(1-level)/2)>(10*tol) & counts<maxcounts){
+        intervallength= intervallength* shrinkingcoefficient
         CImatrix[i,4]=optimize(f=ci.lower,interval=c(PosteriorMean[i]-intervallength,
-        PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,df=df, tol=tol)$minimum
-	    CImatrix[i,6]=cdf_post(m,CImatrix[i,4],x[i],s[i],df)	  
-	    counts=counts+1	
-	  }
-	  
-	  #Calculating the upper bound
-	  CImatrix[i,5]=optimize(f=ci.upper,interval=c(PosteriorMean[i],upper),m=m,x=x[i],s=s[i],level=level,
-	  df=df, tol=tol)$minimum
-	  CImatrix[i,7]=cdf_post(m,CImatrix[i,5],x[i],s[i],df)
-	  #If the actual cdf deviates by too much, refine the optimization search interval
-	  #currently we set maximum value of execution to maxcounts to avoid dead loop
-	  counts=0
-	  intervallength=upper-PosteriorMean[i]
-	  while(abs(CImatrix[i,7]-(1+level)/2)>(10*tol) & counts<maxcounts){
-	  	intervallength= intervallength*shrinkingcoefficient
-	    CImatrix[i,5]=optimize(f=ci.upper,interval=c(PosteriorMean[i],PosteriorMean[i]+intervallength),m=m,x=x[i],s=s[i],level=level,
-	    df=df, tol=tol)$minimum
-	    CImatrix[i,7]=cdf_post(m,CImatrix[i,5],x[i],s[i],df)  	
-	    counts=counts+1		    
-	  }
-	  
-	  if(trace==TRUE & percentage <=100){
-	  	currentpercentage=round(i*100/length(x))
-	  	if(currentpercentage == percentage){
-	  		cat("Current computation progress", percentage,"%, seconds ")
-	  		toc()
-	  		percentage = percentage + 1}
-	  }	  
-	}
+                                                     PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,df=df, tol=tol)$minimum
+        CImatrix[i,6]=cdf_post(m,CImatrix[i,4],x[i],s[i],df)	  
+        counts=counts+1	
+      }
+      
+      #Calculating the upper bound
+      CImatrix[i,5]=optimize(f=ci.upper,interval=c(PosteriorMean[i],upper),m=m,x=x[i],s=s[i],level=level,
+                             df=df, tol=tol)$minimum
+      CImatrix[i,7]=cdf_post(m,CImatrix[i,5],x[i],s[i],df)
+      #If the actual cdf deviates by too much, refine the optimization search interval
+      #currently we set maximum value of execution to maxcounts to avoid dead loop
+      counts=0
+      intervallength=upper-PosteriorMean[i]
+      while(abs(CImatrix[i,7]-(1+level)/2)>(10*tol) & counts<maxcounts){
+        intervallength= intervallength*shrinkingcoefficient
+        CImatrix[i,5]=optimize(f=ci.upper,interval=c(PosteriorMean[i],PosteriorMean[i]+intervallength),m=m,x=x[i],s=s[i],level=level,
+                               df=df, tol=tol)$minimum
+        CImatrix[i,7]=cdf_post(m,CImatrix[i,5],x[i],s[i],df)  	
+        counts=counts+1		    
+      }
+      
+      if(trace==TRUE & percentage <=100){
+        currentpercentage=round(i*100/length(x))
+        if(currentpercentage == percentage){
+          cat("Current computation progress", percentage,"%, seconds ")
+          toc()
+          percentage = percentage + 1}
+      }	  
+    }
   } else{
-  ## Proceed with parallel computation
+    ## Proceed with parallel computation
     #if(trace==TRUE){
-  	#cat("Computation time would be linear w.r.t sample size, parallel computation progress would be printed to the screen \n")
-  	#tic()
+    #cat("Computation time would be linear w.r.t sample size, parallel computation progress would be printed to the screen \n")
+    #tic()
     #}
     percentagevector=rep(1,ncores)
     cl <- makePSOCKcluster(ncores)#This number corresponding to number of workers
@@ -373,51 +373,51 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
       cumpi=cumsum(ashr:::comppostprob(m,x[i],s[i],df))-level
       maxposition=min(which(cumpi>0))
       if(class(m)=="normalmix"){
-      	maxsd=m$sd[maxposition]
-      	lower=PosteriorMean[i]-errorspan*maxsd
-      	upper=PosteriorMean[i]+errorspan*maxsd
-	  }else{
+        maxsd=m$sd[maxposition]
+        lower=PosteriorMean[i]-errorspan*maxsd
+        upper=PosteriorMean[i]+errorspan*maxsd
+      }else{
         lower=min(c(m$a[1: maxposition],m$b[1: maxposition]))
         upper=max(c(m$a[1: maxposition],m$b[1: maxposition])) 	
-	  }
-	  
-	  #Calculating the lower bound	  
+      }
+      
+      #Calculating the lower bound	  
       CIentryl=optimize(f=ashr:::ci.lower,interval=c(lower,PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,
-      df=df, tol=tol)$minimum	  
-	  cdfl=cdf_post(m, CIentryl,x[i],s[i],df)
-	  #If the actual cdf deviates by too much, refine the optimization search interval
-	  #currently we set maximum value of execution to maxcounts to avoid dead loop
-	  counts=0
-	  intervallength=PosteriorMean[i]-lower	  
-	  while(abs(cdfl-(1-level)/2)>(10*tol) & counts<maxcounts){
-	  	intervallength= intervallength*shrinkingcoefficient
+                        df=df, tol=tol)$minimum	  
+      cdfl=cdf_post(m, CIentryl,x[i],s[i],df)
+      #If the actual cdf deviates by too much, refine the optimization search interval
+      #currently we set maximum value of execution to maxcounts to avoid dead loop
+      counts=0
+      intervallength=PosteriorMean[i]-lower	  
+      while(abs(cdfl-(1-level)/2)>(10*tol) & counts<maxcounts){
+        intervallength= intervallength*shrinkingcoefficient
         CIentryl=optimize(f=ashr:::ci.lower,interval=c(PosteriorMean[i]-intervallength,
-        PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,df=df, tol=tol)$minimum	  
-	    cdfl=cdf_post(m, CIentryl,x[i],s[i],df)
-	    counts=counts+1	
-	  }
-	  
-	  #Calculating the upper bound
-	  CIentryu=optimize(f=ashr:::ci.upper,interval=c(PosteriorMean[i],upper),m=m,x=x[i],s=s[i],level=level,
-	  df=df, tol=tol)$minimum
-	  cdfu=cdf_post(m, CIentryu,x[i],s[i],df)
-	  #If the actual cdf deviates by too much, refine the optimization search interval
-	  #currently we set maximum value of execution to maxcounts to avoid dead loop
-	  counts=0
-	  intervallength=upper-PosteriorMean[i]
-	  while(abs(cdfu-(1+level)/2)>(10*tol) & counts<maxcounts){
-	  	intervallength= intervallength*shrinkingcoefficient
-	    CIentryu=optimize(f=ashr:::ci.upper,interval=c(PosteriorMean[i],PosteriorMean[i]+intervallength),
-	    m=m,x=x[i],s=s[i],level=level,
-	    df=df, tol=tol)$minimum
-	    cdfu=cdf_post(m, CIentryu,x[i],s[i],df)
-	    counts=counts+1		    
-	  }
-	  	  
-	  #sending the result back to master
-	  c(CIentryl, CIentryu,cdfl,cdfu)
-	}
-   stopCluster(cl)
+                                                       PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,df=df, tol=tol)$minimum	  
+        cdfl=cdf_post(m, CIentryl,x[i],s[i],df)
+        counts=counts+1	
+      }
+      
+      #Calculating the upper bound
+      CIentryu=optimize(f=ashr:::ci.upper,interval=c(PosteriorMean[i],upper),m=m,x=x[i],s=s[i],level=level,
+                        df=df, tol=tol)$minimum
+      cdfu=cdf_post(m, CIentryu,x[i],s[i],df)
+      #If the actual cdf deviates by too much, refine the optimization search interval
+      #currently we set maximum value of execution to maxcounts to avoid dead loop
+      counts=0
+      intervallength=upper-PosteriorMean[i]
+      while(abs(cdfu-(1+level)/2)>(10*tol) & counts<maxcounts){
+        intervallength= intervallength*shrinkingcoefficient
+        CIentryu=optimize(f=ashr:::ci.upper,interval=c(PosteriorMean[i],PosteriorMean[i]+intervallength),
+                          m=m,x=x[i],s=s[i],level=level,
+                          df=df, tol=tol)$minimum
+        cdfu=cdf_post(m, CIentryu,x[i],s[i],df)
+        counts=counts+1		    
+      }
+      
+      #sending the result back to master
+      c(CIentryl, CIentryu,cdfl,cdfu)
+    }
+    stopCluster(cl)
   }
   if(model=="ES"){
     CImatrix=CImatrix*sebetahat.orig
@@ -431,13 +431,13 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
 }
 
 ci.lower=function(z,m,x,s,level,df){
-	tailprob=cdf_post(m,z,x,s,df)
-	return((tailprob-(1-level)/2)^2)
+  tailprob=cdf_post(m,z,x,s,df)
+  return((tailprob-(1-level)/2)^2)
 }
 
 ci.upper=function(z,m,x,s,level,df){
-	tailprob=1-cdf_post(m,z,x,s,df)
-	return((tailprob-(1-level)/2)^2)
+  tailprob=1-cdf_post(m,z,x,s,df)
+  return((tailprob-(1-level)/2)^2)
 }
 
 
@@ -483,51 +483,51 @@ ci.upper=function(z,m,x,s,level,df){
 #' 
 #' 
 ashm=function(betahat,sebetahat,method = c("shrink","fdr"), 
-               mixcompdist = c("uniform","halfuniform","normal"),
-               lambda1=1,lambda2=0,df=NULL,
-               nullweight=10,nonzeromode=FALSE, 
-               alpha=2,ncores=FALSE){
+              mixcompdist = c("uniform","halfuniform","normal"),
+              lambda1=1,lambda2=0,df=NULL,
+              nullweight=10,nonzeromode=FALSE, 
+              alpha=2,ncores=FALSE){
   if(length(alpha)==1){
-  	alpha=seq(from=0,to=1,length=alpha)
+    alpha=seq(from=0,to=1,length=alpha)
   }
   if(missing(ncores)){
-  	if(length(betahat)>50000) ncores=detectCores()
-  	#Set the number of cores equal to system capacity
+    if(length(betahat)>50000) ncores=detectCores()
+    #Set the number of cores equal to system capacity
   }
   
   allash=list()
   loglikvector=rep(NA,length(alpha))
-   
+  
   if(ncores==FALSE){
-  	##Usual loop without parallel computation
+    ##Usual loop without parallel computation
     sink("/dev/null")
     for(i in 1:length(alpha)){
       betahati= betahat/(sebetahat^alpha[i])
       sebetahati= sebetahat^(1-alpha[i])	
       beta.ash=ash(betahati, sebetahati, method=method, mixcompdist=mixcompdist, lambda1=lambda1,
-      lambda2=lambda2, df=df,nullweight= nullweight,
-      nonzeromode= nonzeromode,model="EE")
-	  allash[[i]]=beta.ash
-	  loglikvector[i]=calc_loglik(beta.ash,betahat,sebetahat,df,alpha=alpha[i])
+                   lambda2=lambda2, df=df,nullweight= nullweight,
+                   nonzeromode= nonzeromode,model="EE")
+      allash[[i]]=beta.ash
+      loglikvector[i]=calc_loglik(beta.ash,betahat,sebetahat,df,alpha=alpha[i])
     }
     sink()
   } else{
-  	##Performing parallel computation
+    ##Performing parallel computation
     cl <- makePSOCKcluster(ncores)#This number corresponding to number of workers
     registerDoParallel(cl)
     allash=foreach(i=1:length(alpha)) %dopar% {
-  	  sink("/dev/null")
+      sink("/dev/null")
       betahati= betahat/(sebetahat^alpha[i])
       sebetahati= sebetahat^(1-alpha[i])	
       beta.ash=ashr::ash(betahati, sebetahati, method=method, mixcompdist=mixcompdist, lambda1=lambda1,
-      lambda2=lambda2, df=df,nullweight= nullweight,
-      nonzeromode= nonzeromode,model="EE")
-	  sink()
-	  beta.ash #computation result stored in allash
+                         lambda2=lambda2, df=df,nullweight= nullweight,
+                         nonzeromode= nonzeromode,model="EE")
+      sink()
+      beta.ash #computation result stored in allash
     }
     stopCluster(cl)
     for(i in 1:length(alpha)){
-	  loglikvector[i]=calc_loglik(allash[[i]],betahat,sebetahat,df,alpha=alpha[i])
+      loglikvector[i]=calc_loglik(allash[[i]],betahat,sebetahat,df,alpha=alpha[i])
     }
   }
   
@@ -535,11 +535,11 @@ ashm=function(betahat,sebetahat,method = c("shrink","fdr"),
   beta.ash= allash[[modelindex]]
   model=alpha[modelindex]
   if(model==0){
-  	model="EE"
+    model="EE"
   } else if(model==1){
     model="ES"
   } else{
-  	model=model
+    model=model
   }
   beta.ash[["model"]]=model
   return(list(bestash = beta.ash, model=model,loglikevector = loglikvector,allash = allash))
