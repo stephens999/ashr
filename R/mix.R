@@ -991,13 +991,24 @@ comp_postsd.unimix = function(m,betahat,sebetahat,v){
 # the result is from the paper 'Moments of truncated Student-t distribution' by H.-J Kim 
 
 my_etrunct= function(a,b,v){
-  A = v+a^2
-  B = v+b^2
-  F_a = pt(a,df=v)
-  F_b = pt(b,df=v)
-  G = gamma((v-1)/2)*v^(v/2)/(2*(F_b-F_a)*gamma(v/2)*gamma(1/2))
-  tmp = ifelse(a==b,a,G*(A^(-(v-1)/2)-B^(-(v-1)/2)))
-  tmp
+  if(a==b){
+  	tmp=a
+  }else{
+  	A = v+a^2
+ 	B = v+b^2
+  	F_a = pt(a,df=v)
+  	F_b = pt(b,df=v)
+  	lG=lgamma((v-1)/2)+(v/2)*log(v)-log(2*(F_b-F_a))-lgamma(v/2)-lgamma(1/2)
+ 	G=exp(lG)
+ 	ABpart=(A^(-(v-1)/2)-B^(-(v-1)/2))
+  	if(G==Inf && ABpart==0){
+  		#Use normal approximation instead
+  		tmp=my_etruncnorm(a,b)
+  	}else{
+  		tmp=G*ABpart
+  	}
+  } 
+  return(tmp)
 }
 
 
