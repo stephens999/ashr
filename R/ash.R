@@ -90,7 +90,7 @@
 # check number of iterations
 ash = function(betahat,sebetahat,
                method = c("shrink","fdr"),
-               mixcompdist = c("uniform","halfuniform","normal"),
+               mixcompdist = c("uniform","halfuniform","normal","nonparam"),
                lambda1=1,lambda2=0,nullcheck=TRUE,df=NULL,randomstart=FALSE,
                nullweight=10,nonzeromode=FALSE, 
                pointmass = FALSE, 
@@ -194,9 +194,9 @@ ash = function(betahat,sebetahat,
   
   
   if(!is.null(g)){
-    controlinput$maxiter = 1 # if g is specified, don't iterate the EM
-    prior = rep(1,ncomp(g)) #prior is not actually used if g specified, but required to make sure EM doesn't produce warning
-    null.comp=1 #null.comp also not used, but required 
+    #controlinput$maxiter = 0 # if g is specified, don't iterate the EM
+    prior = rep(1,ncomp(g)) #
+    null.comp=1 #null.comp not used, but required to be specified
   } else {
     if(is.null(mixsd)){
       if(nonzeromode){
