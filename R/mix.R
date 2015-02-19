@@ -833,7 +833,21 @@ comp_postsd_mixlik.default=function(m,betahat,sebetahat,v,pilik){
 
 ############################### METHODS FOR unimix class ###########################
 
-#constructor; pi, a and b are vectors; kth component is Uniform(a[k],b[k])
+#' @title Constructor for unimix class
+#'
+#' @description Creates an object of class unimix (finite mixture of univariate uniforms)
+#' 
+#' @details None
+#' 
+#' @param pi vector of mixture proportions
+#' @param a vector of left hand ends of uniforms
+#' @param b vector of right hand ends of uniforms
+#' 
+#' @return an object of class unimix
+#' 
+#' @export
+#' 
+#' @examples unimix(c(0.5,0.5),c(0,0),c(1,2))
 unimix = function(pi,a,b){
   structure(data.frame(pi,a,b),class="unimix")
 }

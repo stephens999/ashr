@@ -195,8 +195,11 @@ ash = function(betahat,sebetahat,
   
   if(!is.null(g)){
     #controlinput$maxiter = 0 # if g is specified, don't iterate the EM
-    prior = rep(1,ncomp(g)) #
-    null.comp=1 #null.comp not used, but required to be specified
+    k=ncomp(g)
+    prior = setprior(prior,k)
+    null.comp=1 #null.comp not actually used unless randomstart true 
+    if(randomstart){pi = initpi(k,n,null.comp,randomstart)
+                    g$pi=pi} #if g specified, only initialize pi if randomstart is TRUE       
   } else {
     if(is.null(mixsd)){
       if(nonzeromode){
@@ -218,30 +221,10 @@ ash = function(betahat,sebetahat,
     null.comp = which.min(mixsd) #which component is the "null"
     
     k = length(mixsd)
-    if(!is.numeric(prior)){
-      if(prior=="nullbiased"){ # set up prior to favour "null"
-        prior = rep(1,k)
-        prior[null.comp] = nullweight #prior 10-1 in favour of null by default
-      }else if(prior=="uniform"){
-        prior = rep(1,k)
-      }
-    }
+    prior = setprior(prior,k)
+    pi = initpi(k,n,null.comp,randomstart)
+ 
     
-    if(length(prior)!=k | !is.numeric(prior)){
-      stop("invalid prior specification")
-    }
-    
-    if(randomstart){
-      pi = rgamma(k,1,1)
-    } else {
-      if(k<n){
-        pi=rep(1,k)/n #default initialization strongly favours null; puts weight 1/n on everything except null
-        pi[null.comp] = (n-k+1)/n #the motivation is data can quickly drive away from null, but tend to drive only slowly toward null.
-      } else {
-        pi=rep(1,k)/k
-      }
-    }    
-    pi=normalize(pi)
     if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")
     if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),mixsd)
     if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)
@@ -365,6 +348,37 @@ ash = function(betahat,sebetahat,
     return(result)
   }
 }
+
+initpi = function(k,n,null.comp,randomstart){
+  if(randomstart){
+    pi = rgamma(k,1,1)
+  } else {
+    if(k<n){
+      pi=rep(1,k)/n #default initialization strongly favours null; puts weight 1/n on everything except null
+      pi[null.comp] = (n-k+1)/n #the motivation is data can quickly drive away from null, but tend to drive only slowly toward null.
+    } else {
+      pi=rep(1,k)/k
+    }
+  }    
+  pi=normalize(pi)
+  return(pi)
+}
+
+setprior=function(prior,k){
+  if(!is.numeric(prior)){
+    if(prior=="nullbiased"){ # set up prior to favour "null"
+      prior = rep(1,k)
+      prior[null.comp] = nullweight #prior 10-1 in favour of null by default
+    }else if(prior=="uniform"){
+      prior = rep(1,k)
+    }
+  }
+  if(length(prior)!=k | !is.numeric(prior)){
+    stop("invalid prior specification")
+  }
+  return(prior)
+}
+
 
 #' @title Function to compute the local false sign rate
 #'
