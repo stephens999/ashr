@@ -196,8 +196,8 @@ ash = function(betahat,sebetahat,
   if(!is.null(g)){
     #controlinput$maxiter = 0 # if g is specified, don't iterate the EM
     k=ncomp(g)
-    prior = setprior(prior,k,nullweight)
     null.comp=1 #null.comp not actually used unless randomstart true 
+    prior = setprior(prior,k,nullweight,null.comp)
     if(randomstart){pi = initpi(k,n,null.comp,randomstart)
                     g$pi=pi} #if g specified, only initialize pi if randomstart is TRUE       
   } else {
@@ -221,7 +221,7 @@ ash = function(betahat,sebetahat,
     null.comp = which.min(mixsd) #which component is the "null"
     
     k = length(mixsd)
-    prior = setprior(prior,k,nullweight)
+    prior = setprior(prior,k,nullweight,null.comp)
     pi = initpi(k,n,null.comp,randomstart)
  
     
@@ -364,7 +364,7 @@ initpi = function(k,n,null.comp,randomstart){
   return(pi)
 }
 
-setprior=function(prior,k,nullweight){
+setprior=function(prior,k,nullweight,null.comp){
   if(!is.numeric(prior)){
     if(prior=="nullbiased"){ # set up prior to favour "null"
       prior = rep(1,k)
