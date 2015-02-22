@@ -903,6 +903,7 @@ effective.effect=function(betahat,se,df){
 #' 
 #' @export
 qval.from.lfdr = function(lfdr){
+  if(sum(!is.na(lfdr))==0){return(rep(NA,length(lfdr)))}
   o = order(lfdr)
   qvalue=rep(NA,length(lfdr))
   qvalue[o] = (cumsum(sort(lfdr))/(1:sum(!is.na(lfdr))))
