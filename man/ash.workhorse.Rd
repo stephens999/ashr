@@ -5,11 +5,11 @@
 \title{Detailed Adaptive Shrinkage function}
 \usage{
 ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
-  mixcompdist = c("uniform", "halfuniform", "normal", "nonparam"),
-  lambda1 = 1, lambda2 = 0, nullcheck = TRUE, df = NULL,
-  randomstart = FALSE, nullweight = 10, nonzeromode = FALSE,
-  pointmass = TRUE, onlylogLR = FALSE, prior = c("nullbiased", "uniform"),
-  mixsd = NULL, VB = FALSE, gridmult = sqrt(2), minimaloutput = FALSE,
+  mixcompdist = c("uniform", "halfuniform", "normal"), lambda1 = 1,
+  lambda2 = 0, nullcheck = TRUE, df = NULL, randomstart = FALSE,
+  nullweight = 10, nonzeromode = FALSE, pointmass = TRUE,
+  onlylogLR = FALSE, prior = c("nullbiased", "uniform"), mixsd = NULL,
+  VB = FALSE, gridmult = sqrt(2), minimaloutput = FALSE,
   multiseqoutput = FALSE, g = NULL, cxx = FALSE, model = c("EE", "ES"),
   control = list())
 }
@@ -22,7 +22,7 @@ ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
 This is simply a convenient way to specify certain combinations of parameters: "shrinkage" sets pointmass=FALSE and prior="uniform";
 "fdr" sets pointmass=TRUE and prior="nullbiased".}
 
-\item{mixcompdist}{distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value would be "uniform"}
+\item{mixcompdist}{distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value is "uniform"}
 
 \item{lambda1}{multiplicative "inflation factor" for standard errors (like Genomic Control)}
 

@@ -81,7 +81,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @param method specifies how ash is to be run. Can be "shrinkage" (if main aim is shrinkage) or "fdr" (if main aim is to assess fdr or fsr)
 #' This is simply a convenient way to specify certain combinations of parameters: "shrinkage" sets pointmass=FALSE and prior="uniform";
 #' "fdr" sets pointmass=TRUE and prior="nullbiased".
-#' @param mixcompdist distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value would be "uniform"
+#' @param mixcompdist distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value is "uniform"
 #'
 #' @param lambda1  multiplicative "inflation factor" for standard errors (like Genomic Control)
 #' @param lambda2  additive "inflation factor" for standard errors (like Genomic Control)
@@ -153,7 +153,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' summary(betan.ash)
 ash.workhorse = function(betahat,sebetahat,
                method = c("fdr","shrink"),
-               mixcompdist = c("uniform","halfuniform","normal","nonparam"),
+               mixcompdist = c("uniform","halfuniform","normal"),
                lambda1=1,lambda2=0,nullcheck=TRUE,df=NULL,randomstart=FALSE,
                nullweight=10,nonzeromode=FALSE, 
                pointmass = TRUE, 
@@ -222,12 +222,7 @@ ash.workhorse = function(betahat,sebetahat,
   if(mixcompdist=="normal" & !is.null(df)){
     stop("Error:Normal mixture for student-t likelihood is not yet implemented")
   }
-  # if(mixcompdist=="uniform" & pointmass==TRUE){
-  #    stop("point mass not yet implemented for uniform or half-uniform")
-  #  }
-  #  if(mixcompdist=="halfuniform" & pointmass==TRUE){
-  #    stop("point mass not yet implemented for uniform or half-uniform")
-  #  }
+
   if(gridmult<=1&multiseqoutput!=TRUE){  stop("gridmult must be > 1")  }  
   if(!is.numeric(prior)){  prior = match.arg(prior)  }  
   if(length(sebetahat)==1){  sebetahat = rep(sebetahat,length(betahat))  }
