@@ -4,64 +4,17 @@
 \alias{ash}
 \title{Main Adaptive Shrinkage function}
 \usage{
-ash(betahat, sebetahat, method = c("shrink", "fdr"),
-  mixcompdist = c("uniform", "halfuniform", "normal", "nonparam"),
-  lambda1 = 1, lambda2 = 0, nullcheck = TRUE, df = NULL,
-  randomstart = FALSE, nullweight = 10, nonzeromode = FALSE,
-  pointmass = FALSE, onlylogLR = FALSE, prior = c("uniform",
-  "nullbiased"), mixsd = NULL, VB = FALSE, gridmult = sqrt(2),
-  minimaloutput = FALSE, multiseqoutput = FALSE, g = NULL, cxx = FALSE,
-  model = c("EE", "ES"), control = list())
+ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal",
+  "nonparam"), df = NULL, ...)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
 
 \item{sebetahat}{a p vector of corresponding standard errors}
 
-\item{method}{specifies how ash is to be run. Can be "shrinkage" (if main aim is shrinkage) or "fdr" (if main aim is to assess fdr or fsr)
-This is simply a convenient way to specify certain combinations of parameters: "shrinkage" sets pointmass=FALSE and prior="uniform";
-"fdr" sets pointmass=TRUE and prior="nullbiased".}
+\item{mixcompdist}{distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default is "uniform". If you believe your effects may be asymmetric, use "halfuniform". The use of "normal" is permitted only if df=NULL.}
 
-\item{mixcompdist}{distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value would be "uniform"}
-
-\item{lambda1}{multiplicative "inflation factor" for standard errors (like Genomic Control)}
-
-\item{lambda2}{additive "inflation factor" for standard errors (like Genomic Control)}
-
-\item{nullcheck}{whether to check that any fitted model exceeds the "null" likelihood
-in which all weight is on the first component}
-
-\item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)}
-
-\item{randomstart}{logical, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)}
-
-\item{nullweight}{scalar, the weight put on the prior under "nullbiased" specification, see \code{prior}}
-
-\item{nonzeromode}{logical, indicating whether to use a non-zero unimodal mixture(default is "FALSE")}
-
-\item{pointmass}{logical, indicating whether to use a point mass at zero as one of components for a mixture distribution}
-
-\item{onlylogLR}{logical, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, lfdr...}
-
-\item{prior}{string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component)}
-
-\item{mixsd}{vector of sds for underlying mixture components}
-
-\item{VB}{whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}}
-
-\item{gridmult}{the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)}
-
-\item{minimaloutput}{if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue)}
-
-\item{multiseqoutput}{if TRUE, just outputs the fitted g, logLR, PosteriorMean, PosteriorSD, function call and df}
-
-\item{g}{the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)}
-
-\item{cxx}{flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point.}
-
-\item{model}{c("EE","ES") specifies whether to assume exchangeable effects (EE) or exchangeable standardized effects (ES).}
-
-\item{control}{A list of control parameters for the SQUAREM algorithm, default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User may supply changes to this list of parameter, say, control=list(maxiter=10000,trace=TRUE)}
+\item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL which is actually treated as infinity (Gaussian)}
 }
 \value{
 ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
@@ -91,7 +44,7 @@ Takes vectors of estimates (betahat) and their standard errors (sebetahat), and 
 shrinkage to them, using Empirical Bayes methods, to compute shrunk estimates for beta.
 }
 \details{
-See readme for more details
+This function is actually just a simple wrapper that passes its parameters to ash.workhorse which provides more documented options for advanced use. See readme for more details.
 }
 \examples{
 beta = c(rep(0,100),rnorm(100))
@@ -104,7 +57,7 @@ plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 CIMatrix=ashci(beta.ash,level=0.95)
 print(CIMatrix)
 
-#Testing the non-zero mode feature
+#Illustrating the non-zero mode feature
 betahat=betahat+5
 beta.ash = ash(betahat, sebetahat)
 plot(betahat,beta.ash$PosteriorMean)

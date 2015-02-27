@@ -3,12 +3,78 @@
 #' @import truncnorm SQUAREM doParallel pscl Rcpp
 #
 #
+
+
 #' @title Main Adaptive Shrinkage function
 #'
 #' @description Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
 #' shrinkage to them, using Empirical Bayes methods, to compute shrunk estimates for beta.
 #'
-#' @details See readme for more details
+#' @details This function is actually just a simple wrapper that passes its parameters to ash.workhorse which provides more documented options for advanced use. See readme for more details. 
+#' 
+#' @param betahat  a p vector of estimates 
+#' @param sebetahat a p vector of corresponding standard errors
+#' @param mixcompdist distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default is "uniform". If you believe your effects may be asymmetric, use "halfuniform". The use of "normal" is permitted only if df=NULL.
+#' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL which is actually treated as infinity (Gaussian)
+#' 
+#' @return ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
+#' \item{fitted.g}{fitted mixture, either a normalmix or unimix}
+#' \item{logLR}{log P(D|mle(pi)) - log P(D|null)}
+#' \item{loglik}{log P(D|mle(pi))}
+#' \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
+#' \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
+#' \item{PositiveProb}{A vector of posterior probability that beta is positive}
+#' \item{NegativeProb}{A vector of posterior probability that beta is negative}
+#' \item{ZeroProb}{A vector of posterior probability that beta is zero}
+#' \item{lfsr}{The local false sign rate}
+#' \item{lfsra}{The local false sign rate(adjusted)}
+#' \item{lfdr}{A vector of estimated local false discovery rate}
+#' \item{qvalue}{A vector of q values}
+#' \item{fit}{The fitted mixture object by \code{\link{mixEM}} or \code{\link{mixVBEM}} }
+#' \item{lambda1}{multiplicative "inflation factor"}
+#' \item{lambda2}{additive "inflation factor"}
+#' \item{call}{a call in which all of the specified arguments are specified by their full names}
+#' \item{data}{a list consisting the input betahat and sebetahat}
+#' \item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
+#' \item{df}{the specified degrees of freedom for (t) distribution of betahat/sebetahat}
+#' \item{model}{either "EE" or "ES", denoting whether exchangeable effects (EE) or exchangeable standardized effects (ES) has been used}
+
+#'
+#' @seealso \code{\link{ashci}} for computation of credible intervals after getting the ash object return by \code{ash()}
+#' @seealso \code{\link{ashm}} for Multi-model Adaptive Shrinkage function
+#'
+#' @export
+#' @examples 
+#' beta = c(rep(0,100),rnorm(100))
+#' sebetahat = abs(rnorm(200,0,1))
+#' betahat = rnorm(200,beta,sebetahat)
+#' beta.ash = ash(betahat, sebetahat)
+#' summary(beta.ash)
+#' plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
+#' 
+#' CIMatrix=ashci(beta.ash,level=0.95) 
+#' print(CIMatrix)
+#'
+#' #Illustrating the non-zero mode feature
+#' betahat=betahat+5
+#' beta.ash = ash(betahat, sebetahat)
+#' plot(betahat,beta.ash$PosteriorMean)
+#' summary(beta.ash)
+#' betan.ash=ash(betahat, sebetahat,nonzeromode=TRUE)
+#' plot(betahat, betan.ash$PosteriorMean)
+#' summary(betan.ash)
+ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal","nonparam"),df=NULL,...){
+  return(ash.workhorse(betahat,sebetahat,mixcompdist=mixcompdist,df=df,...))
+}
+
+
+#' @title Detailed Adaptive Shrinkage function
+#'
+#' @description Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
+#' shrinkage to them, using Empirical Bayes methods, to compute shrunk estimates for beta. This is the more detailed version of ash for "research" use. 
+#' Most users will be happy with the ash function, which provides the same usage, but documents only the main options for simplicity. 
+#'
+#' @details See readme for more details.
 #' 
 #' @param betahat  a p vector of estimates 
 #' @param sebetahat a p vector of corresponding standard errors
@@ -85,17 +151,14 @@
 #' betan.ash=ash(betahat, sebetahat,nonzeromode=TRUE)
 #' plot(betahat, betan.ash$PosteriorMean)
 #' summary(betan.ash)
-#Things to do:
-# check sampling routine
-# check number of iterations
-ash = function(betahat,sebetahat,
-               method = c("shrink","fdr"),
+ash.workhorse = function(betahat,sebetahat,
+               method = c("fdr","shrink"),
                mixcompdist = c("uniform","halfuniform","normal","nonparam"),
                lambda1=1,lambda2=0,nullcheck=TRUE,df=NULL,randomstart=FALSE,
                nullweight=10,nonzeromode=FALSE, 
-               pointmass = FALSE, 
+               pointmass = TRUE, 
                onlylogLR = FALSE, 
-               prior=c("uniform","nullbiased"), 
+               prior=c("nullbiased","uniform"), 
                mixsd=NULL, VB=FALSE,gridmult=sqrt(2),
                minimaloutput=FALSE,
                multiseqoutput=FALSE,
@@ -242,7 +305,7 @@ ash = function(betahat,sebetahat,
     }
   }
   
-  #A stringent criteria based on central limit theorem is set to give the user warning message.
+  #A criteria based on central limit theorem is set to give the user warning message.
   #if(!nonzeromode){
   #  maxsd=max(mixsd)
   #	maxse=quantile(sebetahat[completeobs],0.999)
