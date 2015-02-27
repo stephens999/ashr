@@ -829,7 +829,7 @@ EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,c
     EMfit=mixVBEM(matrix_lik,prior,control=controlinput)}
   else{
     if (cxx==TRUE){
-      EMfit = cxxMixEM(matrix_lik,prior,pi.init,1e-5, controlinput$maxiter) #currently use different convergence criteria for cxx version 
+      EMfit = cxxMixSquarem(matrix_lik,prior,pi.init,controlinput) #currently use different convergence criteria for cxx version 
       if(!EMfit$converged){
         warning("EM algorithm in function cxxMixEM failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
       }
