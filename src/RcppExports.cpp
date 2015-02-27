@@ -5,9 +5,9 @@
 
 using namespace Rcpp;
 
-// cxxMixEM
-List cxxMixEM(NumericMatrix matrix_lik, NumericVector prior, NumericVector pi_init, double tol = 0.0001, int maxiter = 5000);
-RcppExport SEXP ashr_cxxMixEM(SEXP matrix_likSEXP, SEXP priorSEXP, SEXP pi_initSEXP, SEXP tolSEXP, SEXP maxiterSEXP) {
+// cxxMixSquarem
+List cxxMixSquarem(NumericMatrix matrix_lik, NumericVector prior, NumericVector pi_init, List control);
+RcppExport SEXP ashr_cxxMixSquarem(SEXP matrix_likSEXP, SEXP priorSEXP, SEXP pi_initSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
@@ -15,9 +15,8 @@ BEGIN_RCPP
         Rcpp::traits::input_parameter< NumericMatrix >::type matrix_lik(matrix_likSEXP );
         Rcpp::traits::input_parameter< NumericVector >::type prior(priorSEXP );
         Rcpp::traits::input_parameter< NumericVector >::type pi_init(pi_initSEXP );
-        Rcpp::traits::input_parameter< double >::type tol(tolSEXP );
-        Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP );
-        List __result = cxxMixEM(matrix_lik, prior, pi_init, tol, maxiter);
+        Rcpp::traits::input_parameter< List >::type control(controlSEXP );
+        List __result = cxxMixSquarem(matrix_lik, prior, pi_init, control);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

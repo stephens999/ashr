@@ -289,7 +289,7 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
   
   CImatrix=matrix(NA,nrow=length(x),ncol=7)
   CImatrix[,3]=PosteriorMean
-  colnames(CImatrix)=c("Index(Location)","lfsr","Posterior Mean",(1-level)/2,(1+level)/2,"Actual cdf(lower) ","Actual cdf(upper)")  
+  colnames(CImatrix)=c("Index(Location)","lfsr","Posterior Mean",(1-level)/2,(1+level)/2,"Fitted CDF(lower) ","Fitted CDF(upper)")  
   
   if(missing(trace)){
     if(length(x)>=1000){
