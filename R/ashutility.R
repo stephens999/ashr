@@ -452,15 +452,9 @@ ci.upper=function(z,m,x,s,level,df){
 #'
 #' @param betahat  a p vector of estimates 
 #' @param sebetahat a p vector of corresponding standard errors
-#' @param method specifies how ash is to be run. Can be "shrinkage" (if main aim is shrinkage) or "fdr" (if main aim is to assess fdr or fsr)
-#' This is simply a convenient way to specify certain combinations of parameters: "shrinkage" sets pointmass=FALSE and prior="uniform";
-#' "fdr" sets pointmass=TRUE and prior="nullbiased".
+
 #' @param mixcompdist distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value would be "uniform"
-#' @param lambda1  multiplicative "inflation factor" for standard errors (like Genomic Control)
-#' @param lambda2  additive "inflation factor" for standard errors (like Genomic Control)
-##' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)
-#' @param nullweight scalar, the weight put on the prior under "nullbiased" specification, see \code{prior}
-#' @param nonzeromode logical, indicating whether to use a non-zero unimodal mixture(default is "FALSE")
+#' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)
 #' @param alpha Could be a vector of grid values in interval [0,1], that this wrapper would select based on likelihood principle. Could also be a positive integer greater or equal to 2, then alpha number of grid values would be generated from [0,1], equally spaced. The default value is 2 that we compare the EE and ES model.
 #' @param ncores Whether to use parallel computing, defaults to FALSE, user could specify number of cores they would like to use. Further, if user does not specify and length(betahat)>50000, then the function would perform parallel computation using number of CPU cores on the current host.
 #' 
@@ -482,11 +476,10 @@ ci.upper=function(z,m,x,s,level,df){
 #' print(beta.ashm[[3]])  #log-likelihood for all models
 #' 
 #' 
-ashm=function(betahat,sebetahat,method = c("shrink","fdr"), 
+ashm=function(betahat,sebetahat, 
               mixcompdist = c("uniform","halfuniform","normal"),
-              lambda1=1,lambda2=0,df=NULL,
-              nullweight=10,nonzeromode=FALSE, 
-              alpha=2,ncores=FALSE){
+			  df=NULL, alpha=2,ncores=FALSE,
+              ...){
   if(length(alpha)==1){
     alpha=seq(from=0,to=1,length=alpha)
   }
@@ -504,9 +497,7 @@ ashm=function(betahat,sebetahat,method = c("shrink","fdr"),
     for(i in 1:length(alpha)){
       betahati= betahat/(sebetahat^alpha[i])
       sebetahati= sebetahat^(1-alpha[i])	
-      beta.ash=ash(betahati, sebetahati, method=method, mixcompdist=mixcompdist, lambda1=lambda1,
-                   lambda2=lambda2, df=df,nullweight= nullweight,
-                   nonzeromode= nonzeromode,model="EE")
+      beta.ash=ash(betahati, sebetahati, mixcompdist=mixcompdist,df=df,model="EE",...)
       allash[[i]]=beta.ash
       loglikvector[i]=calc_loglik(beta.ash,betahat,sebetahat,df,alpha=alpha[i])
     }
@@ -519,9 +510,7 @@ ashm=function(betahat,sebetahat,method = c("shrink","fdr"),
       sink("/dev/null")
       betahati= betahat/(sebetahat^alpha[i])
       sebetahati= sebetahat^(1-alpha[i])	
-      beta.ash=ashr::ash(betahati, sebetahati, method=method, mixcompdist=mixcompdist, lambda1=lambda1,
-                         lambda2=lambda2, df=df,nullweight= nullweight,
-                         nonzeromode= nonzeromode,model="EE")
+      beta.ash=ashr::ash(betahati, sebetahati, mixcompdist=mixcompdist,df=df,model="EE",...)
       sink()
       beta.ash #computation result stored in allash
     }
