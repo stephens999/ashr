@@ -40,6 +40,7 @@
 #' \item{model}{either "EE" or "ES", denoting whether exchangeable effects (EE) or exchangeable standardized effects (ES) has been used}
 
 #'
+#' @seealso \code{\link{ash.workhorse}} for complete specification of ash function
 #' @seealso \code{\link{ashci}} for computation of credible intervals after getting the ash object return by \code{ash()}
 #' @seealso \code{\link{ashm}} for Multi-model Adaptive Shrinkage function
 #'
@@ -63,7 +64,7 @@
 #' betan.ash=ash(betahat, sebetahat,nonzeromode=TRUE)
 #' plot(betahat, betan.ash$PosteriorMean)
 #' summary(betan.ash)
-ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal","nonparam"),df=NULL,...){
+ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal"),df=NULL,...){
   return(ash.workhorse(betahat,sebetahat,mixcompdist=mixcompdist,df=df,...))
 }
 
@@ -128,8 +129,10 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' \item{model}{either "EE" or "ES", denoting whether exchangeable effects (EE) or exchangeable standardized effects (ES) has been used}
 
 #'
+#' @seealso \code{\link{ash}} for simplified specification of ash function
 #' @seealso \code{\link{ashci}} for computation of credible intervals after getting the ash object return by \code{ash()}
 #' @seealso \code{\link{ashm}} for Multi-model Adaptive Shrinkage function
+
 #'
 #' @export
 #' @examples 

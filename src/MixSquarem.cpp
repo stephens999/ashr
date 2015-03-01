@@ -26,6 +26,7 @@ List fixptfn(NumericVector pi_est,NumericMatrix matrix_lik, NumericVector prior)
     }
     //calculating objective value--probability
     loglik=sum(log(m_rowsum));
+    
     for (int i=0;i<k;i++){
         if(prior[i]!=1.0){
             lpriordens +=(prior[i]-1.0)*log(pi_est[i]);
@@ -52,7 +53,7 @@ List squarem1(NumericVector par,NumericMatrix matrix_lik,NumericVector prior,Lis
     bool trace=control["trace"];
     double stepmin0=control["step.min0"];
     double stepmax0=control["step.max0"];
-    double kr=control["kr"];
+    //double kr=control["kr"];
     double objfninc=control["objfn.inc"];
     double tol=control["tol"];
     double mstep=control["mstep"];
@@ -63,7 +64,7 @@ List squarem1(NumericVector par,NumericMatrix matrix_lik,NumericVector prior,Lis
     NumericVector lold,lnew;
     
     double sr2_scalar,sq2_scalar,sv2_scalar,srv_scalar,alpha,stepmin,stepmax;
-    int iter,feval,leval;
+    int iter,feval;
     bool conv,extrap;
     stepmin=stepmin0;
     stepmax=stepmax0;
@@ -209,7 +210,7 @@ List squarem1(NumericVector par,NumericMatrix matrix_lik,NumericVector prior,Lis
 
 // [[Rcpp::export]]
 List cxxMixSquarem(NumericMatrix matrix_lik, NumericVector prior, NumericVector pi_init, List control){//note: no default pi_init=NULL
-    int n=matrix_lik.nrow(), k=matrix_lik.ncol(),niter;
+    int  k=matrix_lik.ncol(),niter;
     bool converged=NA_LOGICAL;
     double loglik;
     List res;

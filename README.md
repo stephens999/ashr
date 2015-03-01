@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/stephens999/ashr.svg?branch=master)](https://travis-ci.org/stephens999/ashr)
+
 This repository contains an R package for performing "Adaptive Shrinkage."
 
 To install the ashr package first you need to install devtools
