@@ -47,7 +47,13 @@ to combine information across $j=1,\dots,J$.
 Specifically, 
 we assume that the true 
 $\beta_j$ values are independent
-and identically distributed from some distribution $g(\cdot ; \pi)$, where $\pi$ is a hyper-parameter to be estimated. 
+and identically distributed from some distribution $g(\cdot;\pi)$
+where $\pi$ are hyperparameters to be estimated.
+
+The key assumption is that $g$ is *unimodal* about zero.
+We implement this by assuming that $g$ is a mixture
+of uniforms, or a mixture of normals, each centered at 0.
+
 Then, given $\beta$, we assume that $(\hat\beta_j,s_j)$ are independent across $j$, and depend only on $\beta_j$. Putting these together, the joint model for the unobserved $\beta$ and the observed $\hat\beta, s$ is:
 \begin{align}
 p(\hat\beta, s, \beta | \pi) & = \prod_j g(\beta_j ; \pi) p(\hat\beta_j, s_j | \beta_j) \\
@@ -73,11 +79,9 @@ and credible intervals/regions.
 The key components of this hierarchical model
 are the distribution $g$ and the likelihood $L(\beta_j; \hat\beta_j, s_j)$. We make the following choices for these.
 
-1. The likelihood for $\beta_j$ is normal, centered on $\hat\beta_j$, with standard deviation $s_j$.
-That is, 
-$$L(\beta_j; \hat\beta_j, s_j) \propto \exp[-0.5(\beta_j-\hat\beta_j)^2/s_j^2]. \quad (**)$$
+1. The likelihood for $\beta_j$ is t, with known degrees of freedom, centered on $\hat\beta_j$, with scale parameter $s_j$.
 
-2. The distribution $g(\cdot; \pi)$ is a mixture of zero-centered normal distributions, 
+2. The distribution $g(\cdot; \pi)$ is a mixture of zero-centered normal distributions, or zero-centered uniform distributions. For example, for the normals we would have:
 $$g(\cdot; \pi) = \sum_{k=1}^K pi_k N(\cdot; 0, \sigma^2_k).$$
 In practice, we currently fix the number of components $K$ to be large, and take the variances $\sigma_1<\sigma_2<\dots<\sigma_K$ to be fixed, and vary from very small (possibly 0), to very large --  sufficiently large that typically $\hat\pi_K=0$.
 
