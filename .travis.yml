@@ -9,7 +9,8 @@ before_install:
 
 install:
   - ./travis-tool.sh install_deps
-
+  - ./travis-tool.sh install_github
+  
 script: ./travis-tool.sh run_tests
 
 on_failure:

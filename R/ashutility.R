@@ -533,3 +533,91 @@ ashm=function(betahat,sebetahat,
   beta.ash[["model"]]=model
   return(list(bestash = beta.ash, model=model,loglikevector = loglikvector,allash = allash))
 }
+
+
+#' @title Multi-Mode Adaptive Shrinkage function 
+#'
+#' @description This is a wrapper function that takes a grid value of \eqn{alpha} and then consider the model \eqn{betahat_j ~ g()},and eqn{beta_j  ~ N(0,sebetahat^2) or student t distribution}. \eqn{alpha} should be a grid of mu,this wrapper function would select the best \eqn{alpha} and reports the ash item based on that \eqn{alpha}.
+#'
+#' @seealso \code{\link{ash}} the main function that this wrapper function is calling
+#' @details All other inputs are exactly the same as the main function ash, and would pass to the main function to evaluate the likelihood.
+#'
+#' @param betahat  a p vector of estimates 
+#' @param sebetahat a p vector of corresponding standard errors
+
+#' @param mixcompdist distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value would be "uniform"
+#' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)
+#' @param alpha Could be a vector of grid values for mu. that this wrapper would select based on likelihood principle. Could also be a positive integer greater or equal to 4, then alpha number of grid values would be generated from [-abs(mean(betahat)),2*abs(mean(betahat)], equally spaced. 
+#' @param ncores Whether to use parallel computing, defaults to FALSE, user could specify number of cores they would like to use. Further, if user does not specify and length(betahat)>50000, then the function would perform parallel computation using number of CPU cores on the current host.
+#' 
+#' @return ashm returns a list of objects
+#' \item{beta.ash}{the best fitted ash object}
+#' \item{BestMode}{the best fitted mode, note that all models are fitted with betahat subtracting the corresponding mode}
+#' \item{loglikvector}{the vector of loglikelihood of various models}
+#' \item{allash}{the fitted ash of various models}
+#'
+
+#' @export
+#' @examples 
+#' beta = c(rep(0,100),rnorm(100))+0.2
+#' sebetahat = abs(rnorm(200,0,1))
+#' betahat = rnorm(200,beta,sebetahat)
+#' beta.ashn = ashn(betahat, sebetahat,alpha=6)
+#' #beta.ashn4 = ashn(betahat, sebetahat,alpha=6,ncores=4)
+#' print(beta.ashn[[1]])  #best ash object
+#' print(beta.ashn[[2]])  #corresponding mode (0 or some other values)
+#' print(beta.ashn[[3]])  #log-likelihood for all models
+#' 
+#' 
+ashn=function(betahat,sebetahat, 
+              mixcompdist = c("uniform","halfuniform","normal"),
+			  df=NULL, alpha=4,ncores=FALSE,
+              ...){
+  if(length(alpha)==1){
+    alpha=seq(from=-abs(mean(betahat)),to=2*abs(mean(betahat)),length=alpha)
+    alpha=c(0,alpha)
+  }
+  if(missing(ncores)){
+    if(length(betahat)>50000) ncores=detectCores()
+    #Set the number of cores equal to system capacity
+  }
+  
+  allash=list()
+  loglikvector=rep(NA,length(alpha))
+  
+  if(ncores==FALSE){
+    ##Usual loop without parallel computation
+    sink("/dev/null")
+    for(i in 1:length(alpha)){
+      betahati= betahat-alpha[i]
+      sebetahati= sebetahat	
+      beta.ash=ash(betahati, sebetahati, mixcompdist=mixcompdist,df=df,model="EE",...)
+      allash[[i]]=beta.ash
+      loglikvector[i]=calc_loglik(beta.ash,betahati,sebetahati,df) 
+    }
+    sink()
+  } else{
+    ##Performing parallel computation
+    cl <- makePSOCKcluster(ncores)#This number corresponding to number of workers
+    registerDoParallel(cl)
+    allash=foreach(i=1:length(alpha)) %dopar% {
+      sink("/dev/null")
+      betahati= betahat-alpha[i]
+      sebetahati= sebetahat		
+      beta.ash=ashr::ash(betahati, sebetahati, mixcompdist=mixcompdist,df=df,model="EE",...)
+      sink()
+      beta.ash #computation result stored in allash
+    }
+    stopCluster(cl)
+    for(i in 1:length(alpha)){
+      loglikvector[i]=calc_loglik(allash[[i]],betahati,sebetahati,df)
+    }
+  }
+  
+  modelindex=which.max(loglikvector)
+  beta.ash= allash[[modelindex]]
+  BestMode=alpha[modelindex]
+
+  return(list(bestash = beta.ash, BestMode=BestMode,loglikevector = loglikvector,allash = allash))
+}
+
