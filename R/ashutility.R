@@ -33,7 +33,7 @@ print.ash =function(x,...){
 
 #' @title Plot method for ash object
 #'
-#' @description Plot the density of the underlying fitted distribution
+#' @description Plot the cdf of the underlying fitted distribution
 #'
 #' @param x the fitted ash object
 #' @param ... Arguments to be passed to methods,such as graphical parameters (see \code{\link[graphics]{plot}})
@@ -47,7 +47,7 @@ plot.ash = function(x,...,xmin,xmax){
   if(missing(xmin)){xmin=min(x$data$betahat)}
   if(missing(xmax)){xmax=max(x$data$betahat)}
   xgrid = seq(xmin,xmax,length=1000)
-  y = get_density(x,xgrid)
+  y = cdf.ash(x,xgrid)
   plot(y,type="l",...)
 }
 
@@ -170,6 +170,7 @@ get_density=function(m,x){
   list(x=x,y=dens(m$fitted.g,x))
 }
 
+
 #' @title cdf method for ash object
 #'
 #' @description Computed the cdf of the underlying fitted distribution
@@ -181,8 +182,6 @@ get_density=function(m,x){
 #' @details None
 #' 
 #' @export
-#' 
-#'
 cdf.ash=function(a,x,lower.tail=TRUE){
   return(list(x=x,y=mixcdf(a$fitted.g,x,lower.tail)))
 }
