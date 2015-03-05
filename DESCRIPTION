@@ -1,7 +1,7 @@
 Package: ashr
 Maintainer: Matthew Stephens <mstephens@uchicago.edu>
 Author: Matthew Stephens
-Version: 0.1
+Version: 0.9-beta
 License: GPL-3
 Title: Methods for Adaptive Shrinkage, using Empirical Bayes
 Description: TBA
