@@ -5,7 +5,7 @@
 \title{Multi-Mode Adaptive Shrinkage function}
 \usage{
 ashn(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal"),
-  df = NULL, alpha = 4, ncores = FALSE, ...)
+  df = NULL, mu = 20, ncores = FALSE, ...)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -16,7 +16,7 @@ ashn(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal"),
 
 \item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)}
 
-\item{alpha}{Could be a vector of grid values for mu. that this wrapper would select based on likelihood principle. Could also be a positive integer greater or equal to 4, then alpha number of grid values would be generated from [-abs(mean(betahat)),2*abs(mean(betahat)], equally spaced.}
+\item{mu}{Could be a vector of grid values for mu. that this wrapper would select based on likelihood principle. Could also be a positive integer greater or equal to 4, then mu number of grid values would be generated from [-abs(mean(betahat)),2*abs(mean(betahat)], equally spaced.}
 
 \item{ncores}{Whether to use parallel computing, defaults to FALSE, user could specify number of cores they would like to use. Further, if user does not specify and length(betahat)>50000, then the function would perform parallel computation using number of CPU cores on the current host.}
 }
@@ -28,7 +28,7 @@ ashm returns a list of objects
 \item{allash}{the fitted ash of various models}
 }
 \description{
-This is a wrapper function that takes a grid value of \eqn{alpha} and then consider the model \eqn{betahat_j ~ g()},and eqn{beta_j  ~ N(0,sebetahat^2) or student t distribution}. \eqn{alpha} should be a grid of mu,this wrapper function would select the best \eqn{alpha} and reports the ash item based on that \eqn{alpha}.
+This is a wrapper function that takes a grid value of \eqn{mu} and then consider the model \eqn{betahat_j - mu ~ g()},and eqn{beta_j  ~ N(0,sebetahat^2) or student t distribution}. \eqn{mu} should be a grid of mu,this wrapper function would select the best \eqn{mu} and reports the ash item based on that \eqn{mu}.
 }
 \details{
 All other inputs are exactly the same as the main function ash, and would pass to the main function to evaluate the likelihood.
@@ -37,8 +37,8 @@ All other inputs are exactly the same as the main function ash, and would pass t
 beta = c(rep(0,100),rnorm(100))+0.2
 sebetahat = abs(rnorm(200,0,1))
 betahat = rnorm(200,beta,sebetahat)
-beta.ashn = ashn(betahat, sebetahat,alpha=6)
-#beta.ashn4 = ashn(betahat, sebetahat,alpha=6,ncores=4)
+beta.ashn = ashn(betahat, sebetahat,mu=20)
+#beta.ashn4 = ashn(betahat, sebetahat,mu=20,ncores=4)
 print(beta.ashn[[1]])  #best ash object
 print(beta.ashn[[2]])  #corresponding mode (0 or some other values)
 print(beta.ashn[[3]])  #log-likelihood for all models

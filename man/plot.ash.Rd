@@ -16,7 +16,7 @@
 \item{xmax}{xlim upper range, default is the highest value of betahat}
 }
 \description{
-Plot the density of the underlying fitted distribution
+Plot the cdf of the underlying fitted distribution
 }
 \details{
 None
