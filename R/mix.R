@@ -240,7 +240,6 @@ dens_conv.default = function(m,x,s,v,FUN="+"){
 #' @param s an n vector or integer
 #' @param v degree of freedom of error distribution
 #' @export
-#'
 comppostprob=function(m,x,s,v){
  UseMethod("comppostprob") 
 }
@@ -365,8 +364,14 @@ comp_postmean2.default = function(m,betahat,sebetahat,v){
 }
 
 
-#output posterior mean for beta for each component of prior mixture m,
-#given observations betahat, sebetahat, df v
+
+#' @title comp_postmean
+#' @description output posterior mean for beta for each component of prior mixture m,given observations betahat, sebetahat, df v
+#' @param m mixture distribution with k components
+#' @param betahat an n vector of observations
+#' @param sebetahat an n vector of standard errors
+#' @param v degree of freedom of error distribution
+#' @export
 comp_postmean = function(m, betahat,sebetahat,v){
   UseMethod("comp_postmean")
 }
@@ -376,12 +381,24 @@ comp_postmean.default = function(m,betahat,sebetahat,v){
 
 
 
-
-#output posterior sd for beta for each component of prior mixture m,
-#given observations betahat, sebetahat, df v
+#' @title comp_postsd
+#' @description output posterior sd for beta for each component of prior mixture m,given observations betahat, sebetahat, df v
+#' @param m mixture distribution with k components
+#' @param betahat an n vector of observations
+#' @param sebetahat an n vector of standard errors
+#' @param v degree of freedom of error distribution
+#' @examples
+#' beta = rnorm(100,0,1)
+#' betahat= beta+rnorm(100,0,1)
+#' ash.beta = ash(betahat,1,mixcompdist="normal")
+#' comp_postmean(ash.beta$fitted.g,betahat,rep(1,100),NULL)
+#' comp_postsd(ash.beta$fitted.g,betahat,rep(1,100),NULL)
+#' comppostprob(ash.beta$fitted.g,betahat,rep(1,100),NULL)
+#' @export
 comp_postsd = function(m, betahat,sebetahat,v){
   UseMethod("comp_postsd")
 }
+#' @export
 comp_postsd.default = function(m,betahat,sebetahat,v){
   stop("method comp_postsd not written for this class")
 }
