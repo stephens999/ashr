@@ -243,14 +243,8 @@ dens_conv.default = function(m,x,s,v,FUN="+"){
 comppostprob=function(m,x,s,v){
  UseMethod("comppostprob") 
 }
-#' @title comppostprob.default
-#' 
-#' @param m mixture distribution
-#' @param x an n vector
-#' @param s an n vector or integer
-#' @param v degree of freedom of error distribution
+
 #' @export
-#'
 comppostprob.default = function(m,x,s,v){
   tmp= (t(m$pi * compdens_conv(m,x,s,v))/dens_conv(m,x,s,v))
   ismissing = (is.na(x) | is.na(s))
@@ -261,24 +255,48 @@ comppostprob.default = function(m,x,s,v){
 
 
 #' @title compcdf_post
-#' @description evaluate cdf of posterior distribution of beta at c,m is the prior on beta, a mixture,c is location of evaluation assumption is betahat | beta ~ N(beta,sebetahat)
+#' @description evaluate cdf of posterior distribution of beta at c. m is the prior on beta, a mixture; c is location of evaluation assumption is betahat | beta ~ t_v(beta,sebetahat)
 #' @param m mixture distribution with k components
 #' @param c a scalar
 #' @param betahat an n vector of observations
 #' @param sebetahat an n vector of standard errors
 #' @param v degree of freedom of error distribution
 #' @return a k by n matrix
+#' @examples
+#' beta = rnorm(100,0,1)
+#' betahat= beta+rnorm(100,0,1)
+#' sebetahat=rep(1,100)
+#' ash.beta = ash(betahat,1,mixcompdist="normal")
+#' compcdf_post(ash.beta$fitted.g,0,betahat,sebetahat,NULL)
+#' @export
 compcdf_post=function(m,c,betahat,sebetahat,v){
   UseMethod("compcdf_post")
 }
+#' @export
 compcdf_post.default=function(m,c,betahat,sebetahat,v){
   stop("method compcdf_post not written for this class")
 }
 
-
+#' @title cdf_post
+#' @description evaluate cdf of posterior distribution of beta at c. m is the prior on beta, a mixture; c is location of evaluation assumption is betahat | beta ~ t_v(beta,sebetahat)
+#' @param m mixture distribution with k components
+#' @param c a scalar
+#' @param betahat an n vector of observations
+#' @param sebetahat an n vector of standard errors
+#' @param v degree of freedom of error distribution
+#' @return an n vector containing the cdf for beta_i at c
+#' @examples
+#' beta = rnorm(100,0,1)
+#' betahat= beta+rnorm(100,0,1)
+#' sebetahat=rep(1,100)
+#' ash.beta = ash(betahat,1,mixcompdist="normal")
+#' cdf0 = cdf_post(ash.beta$fitted.g,0,betahat,sebetahat,NULL)
+#' plot(cdf0,1-ash.beta$PositiveProb)
+#' @export
 cdf_post = function(m,c,betahat,sebetahat,v){
   UseMethod("cdf_post")
 }
+#' @export
 cdf_post.default=function(m,c,betahat,sebetahat,v){
   colSums(comppostprob(m,betahat,sebetahat,v)*compcdf_post(m,c,betahat,sebetahat,v))
 }
@@ -292,18 +310,11 @@ cdf_post.default=function(m,c,betahat,sebetahat,v){
 #' @param sebetahat an n vector of standard errors
 #' @param v degree of freedom of error distribution
 #' @export
-#'
 postmean = function(m, betahat,sebetahat,v){
   UseMethod("postmean")
 }
-#' @title postmean.default
-#' 
-#' @param m mixture distribution with k components
-#' @param betahat an n vector of observations
-#' @param sebetahat an n vector of standard errors
-#' @param v degree of freedom of error distribution
+
 #' @export
-#'
 postmean.default = function(m,betahat,sebetahat,v){
   colSums(comppostprob(m,betahat,sebetahat,v) * comp_postmean(m,betahat,sebetahat,v))
 }
@@ -316,9 +327,11 @@ postmean.default = function(m,betahat,sebetahat,v){
 #' @param betahat an n vector of observations
 #' @param sebetahat an n vector of standard errors
 #' @param v degree of freedom of error distribution
+#' @export
 postmean2 = function(m, betahat,sebetahat,v){
   UseMethod("postmean2")
 }
+#' @export
 postmean2.default = function(m,betahat,sebetahat,v){
   colSums(comppostprob(m,betahat,sebetahat,v) * comp_postmean2(m,betahat,sebetahat,v))
 }
@@ -331,18 +344,11 @@ postmean2.default = function(m,betahat,sebetahat,v){
 #' @param sebetahat an n vector of standard errors
 #' @param v degree of freedom of error distribution
 #' @export
-#'
 postsd = function(m,betahat,sebetahat,v){
   UseMethod("postsd")
 }
-#' @title postsd.default
-#' 
-#' @param m mixture distribution with k components
-#' @param betahat an n vector of observations
-#' @param sebetahat an n vector of standard errors
-#' @param v degree of freedom of error distribution
+
 #' @export
-#'
 postsd.default = function(m,betahat,sebetahat,v){
   sqrt(postmean2(m,betahat,sebetahat,v)-postmean(m,betahat,sebetahat,v)^2)
 }
@@ -359,6 +365,7 @@ postsd.default = function(m,betahat,sebetahat,v){
 comp_postmean2 = function(m,betahat,sebetahat,v){
   UseMethod("comp_postmean2")
 }
+#' @export
 comp_postmean2.default = function(m,betahat,sebetahat,v){
   comp_postsd(m,betahat,sebetahat,v)^2 + comp_postmean(m,betahat,sebetahat,v)^2
 }
@@ -375,6 +382,7 @@ comp_postmean2.default = function(m,betahat,sebetahat,v){
 comp_postmean = function(m, betahat,sebetahat,v){
   UseMethod("comp_postmean")
 }
+#' @export
 comp_postmean.default = function(m,betahat,sebetahat,v){
   stop("method comp_postmean not written for this class")
 }
@@ -513,14 +521,8 @@ comp_cdf.normalmix = function(x,y,lower.tail=TRUE){
 
 
 
-#' @title compcdf_post.normalmix
-#' @description returns a k by n matrix of the posterior cdf evaluated at location c
-#' @param m mixture distribution with k components
-#' @param c a scalar
-#' @param betahat an n vector of observations
-#' @param sebetahat an n vector of standard errors
-#' @param v degree of freedom of error distribution
-#' @return a k by n matrix
+
+#' @export
 compcdf_post.normalmix=function(m,c,betahat,sebetahat,v){
   if(!is.null(v)){
   	stop("Error: normal mixture for student-t likelihood is not yet implemented")
@@ -537,13 +539,7 @@ compcdf_post.normalmix=function(m,c,betahat,sebetahat,v){
 }
 
 
-#' @title comp_postmean.normalmix
-#' @description returns posterior mean for each component of prior m, given observations betahat and sebetahat
-#' @param m mixture distribution with k components
-#' @param betahat an n vector 
-#' @param sebetahat an n vector
-#' @param v degree of freedom of error distribution
-#' @return a k by n matrix
+#' @export
 comp_postmean.normalmix = function(m,betahat,sebetahat,v){
   if(!is.null(v)){
   	stop("method comp_postmean of normal mixture not written for df!=NULL")
@@ -555,13 +551,7 @@ comp_postmean.normalmix = function(m,betahat,sebetahat,v){
 }
 
 
-#' @title comp_postsd.normalmix
-#' @description return posterior standard deviation for each component of prior m, given observations betahat and sebetahat
-#' @param m mixture distribution with k components
-#' @param betahat an n vector 
-#' @param sebetahat an n vector
-#' @param v degree of freedom of error distribution
-#' @return a k by n matrix
+#' @export
 comp_postsd.normalmix = function(m,betahat,sebetahat,v){
   if(!is.null(v)){
   	stop("method comp_postsd of normal mixture not written for df!=NULL")
@@ -663,12 +653,11 @@ dens_conv_mixlik.default = function(m,x,s,v,pilik,FUN="+"){
 #' @param s normal mixture of sd(s), n-by-l matrix
 #' @param v degree of freedom of error distribution
 #' @param pilik mixture proportion , n-by-l matrix
-
 #' @export
-#'
 comppostprob_mixlik=function(m,x,s,v,pilik){
   UseMethod("comppostprob_mixlik") 
 }
+#' @export
 comppostprob_mixlik.default = function(m,x,s,v,pilik){
   l=dim(pilik)[2]
   k=length(m$pi)
@@ -689,10 +678,10 @@ comppostprob_mixlik.default = function(m,x,s,v,pilik){
 #' @param v degree of freedom of error distribution
 #' @param pilik mixture proportion , n-by-l matrix
 #' @export
-#'
 comppostprob_mixlik2=function(m,x,s,v,pilik){
   UseMethod("comppostprob_mixlik2") 
 }
+#' @export
 comppostprob_mixlik2.default = function(m,x,s,v,pilik){
   l=dim(pilik)[2]
   k=length(m$pi)
@@ -714,10 +703,10 @@ comppostprob_mixlik2.default = function(m,x,s,v,pilik){
 #' @param pilik mixture proportion
 #' @return it returns a (k*l) by n matrix
 #' @export
-#'
 compcdf_post_mixlik=function(m,c,betahat,sebetahat,v,pilik){
   UseMethod("compcdf_post_mixlik")
 }
+#' @export
 compcdf_post_mixlik.default=function(m,c,betahat,sebetahat,v,pilik){
   cdf=NULL
   for (i in 1:dim(pilik)[2]){
@@ -760,10 +749,10 @@ postmean_mixlik.default = function(m,betahat,sebetahat,v,pilik){
 #' @param v degree of freedom of error distribution
 #' @param pilik mixture proportion
 #' @export
-#'
 postmean2_mixlik = function(m, betahat,sebetahat,v,pilik){
   UseMethod("postmean2_mixlik")
 }
+#' @export
 postmean2_mixlik.default = function(m,betahat,sebetahat,v,pilik){
   colSums(comppostprob_mixlik2(m,betahat,sebetahat,v,pilik) * comp_postmean2_mixlik(m,betahat,sebetahat,v,pilik))
 }
@@ -793,10 +782,10 @@ postsd_mixlik.default = function(m,betahat,sebetahat,v,pilik){
 #' @param v degree of freedom of error distribution
 #' @param pilik mixture proportion
 #' @export
-#'
 comp_postmean2_mixlik = function(m,betahat,sebetahat,v,pilik){
   UseMethod("comp_postmean2_mixlik")
 }
+#' @export
 comp_postmean2_mixlik.default = function(m,betahat,sebetahat,v,pilik){
   comp_postsd_mixlik(m,betahat,sebetahat,v,pilik)^2 + 
     comp_postmean_mixlik(m,betahat,sebetahat,v,pilik)^2
@@ -907,11 +896,7 @@ compdens_conv.unimix = function(m,x,s,v, FUN="+"){
 }
 
 
-#c is a scalar
-#m a mixture with k components
-#betahat a vector of n observations
-#sebetahat an n vector of standard errors
-#return a k by n matrix of the posterior cdf
+#' @export
 compcdf_post.unimix=function(m,c,betahat,sebetahat,v){
   k = length(m$pi)
   n=length(betahat)
@@ -974,12 +959,10 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
 }
   
   
-#return posterior mean for each component of prior m, given observations betahat and sebetahat
-#input, m is a mixture with k components
-#betahat, sebetahat are n vectors
-#output is a k by n matrix
+
 #note that with uniform prior, posterior is truncated normal, so
 #this is computed using formula for mean of truncated normal 
+#' @export
 comp_postmean.unimix = function(m,betahat,sebetahat,v){
 #   k= ncomp(m)
 #   n=length(betahat)
@@ -1099,20 +1082,7 @@ comp_cdf.igmix = function(m,y,lower.tail=TRUE){
 }
 
 
-
-#c is a scalar
-#m a mixture with k components
-#betahat a vector of n observations
-#sebetahat an n vector of standard errors
-#return a k by n matrix of the posterior cdf
-#' @title compcdf_post.igmix
-#' @description evaluate cdf of posterior distribution of beta at c,m is the prior on beta, a mixture,c is location of evaluation assumption is betahat | beta ~ N(beta,sebetahat)
-#' @param m mixture distribution with k components
-#' @param c a scalar
-#' @param betahat an n vector of observations
-#' @param sebetahat an n vector of standard errors
-#' @param v degree of freedom of error distribution
-#' @return a k by n matrix
+#' @export
 compcdf_post.igmix=function(m,c,betahat,sebetahat,v){
   #compute posterior shape (alpha1) and rate (beta1)
   alpha1 = m$alpha+v/2
@@ -1123,18 +1093,7 @@ compcdf_post.igmix=function(m,c,betahat,sebetahat,v){
 }
 
 
-
-#return posterior mean for each component of prior m, given observations sebetahat
-#input, m is a mixture with k components
-#betahat, sebetahat are n vectors
-#output is a k by n matrix
-#' @title comp_postmean.igmix
-#' @description return posterior mean for each component of prior m, given observations sebetahat
-#' @param m mixture distribution with k components
-#' @param betahat an n vector 
-#' @param sebetahat an n vector
-#' @param v degree of freedom of error distribution
-#' @return a k by n matrix
+#' @export
 comp_postmean.igmix = function(m,betahat,sebetahat,v){
   k = length(m$pi)
   n=length(sebetahat)
@@ -1145,18 +1104,7 @@ comp_postmean.igmix = function(m,betahat,sebetahat,v){
 }
 
 
-#return posterior standard deviation for each component of prior m, given observations betahat and sebetahat
-#input, m is a mixture with k components
-#betahat, sebetahat are n vectors
-#output is a k by n matrix
-
-#' @title comp_postsd.igmix
-#' @description return posterior standard deviation for each component of prior m, given observations betahat and sebetahat
-#' @param m a mixture with k components
-#' @param betahat an n vector 
-#' @param sebetahat an n vector
-#' @param v degree of freedom of error distribution
-#' @return a k by n matrix
+#' @export
 comp_postsd.igmix = function(m,betahat,sebetahat,v){
   k = length(m$pi)
   n=length(sebetahat)
