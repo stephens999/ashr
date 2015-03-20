@@ -300,6 +300,42 @@ cdf_post = function(m,c,betahat,sebetahat,v){
 cdf_post.default=function(m,c,betahat,sebetahat,v){
   colSums(comppostprob(m,betahat,sebetahat,v)*compcdf_post(m,c,betahat,sebetahat,v))
 }
+#' @title vcdf_post
+#' @description vectorized version of \code{\link{cdf_post}}
+#' @param m mixture distribution with k components
+#' @param c a numeric vector
+#' @param betahat an n vector of observations
+#' @param sebetahat an n vector of standard errors
+#' @param v degree of freedom of error distribution
+#' @return an n vector containing the cdf for beta_i at c
+#' @examples
+#' beta = rnorm(100,0,1)
+#' betahat= beta+rnorm(100,0,1)
+#' sebetahat=rep(1,100)
+#' ash.beta = ash(betahat,1,mixcompdist="normal")
+#' c = vcdf_post(ash.beta$fitted.g,seq(-5,5,length=1000),betahat,sebetahat,NULL)
+#' @export
+vcdf_post = function(m,c,betahat,sebetahat,v){
+  mapply(cdf_post,c,MoreArgs=list(m=m,betahat=betahat,sebetahat=sebetahat,v=v))
+}
+#' @title pcdf_post
+#' @description ``parallel" vector version of \code{\link{cdf_post}} where c is a vector, of same length as betahat and sebetahat
+#' @param m mixture distribution with k components
+#' @param c a numeric vector with n elements
+#' @param betahat an n vector of observations
+#' @param sebetahat an n vector of standard errors
+#' @param v degree of freedom of error distribution (scalar)
+#' @return an n vector, whose ith element is the cdf for beta_i at c_i
+#' @examples
+#' beta = rnorm(100,0,1)
+#' betahat= beta+rnorm(100,0,1)
+#' sebetahat=rep(1,100)
+#' ash.beta = ash(betahat,1,mixcompdist="normal")
+#' c = pcdf_post(ash.beta$fitted.g,beta,betahat,sebetahat,NULL)
+#' @export
+pcdf_post = function(m,c,betahat,sebetahat,v){
+  mapply(cdf_post,c,betahat,sebetahat,MoreArgs=list(m=m,v=v))
+}
 
 #output posterior mean for beta for prior mixture m,
 #given observations betahat, sebetahat, df v
@@ -516,7 +552,8 @@ compdens_conv.normalmix = function(m,x,s,v,FUN="+"){
 
 
 comp_cdf.normalmix = function(x,y,lower.tail=TRUE){
-  vapply(y,pnorm,x$mean,x$mean,x$sd,lower.tail)
+#  vapply(y,pnorm,x$mean,x$mean,x$sd,lower.tail)
+  t(aaply(y,1,pnorm,x$mean,x$sd,lower.tail))
 }
 
 
@@ -859,7 +896,8 @@ unimix = function(pi,a,b){
 }
 
 comp_cdf.unimix = function(m,y,lower.tail=TRUE){
-  vapply(y,punif,m$a,min=m$a,max=m$b,lower.tail)
+  #vapply(y,punif,m$a,min=m$a,max=m$b,lower.tail)
+  t(aaply(y,1,punif,min=m$a,max=m$b,lower.tail))
 }
 
 comp_sd.unimix = function(m){
@@ -1078,7 +1116,8 @@ compdens_conv.igmix = function(m,x,s,v,FUN="+"){
 }
 
 comp_cdf.igmix = function(m,y,lower.tail=TRUE){
-  vapply(y,pigamma,m$alpha,m$alpha,m$beta,lower.tail)
+#  vapply(y,pigamma,m$alpha,m$alpha,m$beta,lower.tail)
+  t(aaply(y,1,pigamma,m$alpha,m$beta,lower.tail))
 }
 
 
