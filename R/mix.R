@@ -6,9 +6,11 @@
 #' @param y is an n-vector of location
 #' @param log whether to use log-scale on densities
 #' @return A k by n matrix of densities
+#' @export
 compdens = function(m,y,log=FALSE){
   UseMethod("compdens")
 }
+#' @export
 compdens.default = function(m,y,log=FALSE){
   stop(paste("Invalid class", class(m), "for first argument in",  match.call()))  
 }
@@ -156,9 +158,11 @@ comp_cdf.default = function(x,y,lower.tail=TRUE){
 
 
 #find density at y, a generic function
+#' @export
 dens = function(x,y){
   UseMethod("dens")
 }
+#' @export
 dens.default = function(x,y){
   return (x$pi %*% compdens(x, y))
 }
@@ -525,6 +529,7 @@ comp_mean.normalmix = function(m){
   m$mean
 }
 
+#' @export
 compdens.normalmix = function(m,y,log=FALSE){
   k=ncomp(m)
   n=length(y)

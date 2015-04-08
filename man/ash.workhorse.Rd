@@ -113,6 +113,15 @@ summary(beta.ash)
 betan.ash=ash(betahat, sebetahat,nonzeromode=TRUE)
 plot(betahat, betan.ash$PosteriorMean)
 summary(betan.ash)
+
+#Running ash with a pre-specified g, rather than estimating it
+beta = c(rep(0,100),rnorm(100))
+sebetahat = abs(rnorm(200,0,1))
+betahat = rnorm(200,beta,sebetahat)
+true_g = normalmix(c(0.5,0.5),c(0,0),c(0,1)) # define true g
+#Passing this g into ash causes it to i) take the sd and the means for each component from this g, and ii) initialize pi to the value from this g.
+#To fix this g we have to tell ash to do 0 EM iterations too.
+beta.ash = ash(betahat, sebetahat,g=true_g,control=list(maxiter=0))
 }
 \seealso{
 \code{\link{ash}} for simplified specification of ash function

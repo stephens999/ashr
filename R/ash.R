@@ -38,7 +38,6 @@
 #' \item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
 #' \item{df}{the specified degrees of freedom for (t) distribution of betahat/sebetahat}
 #' \item{model}{either "EE" or "ES", denoting whether exchangeable effects (EE) or exchangeable standardized effects (ES) has been used}
-
 #'
 #' @seealso \code{\link{ash.workhorse}} for complete specification of ash function
 #' @seealso \code{\link{ashci}} for computation of credible intervals after getting the ash object return by \code{ash()}
@@ -154,6 +153,15 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' betan.ash=ash(betahat, sebetahat,nonzeromode=TRUE)
 #' plot(betahat, betan.ash$PosteriorMean)
 #' summary(betan.ash)
+#' 
+#' #Running ash with a pre-specified g, rather than estimating it
+#' beta = c(rep(0,100),rnorm(100))
+#' sebetahat = abs(rnorm(200,0,1))
+#' betahat = rnorm(200,beta,sebetahat)
+#' true_g = normalmix(c(0.5,0.5),c(0,0),c(0,1)) # define true g 
+#' #Passing this g into ash causes it to i) take the sd and the means for each component from this g, and ii) initialize pi to the value from this g.
+#' #To fix this g we have to tell ash to do 0 EM iterations too.
+#' beta.ash = ash(betahat, sebetahat,g=true_g,control=list(maxiter=0))
 ash.workhorse = function(betahat,sebetahat,
                method = c("fdr","shrink"),
                mixcompdist = c("uniform","halfuniform","normal"),
