@@ -555,10 +555,9 @@ compdens_conv.normalmix = function(m,x,s,v,FUN="+"){
   return(t(dnorm(outer(x,m$mean,FUN="-")/sdmat)/sdmat))
 }
 
-
+#' @export
 comp_cdf.normalmix = function(x,y,lower.tail=TRUE){
-#  vapply(y,pnorm,x$mean,x$mean,x$sd,lower.tail)
-  t(aaply(y,1,pnorm,x$mean,x$sd,lower.tail))
+  vapply(y,pnorm,x$mean,x$mean,x$sd,lower.tail)
 }
 
 
@@ -900,9 +899,9 @@ unimix = function(pi,a,b){
   structure(data.frame(pi,a,b),class="unimix")
 }
 
+#' @export
 comp_cdf.unimix = function(m,y,lower.tail=TRUE){
-  #vapply(y,punif,m$a,min=m$a,max=m$b,lower.tail)
-  t(aaply(y,1,punif,min=m$a,max=m$b,lower.tail))
+  vapply(y,punif,m$a,min=m$a,max=m$b,lower.tail)
 }
 
 comp_sd.unimix = function(m){
@@ -1120,9 +1119,9 @@ compdens_conv.igmix = function(m,x,s,v,FUN="+"){
   
 }
 
+#' @export
 comp_cdf.igmix = function(m,y,lower.tail=TRUE){
-#  vapply(y,pigamma,m$alpha,m$alpha,m$beta,lower.tail)
-  t(aaply(y,1,pigamma,m$alpha,m$beta,lower.tail))
+  vapply(y,pigamma,m$alpha,m$alpha,m$beta,lower.tail)
 }
 
 
