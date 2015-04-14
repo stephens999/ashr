@@ -973,6 +973,7 @@ compcdf_post.unimix=function(m,c,betahat,sebetahat,v){
   tmp
 }
 
+#' @export
 my_etruncnorm= function(a,b,mean=0,sd=1){
   alpha = (a-mean)/sd
   beta =  (b-mean)/sd
@@ -1043,28 +1044,23 @@ comp_postsd.unimix = function(m,betahat,sebetahat,v){
   return(matrix(NA,nrow=k,ncol=n)) 
 }
 
-# the mean of a truncated student.t
-# the result is from the paper 'Moments of truncated Student-t distribution' by H.-J Kim 
-
+#' @title my_etrunct
+#' @description Compute expectation of truncated t, the result is from the paper 'a
+#' 
+#' @param a left limit of distribution
+#' @param b right limit of distribution
+#' @param v degree of freedom of error distribution
+#' @export
 my_etrunct= function(a,b,v){
-  if(a==b){
-  	tmp=a
-  }else{
-  	A = v+a^2
+  A = v+a^2
  	B = v+b^2
-  	F_a = pt(a,df=v)
-  	F_b = pt(b,df=v)
-  	lG=lgamma((v-1)/2)+(v/2)*log(v)-log(2*(F_b-F_a))-lgamma(v/2)-lgamma(1/2)
+  F_a = pt(a,df=v)
+  F_b = pt(b,df=v)
+  lG=lgamma((v-1)/2)+(v/2)*log(v)-log(2*(F_b-F_a))-lgamma(v/2)-lgamma(1/2)
  	G=exp(lG)
  	ABpart=(A^(-(v-1)/2)-B^(-(v-1)/2))
-  	if(G==Inf && ABpart==0){
-  		#Use normal approximation instead
-  		tmp=my_etruncnorm(a,b)
-  	}else{
-  		tmp=G*ABpart
-  	}
-  } 
-  return(tmp)
+  tmp = ifelse(G==Inf & ABpart==0, my_etruncnorm(a,b),G*ABpart) 
+  return(ifelse(a==b,a,tmp))
 }
 
 
