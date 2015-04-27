@@ -1059,8 +1059,8 @@ my_etrunct= function(a,b,v){
   lG=lgamma((v-1)/2)+(v/2)*log(v)-log(2*(F_b-F_a))-lgamma(v/2)-lgamma(1/2)
  	G=exp(lG)
  	ABpart=(A^(-(v-1)/2)-B^(-(v-1)/2))
-  tmp = ifelse(G==Inf & ABpart==0, my_etruncnorm(a,b),G*ABpart) 
-  return(ifelse(a==b,a,tmp))
+  tmp = ifelse(G==Inf & ABpart==0, my_etruncnorm(a,b),G*ABpart) #deal with extreme cases using normal
+  return(ifelse(a==b,a,tmp)) #deal with extreme case a=b
 }
 
 

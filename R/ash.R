@@ -197,9 +197,9 @@ ash.workhorse = function(betahat,sebetahat,
         pointmass=FALSE
       } else {
         warning("Specification of pointmass overrides default for method shrink")
-      }
+      }    
     }
-    
+        
     if(method=="fdr"){
       if(missing(prior)){
         prior = "nullbiased"
@@ -213,7 +213,6 @@ ash.workhorse = function(betahat,sebetahat,
       }
     }  
   }
-  
   
   #Dealing with precise input of betahat, currently we exclude them from the EM algorithm
   betahat.input=betahat
@@ -230,12 +229,16 @@ ash.workhorse = function(betahat,sebetahat,
   }
   
   mixcompdist = match.arg(mixcompdist)
+  if(!is.numeric(prior)){  prior = match.arg(prior)  } 
+  
   if(mixcompdist=="normal" & !is.null(df)){
     stop("Error:Normal mixture for student-t likelihood is not yet implemented")
   }
-
+  if(mixcompdist=="halfuniform" & prior!="nullbiased"){
+    warning("Use of halfuniform without nullbiased prior can lead to misleading local false sign rates, and so is not recommended")
+  }
+  
   if(gridmult<=1&multiseqoutput!=TRUE){  stop("gridmult must be > 1")  }  
-  if(!is.numeric(prior)){  prior = match.arg(prior)  }  
   if(length(sebetahat)==1){  sebetahat = rep(sebetahat,length(betahat))  }
   if(length(sebetahat) != length(betahat)){
     stop("Error: sebetahat must have length 1, or same length as betahat")
