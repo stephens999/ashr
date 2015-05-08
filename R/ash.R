@@ -221,6 +221,12 @@ ash.workhorse = function(betahat,sebetahat,
   if(length(excludeindex)==0) excludeindex=NULL
   betahat= betahat.input[sebetahat.input!=0]
   sebetahat= sebetahat.input[sebetahat.input!=0]
+  
+  #Set observations with infinite standard errors to missing
+  #later these missing observations will be ignored in EM, and posterior will be same as prior.
+  sebetahat[sebetahat==Inf]=NA 
+  betahat[sebetahat==Inf]=NA
+  
   model = match.arg(model)
   if(model=="ES"){ #for ES model, standardize
     betahat = betahat/sebetahat
