@@ -277,7 +277,8 @@ ash.workhorse = function(betahat,sebetahat,
     null.comp=1 #null.comp not actually used unless randomstart true 
     prior = setprior(prior,k,nullweight,null.comp)
     if(randomstart){pi = initpi(k,n,null.comp,randomstart)
-                    g$pi=pi} #if g specified, only initialize pi if randomstart is TRUE       
+                    g$pi=pi} #if g specified, only initialize pi if randomstart is TRUE 
+    if(controlinput$maxiter ==0){nullcheck=FALSE} #really use g if it is specified with maxiter=0
   } else {
     if(is.null(mixsd)){
       if(nonzeromode){
