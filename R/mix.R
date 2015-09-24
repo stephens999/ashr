@@ -1151,3 +1151,14 @@ comp_postsd.igmix = function(m,betahat,sebetahat,v){
   beta1 = outer(v/2*sebetahat^2,m$beta,FUN="+")
   return(t(beta1/(alpha1-1)/sqrt(alpha1-2)))
 }
+
+#' @export
+compdens.igmix = function(m,y,log=FALSE){
+  k=ncomp(m)
+  n=length(y)
+  d = matrix(rep(y,rep(k,n)),nrow=k)
+  ig_dens=matrix(densigamma(d, m$alpha, m$beta),nrow=k)
+  if(log==TRUE){ig_dens=log(ig_dens)}
+  return(ig_dens)  
+}
+
