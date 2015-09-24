@@ -9,17 +9,13 @@ using namespace Rcpp;
 List cxxMixSquarem(NumericMatrix matrix_lik, NumericVector prior, NumericVector pi_init, List control);
 RcppExport SEXP ashr_cxxMixSquarem(SEXP matrix_likSEXP, SEXP priorSEXP, SEXP pi_initSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< NumericMatrix >::type matrix_lik(matrix_likSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type prior(priorSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type pi_init(pi_initSEXP );
-        Rcpp::traits::input_parameter< List >::type control(controlSEXP );
-        List __result = cxxMixSquarem(matrix_lik, prior, pi_init, control);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericMatrix >::type matrix_lik(matrix_likSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type prior(priorSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type pi_init(pi_initSEXP);
+    Rcpp::traits::input_parameter< List >::type control(controlSEXP);
+    __result = Rcpp::wrap(cxxMixSquarem(matrix_lik, prior, pi_init, control));
+    return __result;
 END_RCPP
 }
