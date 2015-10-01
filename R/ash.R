@@ -321,23 +321,6 @@ ash.workhorse = function(betahat,sebetahat,
     }
   }
   
-  #A criteria based on central limit theorem is set to give the user warning message.
-  #if(!nonzeromode){
-  #  maxsd=max(mixsd)
-  #	maxse=quantile(sebetahat[completeobs],0.999)
-  #	thresholdval=qnorm(0.999,mean=0,sd=maxse+maxsd)
-  #	currentval=abs(sum(betahat[completeobs])/sqrt(length(betahat[completeobs])))
-  #	if(currentval>thresholdval){
-  #		print("Caution:It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromode=TRUE when applying ash()")
-  #	}
-  #}
-  if(!nonzeromode&length(completeobs)>1){
-    zvalue=betahat[completeobs]/sebetahat[completeobs]
-    abststat=abs(mean(zvalue)/sd(zvalue))*sqrt(length(zvalue))
-    if(!is.na(abststat)){
-      if(abststat>3.2905){warning("It's likely that the input data is not coming from a distribution with zero mean, consider to set nonzeromode=TRUE when applying ash()")}}
-  }
-  
   
   ##3. Fitting the mixture
   
