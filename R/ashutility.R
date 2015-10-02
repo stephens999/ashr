@@ -100,14 +100,14 @@ get_pi0 = function(a){
 #' @param betahat the data
 #' @param betahatsd the observed standard errors
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat
-#' @param model indicates whether you want the likelihood under the EE or ES model
-#' @param alpha a scalar performing transformation on betahat and sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~ g()},and eqn{betahat_j / s_j^alpha ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ES model. \eqn{alpha} should be in between 0 and 1, inclusively. Default is alpha=0.
+#' @param model indicates whether you want the likelihood under the EE or ET model
+#' @param alpha a scalar performing transformation on betahat and sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~ g()},and eqn{betahat_j / s_j^alpha ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ET model. \eqn{alpha} should be in between 0 and 1, inclusively. Default is alpha=0.
 #' @details See example in CompareBetahatvsZscoreAnalysis.rmd
 #' 
 #' @export
 #' 
 #'
-calc_loglik = function(a,betahat,betahatsd,df,model=c("EE","ES"),alpha=0){
+calc_loglik = function(a,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
   if(missing(df)){
     stop("error: must supply df for calc_loglik")
   }
@@ -117,7 +117,7 @@ calc_loglik = function(a,betahat,betahatsd,df,model=c("EE","ES"),alpha=0){
     if(a$model != model){
       warning("Model used to fit ash does not match model used to compute loglik! Probably you have made a mistake!")
     }
-    if(model=="ES"){ alpha=1
+    if(model=="ET"){ alpha=1
     } else {alpha=0}
   }  
   return(loglik_conv(g,betahat/(betahatsd^alpha),betahatsd^(1-alpha),df)-alpha*sum(log(betahatsd)))
@@ -133,18 +133,18 @@ calc_loglik = function(a,betahat,betahatsd,df,model=c("EE","ES"),alpha=0){
 #' @param betahat the data
 #' @param betahatsd the observed standard errors
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat
-#' @param model indicates whether you want the likelihood under the EE or ES model 
+#' @param model indicates whether you want the likelihood under the EE or ET model 
 #' @details See example in CompareBetahatvsZscoreAnalysis.rmd
 #' 
 #' @export
 #' 
 #'
-calc_gloglik = function(g,betahat,betahatsd,df,model=c("EE","ES")){
+calc_gloglik = function(g,betahat,betahatsd,df,model=c("EE","ET")){
   if(missing(df)){
     stop("error: must supply df for calc_loglik")
   }
   model = match.arg(model) 
-  if(model=="ES"){
+  if(model=="ET"){
     return(loglik_conv(g,betahat/betahatsd,1,df)-sum(log(betahatsd)))
   } else {
     return(loglik_conv(g,betahat,betahatsd,df))
@@ -274,7 +274,7 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
   percentage=1
   
   if( class(m) != "normalmix" && class(m) != "unimix" ){stop(paste("Invalid class",class(m)))}
-  if(model=="ES"){ #for ES model, standardize
+  if(model=="ET"){ #for ET model, standardize
     x=x/s
     PosteriorMean=PosteriorMean/s
     sebetahat.orig=s
@@ -418,7 +418,7 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
     }
     stopCluster(cl)
   }
-  if(model=="ES"){
+  if(model=="ET"){
     CImatrix=CImatrix*sebetahat.orig
   }
   numericindex=c(1:length(a$data$betahat))[betaindex]
@@ -443,7 +443,7 @@ ci.upper=function(z,m,x,s,level,df){
 
 #' @title Multi-model Adaptive Shrinkage function 
 #'
-#' @description This is a wrapper function that takes a grid value of \eqn{alpha} and then consider the model \eqn{betahat_j / s_j^{alpha} ~ g()},and eqn{beta_j / s_j^{alpha} ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ES model. \eqn{alpha} should be in between 0 and 1, inclusively. This wrapper function would select the best \eqn{alpha} and reports the ash item based on that \eqn{alpha}.
+#' @description This is a wrapper function that takes a grid value of \eqn{alpha} and then consider the model \eqn{betahat_j / s_j^{alpha} ~ g()},and eqn{beta_j / s_j^{alpha} ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ET model. \eqn{alpha} should be in between 0 and 1, inclusively. This wrapper function would select the best \eqn{alpha} and reports the ash item based on that \eqn{alpha}.
 
 #'
 #' @seealso \code{\link{ash}} the main function that this wrapper function is calling
@@ -454,7 +454,7 @@ ci.upper=function(z,m,x,s,level,df){
 
 #' @param mixcompdist distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value would be "uniform"
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)
-#' @param alpha Could be a vector of grid values in interval [0,1], that this wrapper would select based on likelihood principle. Could also be a positive integer greater or equal to 2, then alpha number of grid values would be generated from [0,1], equally spaced. The default value is 2 that we compare the EE and ES model.
+#' @param alpha Could be a vector of grid values in interval [0,1], that this wrapper would select based on likelihood principle. Could also be a positive integer greater or equal to 2, then alpha number of grid values would be generated from [0,1], equally spaced. The default value is 2 that we compare the EE and ET model.
 #' @param ncores Whether to use parallel computing, defaults to FALSE, user could specify number of cores they would like to use. Further, if user does not specify and length(betahat)>50000, then the function would perform parallel computation using number of CPU cores on the current host.
 #' 
 #' @return ashm returns a list of objects
@@ -525,7 +525,7 @@ ashm=function(betahat,sebetahat,
   if(model==0){
     model="EE"
   } else if(model==1){
-    model="ES"
+    model="ET"
   } else{
     model=model
   }

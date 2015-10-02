@@ -16,7 +16,7 @@ ashm(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal"),
 
 \item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)}
 
-\item{alpha}{Could be a vector of grid values in interval [0,1], that this wrapper would select based on likelihood principle. Could also be a positive integer greater or equal to 2, then alpha number of grid values would be generated from [0,1], equally spaced. The default value is 2 that we compare the EE and ES model.}
+\item{alpha}{Could be a vector of grid values in interval [0,1], that this wrapper would select based on likelihood principle. Could also be a positive integer greater or equal to 2, then alpha number of grid values would be generated from [0,1], equally spaced. The default value is 2 that we compare the EE and ET model.}
 
 \item{ncores}{Whether to use parallel computing, defaults to FALSE, user could specify number of cores they would like to use. Further, if user does not specify and length(betahat)>50000, then the function would perform parallel computation using number of CPU cores on the current host.}
 }
@@ -27,7 +27,7 @@ ashm returns a list of objects
 \item{allash}{the fitted ash of various models}
 }
 \description{
-This is a wrapper function that takes a grid value of \eqn{alpha} and then consider the model \eqn{betahat_j / s_j^{alpha} ~ g()},and eqn{beta_j / s_j^{alpha} ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ES model. \eqn{alpha} should be in between 0 and 1, inclusively. This wrapper function would select the best \eqn{alpha} and reports the ash item based on that \eqn{alpha}.
+This is a wrapper function that takes a grid value of \eqn{alpha} and then consider the model \eqn{betahat_j / s_j^{alpha} ~ g()},and eqn{beta_j / s_j^{alpha} ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ET model. \eqn{alpha} should be in between 0 and 1, inclusively. This wrapper function would select the best \eqn{alpha} and reports the ash item based on that \eqn{alpha}.
 }
 \details{
 All other inputs are exactly the same as the main function ash, and would pass to the main function to evaluate the likelihood.

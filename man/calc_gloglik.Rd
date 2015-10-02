@@ -4,7 +4,7 @@
 \alias{calc_gloglik}
 \title{Compute loglikelihood for data usign the prior g (usually from an ash fit)}
 \usage{
-calc_gloglik(g, betahat, betahatsd, df, model = c("EE", "ES"))
+calc_gloglik(g, betahat, betahatsd, df, model = c("EE", "ET"))
 }
 \arguments{
 \item{g}{the prior for effects or standardized effects}
@@ -15,7 +15,7 @@ calc_gloglik(g, betahat, betahatsd, df, model = c("EE", "ES"))
 
 \item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat}
 
-\item{model}{indicates whether you want the likelihood under the EE or ES model}
+\item{model}{indicates whether you want the likelihood under the EE or ET model}
 }
 \description{
 Return the log-likelihood of the data betahat, with standard errors betahatsd,
