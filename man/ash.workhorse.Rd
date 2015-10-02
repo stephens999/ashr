@@ -10,7 +10,7 @@ ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
   nullweight = 10, nonzeromode = FALSE, pointmass = TRUE,
   onlylogLR = FALSE, prior = c("nullbiased", "uniform"), mixsd = NULL,
   VB = FALSE, gridmult = sqrt(2), minimaloutput = FALSE,
-  multiseqoutput = FALSE, g = NULL, cxx = FALSE, model = c("EE", "ES"),
+  multiseqoutput = FALSE, g = NULL, cxx = FALSE, model = c("EE", "ET"),
   control = list())
 }
 \arguments{
@@ -59,7 +59,7 @@ in which all weight is on the first component}
 
 \item{cxx}{flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point.}
 
-\item{model}{c("EE","ES") specifies whether to assume exchangeable effects (EE) or exchangeable standardized effects (ES).}
+\item{model}{c("EE","ET") specifies whether to assume exchangeable effects (EE) or exchangeable T stats (ET).}
 
 \item{control}{A list of control parameters for the SQUAREM algorithm, default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User may supply changes to this list of parameter, say, control=list(maxiter=10000,trace=TRUE)}
 }
@@ -84,7 +84,7 @@ ash returns an object of \code{\link[base]{class}} "ash", a list with the follow
 \item{data}{a list consisting the input betahat and sebetahat}
 \item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
 \item{df}{the specified degrees of freedom for (t) distribution of betahat/sebetahat}
-\item{model}{either "EE" or "ES", denoting whether exchangeable effects (EE) or exchangeable standardized effects (ES) has been used}
+\item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T statistics (ET) has been used}
 }
 \description{
 Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies

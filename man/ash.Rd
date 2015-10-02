@@ -37,7 +37,7 @@ ash returns an object of \code{\link[base]{class}} "ash", a list with the follow
 \item{data}{a list consisting the input betahat and sebetahat}
 \item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
 \item{df}{the specified degrees of freedom for (t) distribution of betahat/sebetahat}
-\item{model}{either "EE" or "ES", denoting whether exchangeable effects (EE) or exchangeable standardized effects (ES) has been used}
+\item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T stats (ET) has been used}
 }
 \description{
 Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies

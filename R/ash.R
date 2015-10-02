@@ -37,7 +37,7 @@
 #' \item{data}{a list consisting the input betahat and sebetahat}
 #' \item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
 #' \item{df}{the specified degrees of freedom for (t) distribution of betahat/sebetahat}
-#' \item{model}{either "EE" or "ES", denoting whether exchangeable effects (EE) or exchangeable standardized effects (ES) has been used}
+#' \item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T stats (ET) has been used}
 #'
 #' @seealso \code{\link{ash.workhorse}} for complete specification of ash function
 #' @seealso \code{\link{ashci}} for computation of credible intervals after getting the ash object return by \code{ash()}
@@ -101,7 +101,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @param multiseqoutput if TRUE, just outputs the fitted g, logLR, PosteriorMean, PosteriorSD, function call and df
 #' @param g the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
 #' @param cxx flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point. 
-#' @param model c("EE","ES") specifies whether to assume exchangeable effects (EE) or exchangeable standardized effects (ES).
+#' @param model c("EE","ET") specifies whether to assume exchangeable effects (EE) or exchangeable T stats (ET).
 #' @param control A list of control parameters for the SQUAREM algorithm, default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User may supply changes to this list of parameter, say, control=list(maxiter=10000,trace=TRUE)
 
 #' 
@@ -125,7 +125,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' \item{data}{a list consisting the input betahat and sebetahat}
 #' \item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
 #' \item{df}{the specified degrees of freedom for (t) distribution of betahat/sebetahat}
-#' \item{model}{either "EE" or "ES", denoting whether exchangeable effects (EE) or exchangeable standardized effects (ES) has been used}
+#' \item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T statistics (ET) has been used}
 
 #'
 #' @seealso \code{\link{ash}} for simplified specification of ash function
@@ -175,7 +175,7 @@ ash.workhorse = function(betahat,sebetahat,
                multiseqoutput=FALSE,
                g=NULL,
                cxx=FALSE,
-               model=c("EE","ES"),
+               model=c("EE","ET"),
                control=list()
 ){
   
@@ -228,7 +228,7 @@ ash.workhorse = function(betahat,sebetahat,
   betahat[sebetahat==Inf]=NA
   
   model = match.arg(model)
-  if(model=="ES"){ #for ES model, standardize
+  if(model=="ET"){ #for ET model, standardize
     betahat = betahat/sebetahat
     sebetahat.orig = sebetahat #store so that can be reinstated later
     sebetahat=1
@@ -382,7 +382,7 @@ ash.workhorse = function(betahat,sebetahat,
     PosteriorMean = PosteriorMean + nonzeromode.fit$nonzeromode      
   }	   
   
-  if(model=="ES"){
+  if(model=="ET"){
     betahat=betahat*sebetahat.orig
     sebetahat = sebetahat.orig
     PosteriorMean = PosteriorMean * sebetahat
