@@ -1,5 +1,4 @@
 #' @useDynLib ashr
-#todo
 #' @import truncnorm SQUAREM doParallel pscl Rcpp
 #
 #
