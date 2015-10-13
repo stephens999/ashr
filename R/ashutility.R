@@ -158,7 +158,7 @@ calc_gloglik = function(g,betahat,betahatsd,df,model=c("EE","ET")){
 #'
 #' @description Return the density of the underlying fitted distribution
 #'
-#' @param m the fitted ash object
+#' @param a the fitted ash object
 #' @param x the vector of locations at which density is to be computed
 #'
 #' @details None
@@ -166,8 +166,8 @@ calc_gloglik = function(g,betahat,betahatsd,df,model=c("EE","ET")){
 #' @export
 #' 
 #'
-get_density=function(m,x){
-  list(x=x,y=dens(m$fitted.g,x))
+get_density=function(a,x){
+  list(x=x,y=dens(a$fitted.g,x))
 }
 
 
