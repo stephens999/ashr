@@ -322,9 +322,15 @@ ash.workhorse = function(betahat,sebetahat,
   
   
   ##3. Fitting the mixture
-  
+  optmethod = "mixEM"
+  if(VB==TRUE){
+    optmethod = "mixVBEM"
+  }
+  if (cxx==TRUE){
+    optmethod = "cxxMixSquarem"
+  }
   pi.fit=estimate_mixprop(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,
-               nullcheck=nullcheck,VB=VB,cxx=cxx,df=df,control=controlinput)  
+               nullcheck=nullcheck,optmethod=optmethod,df=df,control=controlinput)  
   
   
   ##4. Computing the posterior
@@ -473,8 +479,7 @@ gradient = function(matrix_lik){
 #' @param null.comp the position of the null component
 #' @param nullcheck  whether to check that any fitted model exceeds the "null" likelihood
 #' in which all weight is on the first component
-#' @param VB whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}
-#' @param cxx flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point. 
+#' @param optmethod name of function to use to do optimization
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)
 #' @param control A list of control parameters for the SQUAREM algorithm, default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). 
 
@@ -491,14 +496,17 @@ gradient = function(matrix_lik){
 #(use Dirichlet prior and approximate Dirichlet posterior)
 #if cxx TRUE use cpp version of R function mixEM
 
-estimate_mixprop = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,cxx=FALSE,df=NULL,control=list()){ 
+estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSquarem"),null.comp=1,nullcheck=TRUE,df=NULL,control=list()){ 
   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE)
+  optmethod=match.arg(optmethod)
   namc=names(control)
   if (!all(namc %in% names(control.default))) 
     stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
   controlinput=modifyList(control.default, control)
   
   pi.init = g$pi
+  if(optmethod=="mixVBEM"){pi.init=NULL}  #for some reason pi.init doesn't work with mixVBEM
+  
   k=ncomp(g)
   n = length(betahat)
   controlinput$tol = min(0.1/n,1.e-7) # set convergence criteria to be more stringent for larger samples
@@ -507,15 +515,6 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE
   
   matrix_lik = t(compdens_conv(g,betahat,sebetahat,df))
   
-  optmethod = mixEM
-  if(VB==TRUE){
-    optmethod = mixVBEM
-    pi.init=NULL
-  }
-  if (cxx==TRUE){
-    optmethod = cxxMixSquarem
-  }
-  
   fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi.init=pi.init, control=controlinput))
     
   if(!fit$converged & controlinput$maxiter>0){
@@ -523,14 +522,14 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE
   }
 
   pi = fit$pihat     
-  penloglik = fit$B #penloglik(pi,matrix_lik, prior)
+  penloglik = penloglik(pi,matrix_lik, prior)
   converged = fit$converged
   niter = fit$niter
   
   loglik.final =  penloglik(pi,matrix_lik,1) #compute penloglik without penalty
   null.loglik = sum(log(matrix_lik[,null.comp]))  
   
-  if(nullcheck==TRUE & VB==FALSE){ #null check doesn't work with VB yet
+  if(nullcheck==TRUE & optmethod!="mixVBEM"){ #null check doesn't work with VB yet
     pinull = rep(0,k)
     pinull[null.comp]=1
     null.penloglik = penloglik(pinull,matrix_lik,prior)

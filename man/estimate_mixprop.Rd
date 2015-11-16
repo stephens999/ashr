@@ -4,8 +4,8 @@
 \alias{estimate_mixprop}
 \title{estimate mixture proportions of sigmaa by EM algorithm}
 \usage{
-estimate_mixprop(betahat, sebetahat, g, prior, null.comp = 1,
-  nullcheck = TRUE, VB = FALSE, cxx = FALSE, df = NULL,
+estimate_mixprop(betahat, sebetahat, g, prior, optmethod = c("mixEM",
+  "mixVBEM", "cxxMixSquarem"), null.comp = 1, nullcheck = TRUE, df = NULL,
   control = list())
 }
 \arguments{
@@ -17,14 +17,12 @@ estimate_mixprop(betahat, sebetahat, g, prior, null.comp = 1,
 
 \item{prior}{string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component)}
 
+\item{optmethod}{name of function to use to do optimization}
+
 \item{null.comp}{the position of the null component}
 
 \item{nullcheck}{whether to check that any fitted model exceeds the "null" likelihood
 in which all weight is on the first component}
-
-\item{VB}{whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}}
-
-\item{cxx}{flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point.}
 
 \item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)}
 
