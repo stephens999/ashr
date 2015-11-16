@@ -323,7 +323,7 @@ ash.workhorse = function(betahat,sebetahat,
   
   ##3. Fitting the mixture
   
-  pi.fit=EMest(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,
+  pi.fit=estimate_mixprop(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,
                nullcheck=nullcheck,VB=VB,cxx=cxx,df=df,control=controlinput)  
   
   
@@ -591,72 +591,6 @@ nonzeromodeEMobj = function(mupi,betahat,sebetahat,mixsd){
 }
 
 
-#' @title Estimate posterior distribution on mixture proportions of a mixture model by a Variational Bayes EM algorithm
-#'
-#' @description Given the individual component likelihoods for a mixture model, estimates the posterior on 
-#' the mixture proportions by an VBEM algorithm. Used by the ash main function; there is no need for a user to call this 
-#' function separately, but it is exported for convenience.
-#'
-#' @details Fits a k component mixture model \deqn{f(x|\pi) = \sum_k \pi_k f_k(x)} to independent
-#' and identically distributed data \eqn{x_1,\dots,x_n}. 
-#' Estimates posterior on mixture proportions \eqn{\pi} by Variational Bayes, 
-#' with a Dirichlet prior on \eqn{\pi}. 
-#' Algorithm adapted from Bishop (2009), Pattern Recognition and Machine Learning, Chapter 10.
-#' 
-#' @param matrix_lik a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.
-#' @param prior a k vector of the parameters of the Dirichlet prior on \eqn{\pi}. Recommended to be rep(1,k)
-#' @param pi.init the initial value of the posterior parameters. If not specified defaults to the prior parameters.
-#' @param control A list of control parameters for the SQUAREM algorithm, default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). 
-#' 
-#' @return A list, whose components include point estimates (pihat), 
-#' the parameters of the fitted posterior on \eqn{\pi} (pipost),
-#' the bound on the log likelihood for each iteration (B)
-#' and a flag to indicate convergence (converged).
-#'  
-#' @export
-#' 
-mixVBEM = function(matrix_lik, prior, pi.init = NULL,control=list()){
-  control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE)
-  namc=names(control)
-  if (!all(namc %in% names(control.default))) 
-    stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
-  controlinput=modifyList(control.default, control)
-  
-  k=ncol(matrix_lik)
-  if(is.null(pi.init)){  pi.init = rep(1,k)  }# Use as starting point for pi 
-  res = squarem(par=pi.init,fixptfn=VBfixpoint, objfn=VBnegpenloglik,matrix_lik=matrix_lik, prior=prior, control=controlinput)
-  
-  return(list(pihat = res$par/sum(res$par), B=res$value.objfn, niter = res$iter, converged=res$convergence,post=res$par))
-}
-
-
-VBfixpoint = function(pipost, matrix_lik, prior){  
-  n=nrow(matrix_lik)
-  k=ncol(matrix_lik)
-  avgpipost = matrix(exp(rep(digamma(pipost),n)-rep(digamma(sum(pipost)),k*n)),ncol=k,byrow=TRUE)
-  classprob = avgpipost*matrix_lik
-  classprob = classprob/rowSums(classprob) # n by k matrix
-  pipostnew = colSums(classprob) + prior
-  return(pipostnew)
-}
-
-VBnegpenloglik=function(pipost,matrix_lik,prior){
-  return(-VBpenloglik(pipost,matrix_lik,prior))
-}
-
-VBpenloglik = function(pipost, matrix_lik, prior){
-  n=nrow(matrix_lik)
-  k=ncol(matrix_lik)
-  avgpipost = matrix(exp(rep(digamma(pipost),n)-rep(digamma(sum(pipost)),k*n)),ncol=k,byrow=TRUE)
-  classprob = avgpipost*matrix_lik
-  classprob = classprob/rowSums(classprob) # n by k matrix
-  
-  B= sum(classprob*log(avgpipost*matrix_lik),na.rm=TRUE) - diriKL(prior,pipost) - sum(classprob*log(classprob)) 
-  return(B)
-}
-
-
-
 
 #The kth element of this vector is the derivative 
 #of the loglik for $\pi=(\pi_0,...,1-\pi_0,...)$ with respect to $\pi_0$ at $\pi_0=1$.
@@ -693,7 +627,7 @@ gradient = function(matrix_lik){
 #(use Dirichlet prior and approximate Dirichlet posterior)
 #if cxx TRUE use cpp version of R function mixEM
 
-EMest = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,cxx=FALSE,df=NULL,control=list()){ 
+estimate_mixprop = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE,VB=FALSE,cxx=FALSE,df=NULL,control=list()){ 
   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE)
   namc=names(control)
   if (!all(namc %in% names(control.default))) 
@@ -1018,7 +952,7 @@ toc <- function()
 #     maxiter = 1; # if g is specified, don't iterate the EM 
 #   }
 #   
-#   pi.fit=EMest(betahat[completeobs],sebetahat[completeobs],g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx, df=df)  
+#   pi.fit=estimate_mixprop(betahat[completeobs],sebetahat[completeobs],g,prior,null.comp=null.comp,nullcheck=nullcheck,VB=VB,maxiter = maxiter, cxx=cxx, df=df)  
 #   
 #   if(onlylogLR){
 #     logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
