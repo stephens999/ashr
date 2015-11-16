@@ -186,12 +186,17 @@ ash.workhorse = function(betahat,sebetahat,
   # Set optimization method (optmethod)
   
   if(missing(optmethod)){
-    if(require(REBayes)){optmethod = "mixIP"}
-    else if(require(Rcpp)){optmethod = "cxxMixSquarem"}
-    else {
-      optmethod = "mixEM" #fallback if neither Rcpp or REBayes are installed
-      message("Using vanilla EM; for faster performance install REBayes (preferred) or Rcpp")
-    } 
+    if(require(REBayes,quietly=TRUE)){ #check whether REBayes package is present
+      optmethod = "mixIP"
+    } else{  #If REBayes package missing
+      message("Due to absence of package REBayes, switching to EM algorithm")
+      if(require(Rcpp)){
+        optmethod = "cxxMixSquarem"}
+      else {
+        optmethod = "mixEM" #fallback if neither Rcpp or REBayes are installed
+        message("Using vanilla EM; for faster performance install REBayes (preferred) or Rcpp")
+      }
+    }
   } else {
     optmethod = match.arg(optmethod)
   }
