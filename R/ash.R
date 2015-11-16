@@ -507,35 +507,25 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,null.comp=1,nullcheck=TRUE
   
   matrix_lik = t(compdens_conv(g,betahat,sebetahat,df))
   
-  #checks whether the gradient at pi0=1 is positive (suggesting that this is a fixed point)
-  #if(nullcheck){
-  #  if(all(gradient(matrix_lik)>=0)){
-  #    pi.init=rep(0,k)
-  #    pi.init[null.comp]=1 #this will make pi.init=(1,0,0...,0) which is a fixed point of the EM
-  #  }
-  #}
-  
+  optmethod = mixEM
   if(VB==TRUE){
-    EMfit=mixVBEM(matrix_lik,prior,control=controlinput)}
-  else{
-    if (cxx==TRUE){
-      EMfit = cxxMixSquarem(matrix_lik,prior,pi.init,controlinput) #currently use different convergence criteria for cxx version 
-      if(!EMfit$converged & controlinput$maxiter>0){
-        warning("EM algorithm in function cxxMixEM failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
-      }
-    }
-    else{
-      EMfit = mixEM(matrix_lik,prior,pi.init,control=controlinput)
-      if(!EMfit$converged & controlinput$maxiter>0){
-        warning("EM algorithm in function mixEM failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
-      }
-    }
+    optmethod = mixVBEM
+    pi.init=NULL
+  }
+  if (cxx==TRUE){
+    optmethod = cxxMixSquarem
   }
   
-  pi = EMfit$pihat     
-  penloglik = EMfit$B 
-  converged = EMfit$converged
-  niter = EMfit$niter
+  fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi.init=pi.init, control=controlinput))
+    
+  if(!fit$converged & controlinput$maxiter>0){
+      warning("Optimization failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
+  }
+
+  pi = fit$pihat     
+  penloglik = fit$B #penloglik(pi,matrix_lik, prior)
+  converged = fit$converged
+  niter = fit$niter
   
   loglik.final =  penloglik(pi,matrix_lik,1) #compute penloglik without penalty
   null.loglik = sum(log(matrix_lik[,null.comp]))  
