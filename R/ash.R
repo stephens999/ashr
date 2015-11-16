@@ -82,6 +82,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' "fdr" sets pointmass=TRUE and prior="nullbiased".
 #' @param mixcompdist distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value is "uniform"
 #'
+#' @param optmethod specifies optimization method used. Default is "mixIP", an interior point method, if REBayes is installed; otherwise a slower EM algorithm is used.
 #' @param lambda1  multiplicative "inflation factor" for standard errors (like Genomic Control)
 #' @param lambda2  additive "inflation factor" for standard errors (like Genomic Control)
 #' @param nullcheck  whether to check that any fitted model exceeds the "null" likelihood
@@ -94,14 +95,14 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @param onlylogLR logical, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, lfdr...
 #' @param prior string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component)
 #' @param mixsd vector of sds for underlying mixture components 
-#' @param VB whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}
 #' @param gridmult the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)
 #' @param minimaloutput if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue) 
 #' @param multiseqoutput if TRUE, just outputs the fitted g, logLR, PosteriorMean, PosteriorSD, function call and df
 #' @param g the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
-#' @param cxx flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point. 
+#' @param VB (deprecated, use optmethod) whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}
+#' @param cxx flag (deprecated, use optmethod) to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point. 
 #' @param model c("EE","ET") specifies whether to assume exchangeable effects (EE) or exchangeable T stats (ET).
-#' @param control A list of control parameters for the SQUAREM algorithm, default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User may supply changes to this list of parameter, say, control=list(maxiter=10000,trace=TRUE)
+#' @param control A list of control parameters for the optmization algorithm. Default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User may supply changes to this list of parameter, say, control=list(maxiter=10000,trace=TRUE)
 
 #' 
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
@@ -164,21 +165,49 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 ash.workhorse = function(betahat,sebetahat,
                method = c("fdr","shrink"),
                mixcompdist = c("uniform","halfuniform","normal"),
+               optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
                lambda1=1,lambda2=0,nullcheck=TRUE,df=NULL,randomstart=FALSE,
                nullweight=10,nonzeromode=FALSE, 
                pointmass = TRUE, 
                onlylogLR = FALSE, 
                prior=c("nullbiased","uniform"), 
-               mixsd=NULL, VB=FALSE,gridmult=sqrt(2),
+               mixsd=NULL, gridmult=sqrt(2),
                minimaloutput=FALSE,
                multiseqoutput=FALSE,
                g=NULL,
                cxx=FALSE,
+               VB=FALSE,
                model=c("EE","ET"),
                control=list()
 ){
   
   ##1.Handling Input Parameters
+  
+  # Set optimization method (optmethod)
+  
+  if(missing(optmethod)){
+    if(require(REBayes)){optmethod = "mixIP"}
+    else if(require(Rcpp)){optmethod = "cxxMixSquarem"}
+    else {
+      optmethod = "mixEM" #fallback if neither Rcpp or REBayes are installed
+      message("Using vanilla EM; for faster performance install REBayes (preferred) or Rcpp")
+    } 
+  } else {
+    optmethod = match.arg(optmethod)
+  }
+  
+  if(!missing(VB)){
+    warning("VB option is deprecated, use optmethod instead")
+    if(VB==TRUE){optmethod = "mixVBEM"}
+  }
+    
+  if(!missing(cxx)){
+    warning("cxx option is deprecated, use optmethod instead")
+    if (cxx==TRUE){optmethod = "cxxMixSquarem"}
+  }
+    
+  if(optmethod == "mixIP"){assertthat::assert_that(require(REBayes))}
+  if(optmethod == "cxxMixSquarem"){assertthat::assert_that(require(Rcpp))}
   
   #method provides a convenient interface to set a particular combinations of parameters for prior an
   #If method is supplied, use it to set up specific values for these parameters; provide warning if values
@@ -322,13 +351,7 @@ ash.workhorse = function(betahat,sebetahat,
   
   
   ##3. Fitting the mixture
-  optmethod = "mixEM"
-  if(VB==TRUE){
-    optmethod = "mixVBEM"
-  }
-  if (cxx==TRUE){
-    optmethod = "cxxMixSquarem"
-  }
+  
   pi.fit=estimate_mixprop(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,
                nullcheck=nullcheck,optmethod=optmethod,df=df,control=controlinput)  
   
@@ -410,7 +433,7 @@ ash.workhorse = function(betahat,sebetahat,
     result = list(fitted.g = pi.fit$g, logLR = logLR, loglik=loglik, PosteriorMean = PosteriorMean,
                   PosteriorSD = PosteriorSD, PositiveProb = PositiveProb, NegativeProb = NegativeProb, ZeroProb = ZeroProb,
                   lfsr = lfsr,lfsra = lfsra, lfdr = lfdr, qvalue = qvalue, fit = pi.fit, lambda1 = lambda1, lambda2 = lambda2,
-                  call = match.call(), data = list(betahat = betahat, sebetahat=sebetahat),excludeindex= excludeindex,df=df,model=model)
+                  call = match.call(), data = list(betahat = betahat, sebetahat=sebetahat),excludeindex= excludeindex,df=df,model=model, optmethod=optmethod)
     class(result) = "ash"
     return(result)
   }
@@ -496,7 +519,7 @@ gradient = function(matrix_lik){
 #(use Dirichlet prior and approximate Dirichlet posterior)
 #if cxx TRUE use cpp version of R function mixEM
 
-estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSquarem"),null.comp=1,nullcheck=TRUE,df=NULL,control=list()){ 
+estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSquarem","mixIP"),null.comp=1,nullcheck=TRUE,df=NULL,control=list()){ 
   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE)
   optmethod=match.arg(optmethod)
   namc=names(control)
@@ -504,8 +527,8 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
     stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
   controlinput=modifyList(control.default, control)
   
-  pi.init = g$pi
-  if(optmethod=="mixVBEM"){pi.init=NULL}  #for some reason pi.init doesn't work with mixVBEM
+  pi_init = g$pi
+  if(optmethod=="mixVBEM"){pi_init=NULL}  #for some reason pi_init doesn't work with mixVBEM
   
   k=ncomp(g)
   n = length(betahat)
@@ -515,7 +538,7 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
   
   matrix_lik = t(compdens_conv(g,betahat,sebetahat,df))
   
-  fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi.init=pi.init, control=controlinput))
+  fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=controlinput))
     
   if(!fit$converged & controlinput$maxiter>0){
       warning("Optimization failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")

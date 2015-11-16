@@ -3,6 +3,40 @@
 # The penalized likelihood being maximized
 # is \sum_j \log \sum_k \pi_k f_{jk} + \sum_j (prior_j-1) \log \pi_k
 
+#' @title Estimate mixture proportions of a mixture model by Interior Point method
+#'
+#' @description Given the individual component likelihoods for a mixture model, estimates the mixture proportions.
+#'
+#' @details Fits a k component mixture model \deqn{f(x|\pi)= \sum_k \pi_k f_k(x)} to independent
+#' and identically distributed data \eqn{x_1,\dots,x_n}. 
+#' Estimates mixture proportions \eqn{\pi} by maximum likelihood, or by maximum a posteriori (MAP) estimation for a Dirichlet prior on \eqn{\pi} 
+#' (if a prior is specified). Calls REBayes::KWDual in the REBayes package, which is in turn a wrapper to the mosek 
+#' convex optimization software. So REBayes must be installed to use this. Used by the ash main function; there is no need for a user to call this 
+#' function separately, but it is exported for convenience.
+#'
+#' 
+#' @param matrix_lik, a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.
+#' @param prior, a k vector of the parameters of the Dirichlet prior on \eqn{\pi}. Recommended to be rep(1,k)
+#' @param pi_init, the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).
+#' @param control A list of control parameters for the SQUAREM algorithm, default value is set to be control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). 
+#' 
+#' @return A list, including the estimates (pihat), the log likelihood for each interation (B)
+#' and a flag to indicate convergence
+#'  
+#' @export
+mixIP = function(matrix_lik, prior, pi_init = NULL, control = list()){
+  if(!require("REBayes")){stop("mixIP requires installation of package REBayes")}
+  n = nrow(matrix_lik)
+  k = ncol(matrix_lik)
+  #A = matrix_lik
+  A = rbind(diag(length(prior)),matrix_lik) # add in observations corresponding to prior
+  w = c(prior-1,rep(1,n))
+  A = A[w!=0,]    #remove zero weight entries, as these otherwise cause errors
+  w = w[w!=0]
+  #w = rep(1,n+k)
+  res = REBayes::KWDual(A, rep(1,k), ashr:::normalize(w), control=control)
+  return(list(pihat = normalize(res$f), niter = NULL, converged=(res$status=="OPTIMAL")))
+}
 
 #' @title Estimate mixture proportions of a mixture model by EM algorithm
 #'
@@ -17,7 +51,7 @@
 #' 
 #' @param matrix_lik, a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.
 #' @param prior, a k vector of the parameters of the Dirichlet prior on \eqn{\pi}. Recommended to be rep(1,k)
-#' @param pi.init, the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).
+#' @param pi_init, the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).
 #' @param control A list of control parameters for the SQUAREM algorithm, default value is set to be control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). 
 #' 
 #' @return A list, including the estimates (pihat), the log likelihood for each interation (B)
@@ -26,7 +60,7 @@
 #' @export
 #' 
 #' 
-mixEM = function(matrix_lik,prior,pi.init=NULL,control=list()){
+mixEM = function(matrix_lik,prior,pi_init=NULL,control=list()){
   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE)
   namc=names(control)
   if (!all(namc %in% names(control.default))) 
@@ -34,10 +68,10 @@ mixEM = function(matrix_lik,prior,pi.init=NULL,control=list()){
   controlinput=modifyList(control.default, control)
   
   k=dim(matrix_lik)[2]
-  if(is.null(pi.init)){
-    pi.init = rep(1/k,k)# Use as starting point for pi
+  if(is.null(pi_init)){
+    pi_init = rep(1/k,k)# Use as starting point for pi
   } 
-  res = squarem(par=pi.init,fixptfn=fixpoint, objfn=negpenloglik,matrix_lik=matrix_lik, prior=prior, control=controlinput)
+  res = squarem(par=pi_init,fixptfn=fixpoint, objfn=negpenloglik,matrix_lik=matrix_lik, prior=prior, control=controlinput)
   return(list(pihat = normalize(pmax(0,res$par)), B=res$value.objfn, 
               niter = res$iter, converged=res$convergence))
 }
@@ -67,12 +101,12 @@ penloglik = function(pi, matrix_lik, prior){
 }
 
 # A vanilla (non-squarem) version of the EM algorithm
-# mixEM = function(matrix_lik, prior, pi.init = NULL,tol=0.0001, maxiter=5000){
+# mixEM = function(matrix_lik, prior, pi_init = NULL,tol=0.0001, maxiter=5000){
 #   n=nrow(matrix_lik)
 #   k=ncol(matrix_lik)
 #   B = rep(0,maxiter)
-#   pi = pi.init
-#   if(is.null(pi.init)){
+#   pi = pi_init
+#   if(is.null(pi_init)){
 #     pi = rep(1/k,k)# Use as starting point for pi
 #   } 
 #   pi = ifelse(pi<1e-5,1e-5,pi) #set any estimates that are too small to be just very small
@@ -127,7 +161,7 @@ penloglik = function(pi, matrix_lik, prior){
 #' 
 #' @param matrix_lik a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.
 #' @param prior a k vector of the parameters of the Dirichlet prior on \eqn{\pi}. Recommended to be rep(1,k)
-#' @param pi.init the initial value of the posterior parameters. If not specified defaults to the prior parameters.
+#' @param pi_init the initial value of the posterior parameters. If not specified defaults to the prior parameters.
 #' @param control A list of control parameters for the SQUAREM algorithm, default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). 
 #' 
 #' @return A list, whose components include point estimates (pihat), 
@@ -137,7 +171,7 @@ penloglik = function(pi, matrix_lik, prior){
 #'  
 #' @export
 #' 
-mixVBEM = function(matrix_lik, prior, pi.init = NULL,control=list()){
+mixVBEM = function(matrix_lik, prior, pi_init = NULL,control=list()){
   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE)
   namc=names(control)
   if (!all(namc %in% names(control.default))) 
@@ -145,8 +179,8 @@ mixVBEM = function(matrix_lik, prior, pi.init = NULL,control=list()){
   controlinput=modifyList(control.default, control)
   
   k=ncol(matrix_lik)
-  if(is.null(pi.init)){  pi.init = rep(1,k)  }# Use as starting point for pi 
-  res = squarem(par=pi.init,fixptfn=VBfixpoint, objfn=VBnegpenloglik,matrix_lik=matrix_lik, prior=prior, control=controlinput)
+  if(is.null(pi_init)){  pi_init = rep(1,k)  }# Use as starting point for pi 
+  res = squarem(par=pi_init,fixptfn=VBfixpoint, objfn=VBnegpenloglik,matrix_lik=matrix_lik, prior=prior, control=controlinput)
   
   return(list(pihat = res$par/sum(res$par), B=res$value.objfn, niter = res$iter, converged=res$convergence,post=res$par))
 }

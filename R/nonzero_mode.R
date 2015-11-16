@@ -14,7 +14,7 @@
 #' @param mixsd vector of sds for underlying mixture components.
 #' @param mixcompdist  distribution of components in mixture ( "uniform","halfuniform" or "normal").
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian).
-#' @param pi.init the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).
+#' @param pi_init the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).
 #' @param control A list of control parameters for the SQUAREM algorithm, default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). 
 
 #' 
@@ -24,18 +24,18 @@
 #' @export
 #' 
 #' 
-nonzeromodeEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.init=NULL,control=list()){
+nonzeromodeEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi_init=NULL,control=list()){
   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE)
   namc=names(control)
   if (!all(namc %in% names(control.default))) 
     stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
   controlinput=modifyList(control.default, control)  
   
-  if(is.null(pi.init)){
-    pi.init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi
+  if(is.null(pi_init)){
+    pi_init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi
   }
   else{
-    pi.init=rgamma(length(mixsd),1,1)
+    pi_init=rgamma(length(mixsd),1,1)
   }
   
   if(controlinput$trace==TRUE){tic()}
@@ -53,20 +53,20 @@ nonzeromodeEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi.ini
   }
   
   if(mixcompdist=="normal" & is.null(df)){
-    g=normalmix(pi.init,rep(0,length(mixsd)),mixsd)
-    mupi=c(mean(betahat),pi.init)
+    g=normalmix(pi_init,rep(0,length(mixsd)),mixsd)
+    mupi=c(mean(betahat),pi_init)
     res=squarem(par=mupi,fixptfn=nonzeromodeEMfixpoint,objfn=nonzeromodeEMobj,
                 betahat=betahat,sebetahat=sebetahat,mixsd=mixsd,control=controlinput)
   }else if(mixcompdist=="normal" & !is.null(df)){
     stop("method comp_postsd of normal mixture not yet written for t likelihood")
   }else if(mixcompdist=="uniform"){
-    g=unimix(pi.init,-mixsd,mixsd)
-    mupi=c(mean(betahat),pi.init)    
+    g=unimix(pi_init,-mixsd,mixsd)
+    mupi=c(mean(betahat),pi_init)    
     res=squarem(par=mupi,fixptfn=nonzeromodeEMoptimfixpoint,objfn=nonzeromodeEMoptimobj,
                 betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=controlinput)
   }else if(mixcompdist=="halfuniform"){
-    g=unimix(c(pi.init, pi.init)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))
-    mupi=c(mean(betahat),pi.init/2,pi.init/2)
+    g=unimix(c(pi_init, pi_init)/2,c(-mixsd,rep(0,length(mixsd))),c(rep(0,length(mixsd)),mixsd))
+    mupi=c(mean(betahat),pi_init/2,pi_init/2)
     res=squarem(par=mupi,fixptfn=nonzeromodeEMoptimfixpoint,objfn=nonzeromodeEMoptimobj,
                 betahat=betahat,sebetahat=sebetahat,g=g,df=df,control=controlinput)
   }

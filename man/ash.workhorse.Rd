@@ -5,12 +5,13 @@
 \title{Detailed Adaptive Shrinkage function}
 \usage{
 ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
-  mixcompdist = c("uniform", "halfuniform", "normal"), lambda1 = 1,
+  mixcompdist = c("uniform", "halfuniform", "normal"),
+  optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"), lambda1 = 1,
   lambda2 = 0, nullcheck = TRUE, df = NULL, randomstart = FALSE,
   nullweight = 10, nonzeromode = FALSE, pointmass = TRUE,
   onlylogLR = FALSE, prior = c("nullbiased", "uniform"), mixsd = NULL,
-  VB = FALSE, gridmult = sqrt(2), minimaloutput = FALSE,
-  multiseqoutput = FALSE, g = NULL, cxx = FALSE, model = c("EE", "ET"),
+  gridmult = sqrt(2), minimaloutput = FALSE, multiseqoutput = FALSE,
+  g = NULL, cxx = FALSE, VB = FALSE, model = c("EE", "ET"),
   control = list())
 }
 \arguments{
@@ -23,6 +24,8 @@ This is simply a convenient way to specify certain combinations of parameters: "
 "fdr" sets pointmass=TRUE and prior="nullbiased".}
 
 \item{mixcompdist}{distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value is "uniform"}
+
+\item{optmethod}{specifies optimization method used. Default is "mixIP", an interior point method, if REBayes is installed; otherwise a slower EM algorithm is used.}
 
 \item{lambda1}{multiplicative "inflation factor" for standard errors (like Genomic Control)}
 
@@ -47,8 +50,6 @@ in which all weight is on the first component}
 
 \item{mixsd}{vector of sds for underlying mixture components}
 
-\item{VB}{whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}}
-
 \item{gridmult}{the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)}
 
 \item{minimaloutput}{if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue)}
@@ -57,11 +58,13 @@ in which all weight is on the first component}
 
 \item{g}{the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)}
 
-\item{cxx}{flag to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point.}
+\item{cxx}{flag (deprecated, use optmethod) to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point.}
+
+\item{VB}{(deprecated, use optmethod) whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}}
 
 \item{model}{c("EE","ET") specifies whether to assume exchangeable effects (EE) or exchangeable T stats (ET).}
 
-\item{control}{A list of control parameters for the SQUAREM algorithm, default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User may supply changes to this list of parameter, say, control=list(maxiter=10000,trace=TRUE)}
+\item{control}{A list of control parameters for the optmization algorithm. Default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User may supply changes to this list of parameter, say, control=list(maxiter=10000,trace=TRUE)}
 }
 \value{
 ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr

@@ -11,9 +11,10 @@ Depends:
     SQUAREM,
     doParallel,
     pscl,
+    testthat,
     Rcpp (>= 0.10.5)
 LinkingTo: Rcpp
 Suggests:
-    testthat,
+    REBayes,
     roxygen2
 URL: "http://github.com/stephens999/ashr

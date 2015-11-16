@@ -4,14 +4,14 @@
 \alias{mixVBEM}
 \title{Estimate posterior distribution on mixture proportions of a mixture model by a Variational Bayes EM algorithm}
 \usage{
-mixVBEM(matrix_lik, prior, pi.init = NULL, control = list())
+mixVBEM(matrix_lik, prior, pi_init = NULL, control = list())
 }
 \arguments{
 \item{matrix_lik}{a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.}
 
 \item{prior}{a k vector of the parameters of the Dirichlet prior on \eqn{\pi}. Recommended to be rep(1,k)}
 
-\item{pi.init}{the initial value of the posterior parameters. If not specified defaults to the prior parameters.}
+\item{pi_init}{the initial value of the posterior parameters. If not specified defaults to the prior parameters.}
 
 \item{control}{A list of control parameters for the SQUAREM algorithm, default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE).}
 }

@@ -5,8 +5,8 @@
 \title{estimate mixture proportions of sigmaa by EM algorithm}
 \usage{
 estimate_mixprop(betahat, sebetahat, g, prior, optmethod = c("mixEM",
-  "mixVBEM", "cxxMixSquarem"), null.comp = 1, nullcheck = TRUE, df = NULL,
-  control = list())
+  "mixVBEM", "cxxMixSquarem", "mixIP"), null.comp = 1, nullcheck = TRUE,
+  df = NULL, control = list())
 }
 \arguments{
 \item{betahat}{(n vector of observations)}
