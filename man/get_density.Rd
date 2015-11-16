@@ -4,10 +4,10 @@
 \alias{get_density}
 \title{Density method for ash object}
 \usage{
-get_density(m, x)
+get_density(a, x)
 }
 \arguments{
-\item{m}{the fitted ash object}
+\item{a}{the fitted ash object}
 
 \item{x}{the vector of locations at which density is to be computed}
 }
