@@ -209,6 +209,7 @@ ash.workhorse = function(betahat,sebetahat,
   if(!missing(cxx)){
     warning("cxx option is deprecated, use optmethod instead")
     if (cxx==TRUE){optmethod = "cxxMixSquarem"}
+    if (cxx==FALSE){optmethod = "mixEM"}
   }
     
   if(optmethod == "mixIP"){assertthat::assert_that(require(REBayes))}
