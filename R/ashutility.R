@@ -123,7 +123,7 @@ calc_loglik = function(a,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
   return(loglik_conv(g,betahat/(betahatsd^alpha),betahatsd^(1-alpha),df)-alpha*sum(log(betahatsd)))
 }
 
-#' @title Compute loglikelihood for data usign the prior g (usually from an ash fit)
+#' @title Compute loglikelihood for data using the prior g (usually from an ash fit)
 #'
 #' @description Return the log-likelihood of the data betahat, with standard errors betahatsd, 
 #' under the fitted distribution in the ash object. 

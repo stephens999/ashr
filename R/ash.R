@@ -185,6 +185,12 @@ ash.workhorse = function(betahat,sebetahat,
   
   # Set optimization method (optmethod)
   
+  # if user tries to set both optmethod and VB/cxx that's an error
+  if(!missing(optmethod) && (!missing(VB) || !missing(cxx)) ){
+    stop("VB and cxx options are deprecated and incompatible with optmethod; use optmethod instead")
+  }
+
+  # if no optmethod specified, select a default
   if(missing(optmethod)){
     if(require(REBayes,quietly=TRUE)){ #check whether REBayes package is present
       optmethod = "mixIP"
@@ -197,7 +203,7 @@ ash.workhorse = function(betahat,sebetahat,
         message("Using vanilla EM; for faster performance install REBayes (preferred) or Rcpp")
       }
     }
-  } else {
+  } else { #if optmethod specified
     optmethod = match.arg(optmethod)
   }
   

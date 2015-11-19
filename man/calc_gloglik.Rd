@@ -2,7 +2,7 @@
 % Please edit documentation in R/ashutility.R
 \name{calc_gloglik}
 \alias{calc_gloglik}
-\title{Compute loglikelihood for data usign the prior g (usually from an ash fit)}
+\title{Compute loglikelihood for data using the prior g (usually from an ash fit)}
 \usage{
 calc_gloglik(g, betahat, betahatsd, df, model = c("EE", "ET"))
 }
