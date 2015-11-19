@@ -72,7 +72,7 @@ predictive=function(a,se){
 #' 
 #'
 get_loglik = function(a){
-  return(tail(a$fit$loglik,1))
+  return(a$loglik)
 }
 
 #' @title Get pi0 estimate for ash object
