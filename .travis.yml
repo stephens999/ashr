@@ -22,3 +22,10 @@ notifications:
     on_failure: change
     
 sudo: required
+
+env:
+  global:
+    - CRAN=http://cran.rstudio.com
+    - NOT_CRAN=true
+    - _R_CHECK_CRAN_INCOMING_=false
+    - _R_CHECK_FORCE_SUGGESTS_=false
