@@ -13,7 +13,7 @@ estimate_mixprop(betahat, sebetahat, g, prior, optmethod = c("mixEM",
 
 \item{sebetahat}{(n vector of standard errors/deviations of observations)}
 
-\item{g}{the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)}
+\item{g}{the prior distribution for beta (usually estimated from the data}
 
 \item{prior}{string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component)}
 

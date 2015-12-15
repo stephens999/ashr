@@ -11,8 +11,8 @@ ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
   nullweight = 10, nonzeromode = FALSE, pointmass = TRUE,
   onlylogLR = FALSE, prior = c("nullbiased", "uniform"), mixsd = NULL,
   gridmult = sqrt(2), minimaloutput = FALSE, multiseqoutput = FALSE,
-  g = NULL, cxx = FALSE, VB = FALSE, model = c("EE", "ET"),
-  control = list())
+  g = NULL, fixg = FALSE, cxx = FALSE, VB = FALSE, model = c("EE",
+  "ET"), control = list())
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -57,6 +57,8 @@ in which all weight is on the first component}
 \item{multiseqoutput}{if TRUE, just outputs the fitted g, logLR, PosteriorMean, PosteriorSD, function call and df}
 
 \item{g}{the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)}
+
+\item{fixg}{if TRUE, don't estimate g but use the specified g - useful for computations under the "true" g in simulations}
 
 \item{cxx}{flag (deprecated, use optmethod) to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point.}
 
@@ -123,8 +125,7 @@ sebetahat = abs(rnorm(200,0,1))
 betahat = rnorm(200,beta,sebetahat)
 true_g = normalmix(c(0.5,0.5),c(0,0),c(0,1)) # define true g
 #Passing this g into ash causes it to i) take the sd and the means for each component from this g, and ii) initialize pi to the value from this g.
-#To fix this g we have to tell ash to do 0 EM iterations too.
-beta.ash = ash(betahat, sebetahat,g=true_g,control=list(maxiter=0))
+beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
 }
 \seealso{
 \code{\link{ash}} for simplified specification of ash function

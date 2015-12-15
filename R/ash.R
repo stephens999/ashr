@@ -99,6 +99,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @param minimaloutput if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue) 
 #' @param multiseqoutput if TRUE, just outputs the fitted g, logLR, PosteriorMean, PosteriorSD, function call and df
 #' @param g the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
+#' @param fixg if TRUE, don't estimate g but use the specified g - useful for computations under the "true" g in simulations
 #' @param VB (deprecated, use optmethod) whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}
 #' @param cxx flag (deprecated, use optmethod) to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point. 
 #' @param model c("EE","ET") specifies whether to assume exchangeable effects (EE) or exchangeable T stats (ET).
@@ -160,8 +161,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' betahat = rnorm(200,beta,sebetahat)
 #' true_g = normalmix(c(0.5,0.5),c(0,0),c(0,1)) # define true g 
 #' #Passing this g into ash causes it to i) take the sd and the means for each component from this g, and ii) initialize pi to the value from this g.
-#' #To fix this g we have to tell ash to do 0 EM iterations too.
-#' beta.ash = ash(betahat, sebetahat,g=true_g,control=list(maxiter=0))
+#' beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
 ash.workhorse = function(betahat,sebetahat,
                method = c("fdr","shrink"),
                mixcompdist = c("uniform","halfuniform","normal"),
@@ -175,6 +175,7 @@ ash.workhorse = function(betahat,sebetahat,
                minimaloutput=FALSE,
                multiseqoutput=FALSE,
                g=NULL,
+               fixg=FALSE,
                cxx=FALSE,
                VB=FALSE,
                model=c("EE","ET"),
@@ -310,6 +311,7 @@ ash.workhorse = function(betahat,sebetahat,
   
   ##2. Generating mixture distribution
   
+  if(fixg & missing(g)){stop("if fixg=TRUE then you must specify g!")}
   
   if(!is.null(g)){
     #controlinput$maxiter = 0 # if g is specified, don't iterate the EM
@@ -363,10 +365,12 @@ ash.workhorse = function(betahat,sebetahat,
   
   
   ##3. Fitting the mixture
-  
-  pi.fit=estimate_mixprop(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,
+  if(!fixg){
+    pi.fit=estimate_mixprop(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,
                nullcheck=nullcheck,optmethod=optmethod,df=df,control=controlinput)  
-  
+  } else {
+    pi.fit = list(g=g)
+  }
   
   ##4. Computing the posterior
   
@@ -509,7 +513,7 @@ gradient = function(matrix_lik){
 #'
 #' @param betahat (n vector of observations) 
 #' @param sebetahat (n vector of standard errors/deviations of observations)
-#' @param g the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
+#' @param g the prior distribution for beta (usually estimated from the data
 #' @param prior string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component)
 #' @param null.comp the position of the null component
 #' @param nullcheck  whether to check that any fitted model exceeds the "null" likelihood
