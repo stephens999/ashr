@@ -25,7 +25,7 @@
 #'  
 #' @export
 mixIP = function(matrix_lik, prior, pi_init = NULL, control = list()){
-  if(!require("REBayes")){stop("mixIP requires installation of package REBayes")}
+  if(!require("REBayes",quietly=TRUE)){stop("mixIP requires installation of package REBayes")}
   n = nrow(matrix_lik)
   k = ncol(matrix_lik)
   #A = matrix_lik

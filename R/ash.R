@@ -184,6 +184,7 @@ ash.workhorse = function(betahat,sebetahat,
   
   ##1.Handling Input Parameters
   
+
   # Set optimization method (optmethod)
   
   # if user tries to set both optmethod and VB/cxx that's an error
@@ -219,7 +220,7 @@ ash.workhorse = function(betahat,sebetahat,
     if (cxx==FALSE){optmethod = "mixEM"}
   }
     
-  if(optmethod == "mixIP"){assertthat::assert_that(require(REBayes))}
+  if(optmethod == "mixIP"){assertthat::assert_that(require(REBayes,quietly=TRUE))}
   if(optmethod == "cxxMixSquarem"){assertthat::assert_that(require(Rcpp))}
   
   #method provides a convenient interface to set a particular combinations of parameters for prior an
@@ -301,6 +302,9 @@ ash.workhorse = function(betahat,sebetahat,
   if (!all(namc %in% names(control.default))) 
     stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
   controlinput=modifyList(control.default, control)
+  if(controlinput$maxiter==0){
+    stop("option control$maxiter=0 deprecated; used fixg=TRUE instead")
+  }
   
   
   if(n==0){
@@ -314,13 +318,12 @@ ash.workhorse = function(betahat,sebetahat,
   if(fixg & missing(g)){stop("if fixg=TRUE then you must specify g!")}
   
   if(!is.null(g)){
-    #controlinput$maxiter = 0 # if g is specified, don't iterate the EM
     k=ncomp(g)
     null.comp=1 #null.comp not actually used unless randomstart true 
     prior = setprior(prior,k,nullweight,null.comp)
     if(randomstart){pi = initpi(k,n,null.comp,randomstart)
                     g$pi=pi} #if g specified, only initialize pi if randomstart is TRUE 
-    if(controlinput$maxiter ==0){nullcheck=FALSE} #really use g if it is specified with maxiter=0
+    if(fixg){nullcheck=FALSE} #really use g if it is to be fixed
   } else {
     if(is.null(mixsd)){
       if(nonzeromode){
@@ -556,7 +559,7 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
   
   fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=controlinput))
     
-  if(!fit$converged & controlinput$maxiter>0){
+  if(!fit$converged & !fixg){
       warning("Optimization failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
   }
 
