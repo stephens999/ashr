@@ -559,7 +559,7 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
   
   fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=controlinput))
     
-  if(!fit$converged & !fixg){
+  if(!fit$converged){
       warning("Optimization failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
   }
 
