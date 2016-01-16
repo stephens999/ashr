@@ -63,7 +63,7 @@
 #' plot(betahat, betan.ash$PosteriorMean)
 #' summary(betan.ash)
 ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal"),df=NULL,...){
-  return(ash.workhorse(betahat,sebetahat,mixcompdist=mixcompdist,df=df,...))
+  return(modifyList(ash.workhorse(betahat,sebetahat,mixcompdist=mixcompdist,df=df,...),list(call=match.call())))
 }
 
 
