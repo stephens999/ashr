@@ -8,10 +8,10 @@ ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
   mixcompdist = c("uniform", "halfuniform", "normal"),
   optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"), lambda1 = 1,
   lambda2 = 0, df = NULL, randomstart = FALSE, nullweight = 10,
-  nonzeromode = FALSE, pointmass = TRUE, onlylogLR = FALSE,
-  prior = c("nullbiased", "uniform"), mixsd = NULL, gridmult = sqrt(2),
-  minimaloutput = FALSE, multiseqoutput = FALSE, g = NULL, fixg = FALSE,
-  cxx = FALSE, VB = FALSE, model = c("EE", "ET"), control = list())
+  nonzeromode = FALSE, pointmass = TRUE, prior = c("nullbiased",
+  "uniform"), mixsd = NULL, gridmult = sqrt(2), minimaloutput = FALSE,
+  multiseqoutput = FALSE, g = NULL, fixg = FALSE, cxx = FALSE,
+  VB = FALSE, model = c("EE", "ET"), control = list())
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -40,8 +40,6 @@ This is simply a convenient way to specify certain combinations of parameters: "
 
 \item{pointmass}{logical, indicating whether to use a point mass at zero as one of components for a mixture distribution}
 
-\item{onlylogLR}{logical, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, lfdr...}
-
 \item{prior}{string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component)}
 
 \item{mixsd}{vector of sds for underlying mixture components}
@@ -50,7 +48,7 @@ This is simply a convenient way to specify certain combinations of parameters: "
 
 \item{minimaloutput}{if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue)}
 
-\item{multiseqoutput}{if TRUE, just outputs the fitted g, logLR, PosteriorMean, PosteriorSD, function call and df}
+\item{multiseqoutput}{if TRUE, just outputs the fitted g, PosteriorMean, PosteriorSD, function call and df}
 
 \item{g}{the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)}
 
@@ -65,9 +63,8 @@ This is simply a convenient way to specify certain combinations of parameters: "
 \item{control}{A list of control parameters for the optmization algorithm. Default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User may supply changes to this list of parameter, say, control=list(maxiter=10000,trace=TRUE)}
 }
 \value{
-ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
+ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
 \item{fitted.g}{fitted mixture, either a normalmix or unimix}
-\item{logLR}{log P(D|mle(pi)) - log P(D|null)}
 \item{loglik}{log P(D|mle(pi))}
 \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
 \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}

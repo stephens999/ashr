@@ -16,9 +16,8 @@
 #' @param mixcompdist distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default is "uniform". If you believe your effects may be asymmetric, use "halfuniform". The use of "normal" is permitted only if df=NULL.
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL which is actually treated as infinity (Gaussian)
 #' 
-#' @return ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
+#' @return ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
 #' \item{fitted.g}{fitted mixture, either a normalmix or unimix}
-#' \item{logLR}{log P(D|mle(pi)) - log P(D|null)}
 #' \item{loglik}{log P(D|mle(pi))}
 #' \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
 #' \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
@@ -90,12 +89,11 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @param randomstart logical, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
 #' @param nonzeromode logical, indicating whether to use a non-zero unimodal mixture(default is "FALSE")
 #' @param pointmass logical, indicating whether to use a point mass at zero as one of components for a mixture distribution
-#' @param onlylogLR logical, indicating whether to use this function to get logLR. Skip posterior prob, posterior mean, lfdr...
 #' @param prior string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component)
 #' @param mixsd vector of sds for underlying mixture components 
 #' @param gridmult the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)
 #' @param minimaloutput if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue) 
-#' @param multiseqoutput if TRUE, just outputs the fitted g, logLR, PosteriorMean, PosteriorSD, function call and df
+#' @param multiseqoutput if TRUE, just outputs the fitted g, PosteriorMean, PosteriorSD, function call and df
 #' @param g the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
 #' @param fixg if TRUE, don't estimate g but use the specified g - useful for computations under the "true" g in simulations
 #' @param VB (deprecated, use optmethod) whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}
@@ -104,9 +102,8 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @param control A list of control parameters for the optmization algorithm. Default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User may supply changes to this list of parameter, say, control=list(maxiter=10000,trace=TRUE)
 
 #' 
-#' @return ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
+#' @return ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
 #' \item{fitted.g}{fitted mixture, either a normalmix or unimix}
-#' \item{logLR}{log P(D|mle(pi)) - log P(D|null)}
 #' \item{loglik}{log P(D|mle(pi))}
 #' \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
 #' \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
@@ -167,7 +164,6 @@ ash.workhorse = function(betahat,sebetahat,
                lambda1=1,lambda2=0,df=NULL,randomstart=FALSE,
                nullweight=10,nonzeromode=FALSE, 
                pointmass = TRUE, 
-               onlylogLR = FALSE, 
                prior=c("nullbiased","uniform"), 
                mixsd=NULL, gridmult=sqrt(2),
                minimaloutput=FALSE,
@@ -304,10 +300,8 @@ ash.workhorse = function(betahat,sebetahat,
     stop("option control$maxiter=0 deprecated; used fixg=TRUE instead")
   }
   
-  
   if(n==0){
-    if(onlylogLR){  return(list(pi=NULL, logLR = 0))  }
-    else{  stop("Error: all input values are missing")  }
+    stop("Error: all input values are missing") 
   }
   
   
@@ -374,44 +368,41 @@ ash.workhorse = function(betahat,sebetahat,
   
   ##4. Computing the posterior
   
-  if (!onlylogLR){
-    n=length(betahat)
-    if (!multiseqoutput){
-      ZeroProb = rep(0,length=n)
-      NegativeProb = rep(0,length=n)
-    }
-    if (!minimaloutput){
-      PosteriorMean = rep(0,length=n)
-      PosteriorSD = rep(0,length=n)
-    }
-    if (!multiseqoutput){
-      ZeroProb[completeobs] = colSums(comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)[comp_sd(pi.fit$g)==0,,drop=FALSE])
-      NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs],df) - ZeroProb[completeobs]
-    }
-    if (!minimaloutput){
-      PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
-      PosteriorSD[completeobs] = postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
-    }
-    
-    #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
-    if (!multiseqoutput){
-      ZeroProb[!completeobs] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g)==0])
-      NegativeProb[!completeobs] = mixcdf(pi.fit$g,0)
-      lfsr = compute_lfsr(NegativeProb,ZeroProb)
-    }
-    if (!minimaloutput){
-      PosteriorMean[!completeobs] = calc_mixmean(pi.fit$g)
-      PosteriorSD[!completeobs] = calc_mixsd(pi.fit$g)
-    }
-    if (!minimaloutput & !multiseqoutput){
-      PositiveProb = 1- NegativeProb-ZeroProb
-      lfsra = compute_lfsra(PositiveProb,NegativeProb,ZeroProb) 
-      lfdr = ZeroProb
-      qvalue = qval.from.lfdr(lfdr)
-    }
+  n = length(betahat)
+  if (!multiseqoutput) {
+    ZeroProb = rep(0,length = n)
+    NegativeProb = rep(0,length = n)
   }
-  if (!minimaloutput)
-    logLR = tail(pi.fit$loglik,1) - pi.fit$null.loglik
+  if (!minimaloutput) {
+    PosteriorMean = rep(0,length = n)
+    PosteriorSD = rep(0,length = n)
+  }
+  if (!multiseqoutput) {
+    ZeroProb[completeobs] = colSums(comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)[comp_sd(pi.fit$g) ==
+                                                                                                            0,,drop = FALSE])
+    NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs],df) - ZeroProb[completeobs]
+  }
+  if (!minimaloutput) {
+    PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
+    PosteriorSD[completeobs] = postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
+  }
+  
+  #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
+  if (!multiseqoutput) {
+    ZeroProb[!completeobs] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g) == 0])
+    NegativeProb[!completeobs] = mixcdf(pi.fit$g,0)
+    lfsr = compute_lfsr(NegativeProb,ZeroProb)
+  }
+  if (!minimaloutput) {
+    PosteriorMean[!completeobs] = calc_mixmean(pi.fit$g)
+    PosteriorSD[!completeobs] = calc_mixsd(pi.fit$g)
+  }
+  if (!minimaloutput & !multiseqoutput) {
+    PositiveProb = 1 - NegativeProb - ZeroProb
+    lfsra = compute_lfsra(PositiveProb,NegativeProb,ZeroProb)
+    lfdr = ZeroProb
+    qvalue = qval.from.lfdr(lfdr)
+  }
   
   if(nonzeromode){
     #Adding back the nonzero mean
@@ -438,18 +429,27 @@ ash.workhorse = function(betahat,sebetahat,
   
   ##5. Returning the result
   
-  if (onlylogLR){
-    return(list(fitted.g=pi.fit$g, logLR = logLR, df=df))
-  }else if (minimaloutput){
-    return(list(fitted.g = pi.fit$g, lfsr = lfsr, fit = pi.fit,df=df))
-  }else if (multiseqoutput){
-    return(list(fitted.g = pi.fit$g, logLR = logLR, PosteriorMean = PosteriorMean,
-                PosteriorSD = PosteriorSD, call= match.call(),df=df))
+  
+  if (minimaloutput) {
+    return(list(
+      fitted.g = pi.fit$g, lfsr = lfsr, fit = pi.fit,df = df
+    ))
+  }else if (multiseqoutput) {
+    return(
+      list(
+        fitted.g = pi.fit$g, PosteriorMean = PosteriorMean,
+        PosteriorSD = PosteriorSD, call = match.call(),df = df
+      )
+    )
   }else{
-    result = list(fitted.g = pi.fit$g, logLR = logLR, loglik=loglik, PosteriorMean = PosteriorMean,
-                  PosteriorSD = PosteriorSD, PositiveProb = PositiveProb, NegativeProb = NegativeProb, ZeroProb = ZeroProb,
-                  lfsr = lfsr,lfsra = lfsra, lfdr = lfdr, qvalue = qvalue, fit = pi.fit, lambda1 = lambda1, lambda2 = lambda2,
-                  call = match.call(), grad = gradient(pi.fit$matrix_lik), data = list(betahat = betahat, sebetahat=sebetahat),excludeindex= excludeindex,df=df,model=model, optmethod=optmethod)
+    result = list(
+      fitted.g = pi.fit$g, loglik = loglik, PosteriorMean = PosteriorMean,
+      PosteriorSD = PosteriorSD, PositiveProb = PositiveProb, NegativeProb = NegativeProb, ZeroProb = ZeroProb,
+      lfsr = lfsr,lfsra = lfsra, lfdr = lfdr, qvalue = qvalue, fit = pi.fit, lambda1 = lambda1, lambda2 = lambda2,
+      call = match.call(), grad = gradient(pi.fit$matrix_lik), data = list(betahat = betahat, sebetahat =
+                                                                             sebetahat),excludeindex = excludeindex,df = df,model = model, optmethod =
+        optmethod
+    )
     class(result) = "ash"
     return(result)
   }

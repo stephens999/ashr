@@ -17,9 +17,8 @@ ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal"),
 \item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL which is actually treated as infinity (Gaussian)}
 }
 \value{
-ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{onlylogLR=TRUE}, \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
+ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
 \item{fitted.g}{fitted mixture, either a normalmix or unimix}
-\item{logLR}{log P(D|mle(pi)) - log P(D|null)}
 \item{loglik}{log P(D|mle(pi))}
 \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
 \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
