@@ -452,7 +452,7 @@ ash.workhorse = function(betahat,sebetahat,
     result = list(fitted.g = pi.fit$g, logLR = logLR, loglik=loglik, PosteriorMean = PosteriorMean,
                   PosteriorSD = PosteriorSD, PositiveProb = PositiveProb, NegativeProb = NegativeProb, ZeroProb = ZeroProb,
                   lfsr = lfsr,lfsra = lfsra, lfdr = lfdr, qvalue = qvalue, fit = pi.fit, lambda1 = lambda1, lambda2 = lambda2,
-                  call = match.call(), data = list(betahat = betahat, sebetahat=sebetahat),excludeindex= excludeindex,df=df,model=model, optmethod=optmethod)
+                  call = match.call(), grad = gradient(pi.fit$matrix_lik), data = list(betahat = betahat, sebetahat=sebetahat),excludeindex= excludeindex,df=df,model=model, optmethod=optmethod)
     class(result) = "ash"
     return(result)
   }
@@ -557,8 +557,14 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
   
   matrix_lik = t(compdens_conv(g,betahat,sebetahat,df))
   
-  fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=controlinput))
-    
+  # the last of these conditions checks whether the gradient at the null is negative wrt pi0
+  # to avoid running the optimization when the global null (pi0=1) is the optimal.
+  if(optmethod=="mixVBEM" || max(prior[-1])>1 || min(gradient(matrix_lik)+prior[1]-1)<0){
+    fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=controlinput))
+  } else {
+    fit = list(converged=TRUE,pihat=c(1,rep(0,k-1)))
+  }
+  
   if(!fit$converged){
       warning("Optimization failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
   }
@@ -566,7 +572,6 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
   pi = fit$pihat     
   penloglik = penloglik(pi,matrix_lik, prior)
   converged = fit$converged
-  niter = fit$niter
   
   loglik.final =  penloglik(pi,matrix_lik,1) #compute penloglik without penalty
   null.loglik = sum(log(matrix_lik[,null.comp]))  
