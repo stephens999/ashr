@@ -259,18 +259,18 @@ toc <- function()
 #the searching interval from the mixture
 #2.A:Done by shrinking searching interval using while loop
 #
-ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=100,shrinkingcoefficient=0.9,trace=FALSE,ncores=FALSE){
+ashci = function (a, betahat, sebetahat,df=NULL,model=c("EE","ET"),level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=100,shrinkingcoefficient=0.9,trace=FALSE,ncores=FALSE){
   options(warn=-1)  
   if(missing(betaindex)){
     betaindex =(a$lfsr<=lfsrcriteria)
     betaindex[is.na(betaindex)]=FALSE #Some lfsrs would have NA
   }
-  x=a$data$betahat[betaindex]
-  s=a$data$sebetahat[betaindex]
+
   PosteriorMean=a$PosteriorMean[betaindex]
+  x=betahat[betaindex]
+  s=sebetahat[betaindex]
   m=a$fitted.g
-  df=a$df
-  model=a$model
+  model=match.arg(model)
   percentage=1
   
   if( class(m) != "normalmix" && class(m) != "unimix" ){stop(paste("Invalid class",class(m)))}
