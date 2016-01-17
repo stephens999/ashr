@@ -17,7 +17,7 @@ ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal"),
 \item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL which is actually treated as infinity (Gaussian)}
 }
 \value{
-ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
+ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
 \item{fitted.g}{fitted mixture, either a normalmix or unimix}
 \item{loglik}{log P(D|mle(pi))}
 \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
@@ -26,17 +26,14 @@ ash returns an object of \code{\link[base]{class}} "ash", a list with the follow
 \item{NegativeProb}{A vector of posterior probability that beta is negative}
 \item{ZeroProb}{A vector of posterior probability that beta is zero}
 \item{lfsr}{The local false sign rate}
-\item{lfsra}{The local false sign rate(adjusted)}
 \item{lfdr}{A vector of estimated local false discovery rate}
 \item{qvalue}{A vector of q values}
-\item{fit}{The fitted mixture object by \code{\link{mixEM}} or \code{\link{mixVBEM}} }
-\item{lambda1}{multiplicative "inflation factor"}
-\item{lambda2}{additive "inflation factor"}
+\item{fit}{The fitted mixture object}
 \item{call}{a call in which all of the specified arguments are specified by their full names}
-\item{data}{a list consisting the input betahat and sebetahat}
 \item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
-\item{df}{the specified degrees of freedom for (t) distribution of betahat/sebetahat}
 \item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T stats (ET) has been used}
+\item{optmethod}{the optimization method used}
+\item{data}{a list consisting the input betahat and sebetahat (only included if outputlevel>2)}
 }
 \description{
 Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies

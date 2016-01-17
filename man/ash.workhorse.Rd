@@ -9,9 +9,9 @@ ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
   optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"), lambda1 = 1,
   lambda2 = 0, df = NULL, randomstart = FALSE, nullweight = 10,
   nonzeromode = FALSE, pointmass = TRUE, prior = c("nullbiased",
-  "uniform"), mixsd = NULL, gridmult = sqrt(2), minimaloutput = FALSE,
-  multiseqoutput = FALSE, g = NULL, fixg = FALSE, cxx = FALSE,
-  VB = FALSE, model = c("EE", "ET"), control = list())
+  "uniform"), mixsd = NULL, gridmult = sqrt(2), outputlevel = 2,
+  g = NULL, fixg = FALSE, cxx = FALSE, VB = FALSE, model = c("EE",
+  "ET"), control = list())
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -46,9 +46,7 @@ This is simply a convenient way to specify certain combinations of parameters: "
 
 \item{gridmult}{the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)}
 
-\item{minimaloutput}{if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue)}
-
-\item{multiseqoutput}{if TRUE, just outputs the fitted g, PosteriorMean, PosteriorSD, function call and df}
+\item{outputlevel}{determines amount of output [0=just fitted g; 1=also PosteriorMean and PosteriorSD; 2= all but data; 3=everything, including copy of input data]}
 
 \item{g}{the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)}
 
@@ -63,7 +61,7 @@ This is simply a convenient way to specify certain combinations of parameters: "
 \item{control}{A list of control parameters for the optmization algorithm. Default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User may supply changes to this list of parameter, say, control=list(maxiter=10000,trace=TRUE)}
 }
 \value{
-ash returns an object of \code{\link[base]{class}} "ash", a list with the following elements(or a  simplified list, if \eqn{minimaloutput=TRUE}   or \eqn{multiseqoutput=TRUE}) \cr
+ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
 \item{fitted.g}{fitted mixture, either a normalmix or unimix}
 \item{loglik}{log P(D|mle(pi))}
 \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
@@ -72,17 +70,14 @@ ash returns an object of \code{\link[base]{class}} "ash", a list with the follow
 \item{NegativeProb}{A vector of posterior probability that beta is negative}
 \item{ZeroProb}{A vector of posterior probability that beta is zero}
 \item{lfsr}{The local false sign rate}
-\item{lfsra}{The local false sign rate(adjusted)}
 \item{lfdr}{A vector of estimated local false discovery rate}
 \item{qvalue}{A vector of q values}
-\item{fit}{The fitted mixture object by \code{\link{mixEM}} or \code{\link{mixVBEM}} }
-\item{lambda1}{multiplicative "inflation factor"}
-\item{lambda2}{additive "inflation factor"}
+\item{fit}{The fitted mixture object}
 \item{call}{a call in which all of the specified arguments are specified by their full names}
-\item{data}{a list consisting the input betahat and sebetahat}
 \item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
-\item{df}{the specified degrees of freedom for (t) distribution of betahat/sebetahat}
-\item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T statistics (ET) has been used}
+\item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T stats (ET) has been used}
+\item{optmethod}{the optimization method used}
+\item{data}{a list consisting the input betahat and sebetahat (only included if outputlevel>2)}
 }
 \description{
 Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
