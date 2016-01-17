@@ -79,8 +79,6 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @param mixcompdist distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value is "uniform"
 #'
 #' @param optmethod specifies optimization method used. Default is "mixIP", an interior point method, if REBayes is installed; otherwise a slower EM algorithm is used.
-#' @param lambda1  multiplicative "inflation factor" for standard errors (like Genomic Control)
-#' @param lambda2  additive "inflation factor" for standard errors (like Genomic Control)
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)
 #' @param nullweight scalar, the weight put on the prior under "nullbiased" specification, see \code{prior}
 #' @param randomstart logical, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
@@ -153,7 +151,7 @@ ash.workhorse = function(betahat,sebetahat,
                method = c("fdr","shrink"),
                mixcompdist = c("uniform","halfuniform","normal"),
                optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
-               lambda1=1,lambda2=0,df=NULL,randomstart=FALSE,
+               df=NULL,randomstart=FALSE,
                nullweight=10,nonzeromode=FALSE, 
                pointmass = TRUE, 
                prior=c("nullbiased","uniform"), 
@@ -351,7 +349,7 @@ ash.workhorse = function(betahat,sebetahat,
   
   ##3. Fitting the mixture
   if(!fixg){
-    pi.fit=estimate_mixprop(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,
+    pi.fit=estimate_mixprop(betahat[completeobs],sebetahat[completeobs],g,prior,null.comp=null.comp,
                optmethod=optmethod,df=df,control=controlinput)  
   } else {
     pi.fit = list(g=g)
