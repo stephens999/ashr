@@ -85,8 +85,6 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @param optmethod specifies optimization method used. Default is "mixIP", an interior point method, if REBayes is installed; otherwise a slower EM algorithm is used.
 #' @param lambda1  multiplicative "inflation factor" for standard errors (like Genomic Control)
 #' @param lambda2  additive "inflation factor" for standard errors (like Genomic Control)
-#' @param nullcheck  whether to check that any fitted model exceeds the "null" likelihood
-#' in which all weight is on the first component
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)
 #' @param nullweight scalar, the weight put on the prior under "nullbiased" specification, see \code{prior}
 #' @param randomstart logical, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
@@ -166,7 +164,7 @@ ash.workhorse = function(betahat,sebetahat,
                method = c("fdr","shrink"),
                mixcompdist = c("uniform","halfuniform","normal"),
                optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
-               lambda1=1,lambda2=0,nullcheck=TRUE,df=NULL,randomstart=FALSE,
+               lambda1=1,lambda2=0,df=NULL,randomstart=FALSE,
                nullweight=10,nonzeromode=FALSE, 
                pointmass = TRUE, 
                onlylogLR = FALSE, 
@@ -323,7 +321,6 @@ ash.workhorse = function(betahat,sebetahat,
     prior = setprior(prior,k,nullweight,null.comp)
     if(randomstart){pi = initpi(k,n,null.comp,randomstart)
                     g$pi=pi} #if g specified, only initialize pi if randomstart is TRUE 
-    if(fixg){nullcheck=FALSE} #really use g if it is to be fixed
   } else {
     if(is.null(mixsd)){
       if(nonzeromode){
@@ -370,7 +367,7 @@ ash.workhorse = function(betahat,sebetahat,
   ##3. Fitting the mixture
   if(!fixg){
     pi.fit=estimate_mixprop(betahat[completeobs],lambda1*sebetahat[completeobs]+lambda2,g,prior,null.comp=null.comp,
-               nullcheck=nullcheck,optmethod=optmethod,df=df,control=controlinput)  
+               optmethod=optmethod,df=df,control=controlinput)  
   } else {
     pi.fit = list(g=g)
   }
@@ -519,8 +516,6 @@ gradient = function(matrix_lik){
 #' @param g the prior distribution for beta (usually estimated from the data
 #' @param prior string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component)
 #' @param null.comp the position of the null component
-#' @param nullcheck  whether to check that any fitted model exceeds the "null" likelihood
-#' in which all weight is on the first component
 #' @param optmethod name of function to use to do optimization
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)
 #' @param control A list of control parameters for the SQUAREM algorithm, default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). 
@@ -531,14 +526,12 @@ gradient = function(matrix_lik){
 #prior gives the parameter of a Dirichlet prior on pi
 #(prior is used to encourage results towards smallest value of sigma when
 #likelihood is flat)
-#nullcheck indicates whether to check whether the loglike exceeds the null
-#(may not want to use if prior is used)
 #VB provides an approach to estimate the approximate posterior distribution
 #of mixture proportions of sigmaa by variational Bayes method
 #(use Dirichlet prior and approximate Dirichlet posterior)
 #if cxx TRUE use cpp version of R function mixEM
 
-estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSquarem","mixIP"),null.comp=1,nullcheck=TRUE,df=NULL,control=list()){ 
+estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSquarem","mixIP"),null.comp=1,df=NULL,control=list()){ 
   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE)
   optmethod=match.arg(optmethod)
   namc=names(control)
@@ -575,18 +568,6 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
   
   loglik.final =  penloglik(pi,matrix_lik,1) #compute penloglik without penalty
   null.loglik = sum(log(matrix_lik[,null.comp]))  
-  
-  if(nullcheck==TRUE & optmethod!="mixVBEM"){ #null check doesn't work with VB yet
-    pinull = rep(0,k)
-    pinull[null.comp]=1
-    null.penloglik = penloglik(pinull,matrix_lik,prior)
-    final.penloglik = penloglik(pi,matrix_lik,prior)
-    if(null.penloglik > final.penloglik){ #check whether exceeded "null" likelihood where everything is null
-      pi=pinull
-      loglik.final=penloglik(pi,matrix_lik,1)
-    }
-  }
-  
   g$pi=pi
   if(controlinput$trace==TRUE){toc()}
   

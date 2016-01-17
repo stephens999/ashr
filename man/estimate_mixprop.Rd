@@ -5,8 +5,8 @@
 \title{estimate mixture proportions of sigmaa by EM algorithm}
 \usage{
 estimate_mixprop(betahat, sebetahat, g, prior, optmethod = c("mixEM",
-  "mixVBEM", "cxxMixSquarem", "mixIP"), null.comp = 1, nullcheck = TRUE,
-  df = NULL, control = list())
+  "mixVBEM", "cxxMixSquarem", "mixIP"), null.comp = 1, df = NULL,
+  control = list())
 }
 \arguments{
 \item{betahat}{(n vector of observations)}
@@ -20,9 +20,6 @@ estimate_mixprop(betahat, sebetahat, g, prior, optmethod = c("mixEM",
 \item{optmethod}{name of function to use to do optimization}
 
 \item{null.comp}{the position of the null component}
-
-\item{nullcheck}{whether to check that any fitted model exceeds the "null" likelihood
-in which all weight is on the first component}
 
 \item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)}
 

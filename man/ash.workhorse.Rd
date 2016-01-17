@@ -7,12 +7,11 @@
 ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
   mixcompdist = c("uniform", "halfuniform", "normal"),
   optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"), lambda1 = 1,
-  lambda2 = 0, nullcheck = TRUE, df = NULL, randomstart = FALSE,
-  nullweight = 10, nonzeromode = FALSE, pointmass = TRUE,
-  onlylogLR = FALSE, prior = c("nullbiased", "uniform"), mixsd = NULL,
-  gridmult = sqrt(2), minimaloutput = FALSE, multiseqoutput = FALSE,
-  g = NULL, fixg = FALSE, cxx = FALSE, VB = FALSE, model = c("EE",
-  "ET"), control = list())
+  lambda2 = 0, df = NULL, randomstart = FALSE, nullweight = 10,
+  nonzeromode = FALSE, pointmass = TRUE, onlylogLR = FALSE,
+  prior = c("nullbiased", "uniform"), mixsd = NULL, gridmult = sqrt(2),
+  minimaloutput = FALSE, multiseqoutput = FALSE, g = NULL, fixg = FALSE,
+  cxx = FALSE, VB = FALSE, model = c("EE", "ET"), control = list())
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -30,9 +29,6 @@ This is simply a convenient way to specify certain combinations of parameters: "
 \item{lambda1}{multiplicative "inflation factor" for standard errors (like Genomic Control)}
 
 \item{lambda2}{additive "inflation factor" for standard errors (like Genomic Control)}
-
-\item{nullcheck}{whether to check that any fitted model exceeds the "null" likelihood
-in which all weight is on the first component}
 
 \item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)}
 
