@@ -216,6 +216,10 @@ toc <- function()
 #' @details Uses default optimization function and perform component-wise credible interval computation. The computation cost is linear of the length of betahat.
 #'
 #' @param a the fitted ash object 
+#' @param betahat the values of beta used for ash
+#' @param sebetahat the values of betahat used
+#' @param df the degrees of freedom
+#' @param the model used
 #' @param level the level for the credible interval, (default=0.95)
 #' @param betaindex a vector consisting of locations of betahat where you would like to compute the credible interval
 #' @param lfsrcriteria a scalar, in which the function would autoselect betahats based on lfsr value smaller than lfsrcriteria when index is not supplied. Setting it to 1 would compute credible interval for all observations.
@@ -233,13 +237,13 @@ toc <- function()
 #' betahat = rnorm(40,beta,sebetahat)
 #' beta.ash = ash(betahat, sebetahat)
 #' 
-#' CImatrix=ashci(beta.ash,level=0.95)
+#' CImatrix=ashci(beta.ash,betahat,sebetahat,level=0.95)
 #' print(CImatrix)
 #' print(CImatrix[order(CImatrix[,2]),]) # Sorted according to the lfsr
 #'
-#' CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
-#' CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)
-#' #CImatrix3=ashci(beta.ash,level=0.95, betaindex=c(1:length(beta)),ncores=4)
+#' CImatrix1=ashci(beta.ash,betahat,sebetahat,level=0.95,betaindex=c(1,2,5))
+#' CImatrix2=ashci(beta.ash,betahat,sebetahat,level=0.95,lfsrcriteria=0.1)
+#' #CImatrix3=ashci(beta.ash,betahat,sebetahat,level=0.95, betaindex=c(1:length(beta)),ncores=4)
 #' print(CImatrix1)
 #' print(CImatrix2)
 #' #print(CImatrix3)
@@ -249,7 +253,7 @@ toc <- function()
 #' #sebetahat = abs(rnorm(2000,0,1))
 #' #betahat = rnorm(2000,beta,sebetahat)
 #' #beta.ash = ash(betahat, sebetahat)
-#' #CImatrix4 = ashci(beta.ash,level=0.95, betaindex=c(1:length(beta)),ncores=4)
+#' #CImatrix4 = ashci(beta.ash,betahat,sebetahat,level=0.95, betaindex=c(1:length(beta)),ncores=4)
 #todo/issue=> all set!
 #1.Q:Could do parallel computing to reduce the computation time
 #1.A:Done by doParallel

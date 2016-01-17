@@ -12,6 +12,12 @@ ashci(a, betahat, sebetahat, df = NULL, model = c("EE", "ET"),
 \arguments{
 \item{a}{the fitted ash object}
 
+\item{betahat}{the values of beta used for ash}
+
+\item{sebetahat}{the values of betahat used}
+
+\item{df}{the degrees of freedom}
+
 \item{level}{the level for the credible interval, (default=0.95)}
 
 \item{betaindex}{a vector consisting of locations of betahat where you would like to compute the credible interval}
@@ -27,6 +33,8 @@ ashci(a, betahat, sebetahat, df = NULL, model = c("EE", "ET"),
 \item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.}
 
 \item{ncores}{Whether to use parallel computing, defaults to FALSE, user could specify number of cores they would like to use. Further, if user does not specify and we have over 1000 entries to compute,  then the function would perform parallel computation  using number of CPU cores on the current host.}
+
+\item{the}{model used}
 }
 \value{
 A matrix, with first column being the location,second column being lfsr, 3rd column being posterior mean,4th and 5th column being the lower bound and upper bound for the credible interval.
@@ -43,13 +51,13 @@ sebetahat = abs(rnorm(40,0,1))
 betahat = rnorm(40,beta,sebetahat)
 beta.ash = ash(betahat, sebetahat)
 
-CImatrix=ashci(beta.ash,level=0.95)
+CImatrix=ashci(beta.ash,betahat,sebetahat,level=0.95)
 print(CImatrix)
 print(CImatrix[order(CImatrix[,2]),]) # Sorted according to the lfsr
 
-CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
-CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)
-#CImatrix3=ashci(beta.ash,level=0.95, betaindex=c(1:length(beta)),ncores=4)
+CImatrix1=ashci(beta.ash,betahat,sebetahat,level=0.95,betaindex=c(1,2,5))
+CImatrix2=ashci(beta.ash,betahat,sebetahat,level=0.95,lfsrcriteria=0.1)
+#CImatrix3=ashci(beta.ash,betahat,sebetahat,level=0.95, betaindex=c(1:length(beta)),ncores=4)
 print(CImatrix1)
 print(CImatrix2)
 #print(CImatrix3)
@@ -59,6 +67,6 @@ print(CImatrix2)
 #sebetahat = abs(rnorm(2000,0,1))
 #betahat = rnorm(2000,beta,sebetahat)
 #beta.ash = ash(betahat, sebetahat)
-#CImatrix4 = ashci(beta.ash,level=0.95, betaindex=c(1:length(beta)),ncores=4)
+#CImatrix4 = ashci(beta.ash,betahat,sebetahat,level=0.95, betaindex=c(1:length(beta)),ncores=4)
 }
 
