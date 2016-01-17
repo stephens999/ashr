@@ -6,12 +6,11 @@
 \usage{
 ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
   mixcompdist = c("uniform", "halfuniform", "normal"),
-  optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"), lambda1 = 1,
-  lambda2 = 0, df = NULL, randomstart = FALSE, nullweight = 10,
-  nonzeromode = FALSE, pointmass = TRUE, prior = c("nullbiased",
-  "uniform"), mixsd = NULL, gridmult = sqrt(2), outputlevel = 2,
-  g = NULL, fixg = FALSE, cxx = FALSE, VB = FALSE, model = c("EE",
-  "ET"), control = list())
+  optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"), df = NULL,
+  randomstart = FALSE, nullweight = 10, nonzeromode = FALSE,
+  pointmass = TRUE, prior = c("nullbiased", "uniform"), mixsd = NULL,
+  gridmult = sqrt(2), outputlevel = 2, g = NULL, fixg = FALSE,
+  cxx = FALSE, VB = FALSE, model = c("EE", "ET"), control = list())
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -25,10 +24,6 @@ This is simply a convenient way to specify certain combinations of parameters: "
 \item{mixcompdist}{distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value is "uniform"}
 
 \item{optmethod}{specifies optimization method used. Default is "mixIP", an interior point method, if REBayes is installed; otherwise a slower EM algorithm is used.}
-
-\item{lambda1}{multiplicative "inflation factor" for standard errors (like Genomic Control)}
-
-\item{lambda2}{additive "inflation factor" for standard errors (like Genomic Control)}
 
 \item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)}
 
