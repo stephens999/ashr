@@ -138,7 +138,7 @@ calc_loglik = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
 #' @export
 #' 
 #'
-null_loglik = function(betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
+calc_null_loglik = function(betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
   g=unimix(1,0,0)
   return(calc_loglik(g,betahat,betahatsd,df,model,alpha))
 }
@@ -158,7 +158,7 @@ null_loglik = function(betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
 #' 
 #' @export
 calc_logLR = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
-  return(calc_loglik(g,betahat,betahatsd,df,model,alpha) - null_loglik(betahat,betahatsd,df,model,alpha))
+  return(calc_loglik(g,betahat,betahatsd,df,model,alpha) - calc_null_loglik(betahat,betahatsd,df,model,alpha))
 }
   
   
