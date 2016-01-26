@@ -16,3 +16,10 @@ test_that("calc_loglik returns warning when called with wrong model", {
   set.seed(1); z=rnorm(100); z.ash = ashr::ash(z,1)
   expect_warning(calc_loglik(z.ash,z,1,NULL,model="ET"))
 })
+
+test_that("logLR in ash object matches calc_logLR", {
+  set.seed(1); z=rnorm(100); z.ash = ashr::ash(z,1)
+  expect_equal(z.ash$logLR, calc_logLR(z.ash$fitted.g,z,1,df=NULL))
+  z.ash = ashr::ash(z,1,model="ET",df=2)
+  expect_equal(z.ash$logLR, calc_logLR(z.ash$fitted.g,z,1,df=2,model="ET"))
+})

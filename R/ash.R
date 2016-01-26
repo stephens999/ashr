@@ -409,7 +409,7 @@ ash.workhorse = function(betahat,sebetahat,
   
   result = list(fitted.g=pi.fit$g,call=match.call())
   if (outputlevel>0) {result=c(result,list(PosteriorMean = PosteriorMean,PosteriorSD = PosteriorSD,loglik = loglik))}
-  if (outputlevel>1) {result=c(result,list(
+  if (outputlevel>1) {result=c(result,list(logLR = calc_logLR(pi.fit$g,betahat,sebetahat,df,model),
                 PositiveProb = PositiveProb, NegativeProb = NegativeProb, 
                 ZeroProb = ZeroProb,lfsr = lfsr,lfdr = lfdr, qvalue = qvalue, 
                  excludeindex = excludeindex,model = model, optmethod =optmethod))}
