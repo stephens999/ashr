@@ -110,16 +110,18 @@ calc_loglik = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
     stop("error: must supply df for calc_loglik; supply df=NULL for normal likelihood")
   }
   
-  if(class(g)=="ash"){g = g$fitted.g} #extract g object from ash object if ash object passed 
-  
   if(missing(alpha)){
     model = match.arg(model) 
-    if(a$model != model){
+    if(class(g)=="ash" && g$model != model){
       warning("Model used to fit ash does not match model used to compute loglik! Probably you have made a mistake!")
     }
     if(model=="ET"){ alpha=1
     } else {alpha=0}
   }  
+  
+  if(class(g)=="ash"){g = g$fitted.g} #extract g object from ash object if ash object passed 
+  
+  
   return(loglik_conv(g,betahat/(betahatsd^alpha),betahatsd^(1-alpha),df)-alpha*sum(log(betahatsd)))
 }
 

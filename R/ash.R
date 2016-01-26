@@ -403,7 +403,7 @@ ash.workhorse = function(betahat,sebetahat,
     PosteriorSD= PosteriorSD * sebetahat
   }
   
-  loglik = calc_gloglik(pi.fit$g, betahat, sebetahat,df, model) 
+  loglik = calc_loglik(pi.fit$g, betahat, sebetahat,df, model) 
   
   ##5. Returning the result
   
