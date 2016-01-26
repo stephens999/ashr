@@ -4,10 +4,10 @@
 \alias{calc_loglik}
 \title{Compute loglikelihood for data from ash fit}
 \usage{
-calc_loglik(a, betahat, betahatsd, df, model = c("EE", "ET"), alpha = 0)
+calc_loglik(g, betahat, betahatsd, df, model = c("EE", "ET"), alpha = 0)
 }
 \arguments{
-\item{a}{the fitted ash object}
+\item{g}{the fitted g, or an ash object containing g}
 
 \item{betahat}{the data}
 
@@ -21,7 +21,7 @@ calc_loglik(a, betahat, betahatsd, df, model = c("EE", "ET"), alpha = 0)
 }
 \description{
 Return the log-likelihood of the data betahat, with standard errors betahatsd,
-under the fitted distribution in the ash object.
+for a given g() prior on beta, or an ash object containing that
 }
 \details{
 See example in CompareBetahatvsZscoreAnalysis.rmd

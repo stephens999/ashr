@@ -93,10 +93,9 @@ get_pi0 = function(a){
 #' @title Compute loglikelihood for data from ash fit
 #'
 #' @description Return the log-likelihood of the data betahat, with standard errors betahatsd, 
-#' under the fitted distribution in the ash object. 
+#' for a given g() prior on beta, or an ash object containing that
 #' 
-#'
-#' @param a the fitted ash object
+#' @param g the fitted g, or an ash object containing g
 #' @param betahat the data
 #' @param betahatsd the observed standard errors
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat
@@ -106,12 +105,13 @@ get_pi0 = function(a){
 #' 
 #' @export
 #' 
-#'
-calc_loglik = function(a,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
+calc_loglik = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
   if(missing(df)){
-    stop("error: must supply df for calc_loglik")
+    stop("error: must supply df for calc_loglik; supply df=NULL for normal likelihood")
   }
-  g=a$fitted.g
+  
+  if(class(g)=="ash"){g = g$fitted.g} #extract g object from ash object if ash object passed 
+  
   if(missing(alpha)){
     model = match.arg(model) 
     if(a$model != model){
@@ -123,37 +123,46 @@ calc_loglik = function(a,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
   return(loglik_conv(g,betahat/(betahatsd^alpha),betahatsd^(1-alpha),df)-alpha*sum(log(betahatsd)))
 }
 
-#' @title Compute loglikelihood for data using the prior g (usually from an ash fit)
+
+#' @title Compute loglikelihood for data under null that all beta are 0
 #'
 #' @description Return the log-likelihood of the data betahat, with standard errors betahatsd, 
-#' under the fitted distribution in the ash object. 
+#' under the null that beta==0
 #' 
-#'
-#' @param g the prior for effects or standardized effects
 #' @param betahat the data
 #' @param betahatsd the observed standard errors
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat
-#' @param model indicates whether you want the likelihood under the EE or ET model 
-#' @details See example in CompareBetahatvsZscoreAnalysis.rmd
+#' @param model indicates whether you want the likelihood under the EE or ET model
+#' @param alpha a scalar performing transformation on betahat and sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~ g()},and eqn{betahat_j / s_j^alpha ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ET model. \eqn{alpha} should be in between 0 and 1, inclusively. Default is alpha=0.
 #' 
 #' @export
 #' 
 #'
-calc_gloglik = function(g,betahat,betahatsd,df,model=c("EE","ET")){
-  if(missing(df)){
-    stop("error: must supply df for calc_loglik")
-  }
-  model = match.arg(model) 
-  if(model=="ET"){
-    return(loglik_conv(g,betahat/betahatsd,1,df)-sum(log(betahatsd)))
-  } else {
-    return(loglik_conv(g,betahat,betahatsd,df))
-  }
+null_loglik = function(betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
+  g=unimix(1,0,0)
+  return(calc_loglik(g,betahat,betahatsd,df,model,alpha))
 }
 
-
-
-
+#' @title Compute loglikelihood ratio for data from ash fit
+#'
+#' @description Return the log-likelihood ratio of the data betahat, with standard errors betahatsd, 
+#' for a given g() prior on beta, or an ash object containing that, vs the null that g() is point mass on 0
+#' 
+#' @param g the fitted g, or an ash object containing g
+#' @param betahat the data
+#' @param betahatsd the observed standard errors
+#' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat
+#' @param model indicates whether you want the likelihood under the EE or ET model
+#' @param alpha a scalar performing transformation on betahat and sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~ g()},and eqn{betahat_j / s_j^alpha ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ET model. \eqn{alpha} should be in between 0 and 1, inclusively. Default is alpha=0.
+#' @details See example in CompareBetahatvsZscoreAnalysis.rmd
+#' 
+#' @export
+calc_logLR = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
+  return(calc_loglik(g,betahat,betahatsd,df,model,alpha) - null_loglik(betahat,betahatsd,df,model,alpha))
+}
+  
+  
+  
 #' @title Density method for ash object
 #'
 #' @description Return the density of the underlying fitted distribution

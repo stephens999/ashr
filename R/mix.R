@@ -548,7 +548,7 @@ compdens.normalmix = function(m,y,log=FALSE){
 #' @return a k by n matrix
 compdens_conv.normalmix = function(m,x,s,v,FUN="+"){
   if(!is.null(v)){
-  	stop("method comp_postsd of normal mixture not written for df!=NULL")
+  	stop("method compdens_conv of normal mixture not written for df!=NULL")
   }
   if(length(s)==1){s=rep(s,length(x))}
   sdmat = sqrt(outer(s^2,m$sd^2,FUN)) #n by k matrix of standard deviations of convolutions
