@@ -8,9 +8,10 @@ ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
   mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform"),
   optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"), df = NULL,
   randomstart = FALSE, nullweight = 10, nonzeromode = FALSE,
-  pointmass = TRUE, prior = c("nullbiased", "uniform"), mixsd = NULL,
-  gridmult = sqrt(2), outputlevel = 2, g = NULL, fixg = FALSE,
-  cxx = FALSE, VB = FALSE, model = c("EE", "ET"), control = list())
+  pointmass = TRUE, prior = c("nullbiased", "uniform", "unit"),
+  mixsd = NULL, gridmult = sqrt(2), outputlevel = 2, g = NULL,
+  fixg = FALSE, cxx = FALSE, VB = FALSE, model = c("EE", "ET"),
+  control = list())
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -36,7 +37,7 @@ use "halfuniform" to allow for assymetric g, and "+uniform"/"-uniform" to constr
 
 \item{pointmass}{logical, indicating whether to use a point mass at zero as one of components for a mixture distribution}
 
-\item{prior}{string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component)}
+\item{prior}{string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component), or "unit" (1/K,...,1/K) [for optmethod=mixVBEM version only]}
 
 \item{mixsd}{vector of sds for underlying mixture components}
 

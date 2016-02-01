@@ -86,7 +86,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @param randomstart logical, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
 #' @param nonzeromode logical, indicating whether to use a non-zero unimodal mixture(default is "FALSE")
 #' @param pointmass logical, indicating whether to use a point mass at zero as one of components for a mixture distribution
-#' @param prior string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component)
+#' @param prior string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component), or "unit" (1/K,...,1/K) [for optmethod=mixVBEM version only]
 #' @param mixsd vector of sds for underlying mixture components 
 #' @param gridmult the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)
 #' @param outputlevel determines amount of output [0=just fitted g; 1=also PosteriorMean and PosteriorSD; 2= all but data; 3=everything, including copy of input data]
@@ -156,7 +156,7 @@ ash.workhorse = function(betahat,sebetahat,
                df=NULL,randomstart=FALSE,
                nullweight=10,nonzeromode=FALSE, 
                pointmass = TRUE, 
-               prior=c("nullbiased","uniform"), 
+               prior=c("nullbiased","uniform","unit"), 
                mixsd=NULL, gridmult=sqrt(2),
                outputlevel=2,
                g=NULL,
@@ -266,6 +266,9 @@ ash.workhorse = function(betahat,sebetahat,
   
   if(mixcompdist=="normal" & !is.null(df)){
     stop("Error:Normal mixture for student-t likelihood is not yet implemented")
+  }
+  if(prior=="unit" & optmethod!="mixVBEM"){
+    stop("Error: unit prior only valid for mixVBEM")
   }
   if(mixcompdist=="halfuniform" & prior!="nullbiased"){
     warning("Use of halfuniform without nullbiased prior can lead to misleading local false sign rates, and so is not recommended")
@@ -446,6 +449,8 @@ setprior=function(prior,k,nullweight,null.comp){
       prior[null.comp] = nullweight #prior 10-1 in favour of null by default
     }else if(prior=="uniform"){
       prior = rep(1,k)
+    } else if(prior=="unit"){
+      prior = rep(1/k,k)
     }
   }
   if(length(prior)!=k | !is.numeric(prior)){
