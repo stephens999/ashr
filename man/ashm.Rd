@@ -4,15 +4,15 @@
 \alias{ashm}
 \title{Multi-model Adaptive Shrinkage function}
 \usage{
-ashm(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal"),
-  df = NULL, alpha = 2, ncores = FALSE, ...)
+ashm(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal",
+  "+uniform", "-uniform"), df = NULL, alpha = 2, ncores = FALSE, ...)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
 
 \item{sebetahat}{a p vector of corresponding standard errors}
 
-\item{mixcompdist}{distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value would be "uniform"}
+\item{mixcompdist}{distribution of components in mixture. Default is "uniform".}
 
 \item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)}
 

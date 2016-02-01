@@ -4,15 +4,15 @@
 \alias{ash}
 \title{Main Adaptive Shrinkage function}
 \usage{
-ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal"),
-  df = NULL, ...)
+ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal",
+  "+uniform", "-uniform"), df = NULL, ...)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
 
 \item{sebetahat}{a p vector of corresponding standard errors}
 
-\item{mixcompdist}{distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default is "uniform". If you believe your effects may be asymmetric, use "halfuniform". The use of "normal" is permitted only if df=NULL.}
+\item{mixcompdist}{distribution of components in mixture ("uniform","halfuniform" or "normal";}
 
 \item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL which is actually treated as infinity (Gaussian)}
 }

@@ -467,7 +467,7 @@ ci.upper=function(z,m,x,s,level,df){
 #' @param betahat  a p vector of estimates 
 #' @param sebetahat a p vector of corresponding standard errors
 
-#' @param mixcompdist distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value would be "uniform"
+#' @param mixcompdist distribution of components in mixture. Default is "uniform".
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)
 #' @param alpha Could be a vector of grid values in interval [0,1], that this wrapper would select based on likelihood principle. Could also be a positive integer greater or equal to 2, then alpha number of grid values would be generated from [0,1], equally spaced. The default value is 2 that we compare the EE and ET model.
 #' @param ncores Whether to use parallel computing, defaults to FALSE, user could specify number of cores they would like to use. Further, if user does not specify and length(betahat)>50000, then the function would perform parallel computation using number of CPU cores on the current host.
@@ -491,7 +491,7 @@ ci.upper=function(z,m,x,s,level,df){
 #' 
 #' 
 ashm=function(betahat,sebetahat, 
-              mixcompdist = c("uniform","halfuniform","normal"),
+              mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),
 			  df=NULL, alpha=2,ncores=FALSE,
               ...){
   if(length(alpha)==1){
@@ -501,6 +501,7 @@ ashm=function(betahat,sebetahat,
     if(length(betahat)>50000) ncores=detectCores()
     #Set the number of cores equal to system capacity
   }
+  mixcompdist=match.arg(mixcompdist)
   
   allash=list()
   loglikvector=rep(NA,length(alpha))
@@ -584,7 +585,7 @@ ashm=function(betahat,sebetahat,
 #' 
 #' 
 ashn=function(betahat,sebetahat, 
-              mixcompdist = c("uniform","halfuniform","normal"),
+              mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),
 			  df=NULL, mu=20,ncores=FALSE,
               ...){
   if(length(mu)==1){
@@ -596,6 +597,8 @@ ashn=function(betahat,sebetahat,
     if(length(betahat)>50000) ncores=detectCores()
     #Set the number of cores equal to system capacity
   }
+  
+  mixcompdist = match.arg(mixcompdist)
   
   allash=list()
   loglikvector=rep(NA,length(mu))

@@ -4,8 +4,8 @@
 \alias{ashn}
 \title{Multi-Mode Adaptive Shrinkage function}
 \usage{
-ashn(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal"),
-  df = NULL, mu = 20, ncores = FALSE, ...)
+ashn(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal",
+  "+uniform", "-uniform"), df = NULL, mu = 20, ncores = FALSE, ...)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}

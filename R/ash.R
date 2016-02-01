@@ -13,7 +13,9 @@
 #' 
 #' @param betahat  a p vector of estimates 
 #' @param sebetahat a p vector of corresponding standard errors
-#' @param mixcompdist distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default is "uniform". If you believe your effects may be asymmetric, use "halfuniform". The use of "normal" is permitted only if df=NULL.
+#' @param mixcompdist distribution of components in mixture ("uniform","halfuniform" or "normal"; 
+# "+uniform" or "-uniform"), the default is "uniform". If you believe your effects may be asymmetric, use "halfuniform". If you want to allow only positive/negative effects use "+uniform"/"-uniform". 
+# The use of "normal" is permitted only if df=NULL.
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL which is actually treated as infinity (Gaussian)
 #' 
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
@@ -58,7 +60,7 @@
 #' betan.ash=ash(betahat, sebetahat,nonzeromode=TRUE)
 #' plot(betahat, betan.ash$PosteriorMean)
 #' summary(betan.ash)
-ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal"),df=NULL,...){
+ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),df=NULL,...){
   return(modifyList(ash.workhorse(betahat,sebetahat,mixcompdist=mixcompdist,df=df,...),list(call=match.call())))
 }
 
@@ -76,9 +78,9 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @param method specifies how ash is to be run. Can be "shrinkage" (if main aim is shrinkage) or "fdr" (if main aim is to assess fdr or fsr)
 #' This is simply a convenient way to specify certain combinations of parameters: "shrinkage" sets pointmass=FALSE and prior="uniform";
 #' "fdr" sets pointmass=TRUE and prior="nullbiased".
-#' @param mixcompdist distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value is "uniform"
-#'
-#' @param optmethod specifies optimization method used. Default is "mixIP", an interior point method, if REBayes is installed; otherwise a slower EM algorithm is used.
+#' @param mixcompdist distribution of components in mixture ( "uniform","halfuniform","normal" or "+uniform"), the default value is "uniform"
+#' use "halfuniform" to allow for assymetric g, and "+uniform"/"-uniform" to constrain g to be positive/negative.
+#' @param optmethod specifies optimization method used. Default is "mixIP", an interior point method, if REBayes is installed; otherwise an EM algorithm is used. The interior point method is faster for large problems (n>2000).
 #' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)
 #' @param nullweight scalar, the weight put on the prior under "nullbiased" specification, see \code{prior}
 #' @param randomstart logical, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)
@@ -149,7 +151,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
 ash.workhorse = function(betahat,sebetahat,
                method = c("fdr","shrink"),
-               mixcompdist = c("uniform","halfuniform","normal"),
+               mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),
                optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
                df=NULL,randomstart=FALSE,
                nullweight=10,nonzeromode=FALSE, 
@@ -329,9 +331,11 @@ ash.workhorse = function(betahat,sebetahat,
     pi = initpi(k,n,null.comp,randomstart)
  
     
-    if(!is.element(mixcompdist,c("normal","uniform","halfuniform"))) stop("Error: invalid type of mixcompdist")
+    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform"))) stop("Error: invalid type of mixcompdist")
     if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),mixsd)
     if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)
+    if(mixcompdist=="+uniform") g = unimix(pi,rep(0,k),mixsd)
+    if(mixcompdist=="-uniform") g = unimix(pi,-mixsd,rep(0,k))
     if(mixcompdist=="halfuniform"){
       if(min(mixsd)>0){ #simply reflect the components
         g = unimix(c(pi,pi)/2,c(-mixsd,rep(0,k)),c(rep(0,k),mixsd))

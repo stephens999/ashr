@@ -5,7 +5,7 @@
 \title{Detailed Adaptive Shrinkage function}
 \usage{
 ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
-  mixcompdist = c("uniform", "halfuniform", "normal"),
+  mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform"),
   optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"), df = NULL,
   randomstart = FALSE, nullweight = 10, nonzeromode = FALSE,
   pointmass = TRUE, prior = c("nullbiased", "uniform"), mixsd = NULL,
@@ -21,9 +21,10 @@ ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
 This is simply a convenient way to specify certain combinations of parameters: "shrinkage" sets pointmass=FALSE and prior="uniform";
 "fdr" sets pointmass=TRUE and prior="nullbiased".}
 
-\item{mixcompdist}{distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value is "uniform"}
+\item{mixcompdist}{distribution of components in mixture ( "uniform","halfuniform","normal" or "+uniform"), the default value is "uniform"
+use "halfuniform" to allow for assymetric g, and "+uniform"/"-uniform" to constrain g to be positive/negative.}
 
-\item{optmethod}{specifies optimization method used. Default is "mixIP", an interior point method, if REBayes is installed; otherwise a slower EM algorithm is used.}
+\item{optmethod}{specifies optimization method used. Default is "mixIP", an interior point method, if REBayes is installed; otherwise an EM algorithm is used. The interior point method is faster for large problems (n>2000).}
 
 \item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)}
 
