@@ -77,6 +77,11 @@ nonzeromodeEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi_ini
 }
 
 
+# This function is fixed point update for mupi = c(mu,pi)
+# The update for pi is the standard em update
+# the update for mu (the mode) is done using optimize to optimize over mu given pi
+# possibly we could do something better or quicker here... a possible idea is to
+# set munew = mean(PosteriorMean) 
 nonzeromodeEMoptimfixpoint = function(mupi,betahat,sebetahat,g,df){
   mu=mupi[1]
   pimean=normalize(pmax(0,mupi[-1])) #avoid occasional problems with negative pis due to rounding
@@ -85,33 +90,26 @@ nonzeromodeEMoptimfixpoint = function(mupi,betahat,sebetahat,g,df){
   m.rowsum=rowSums(m)
   classprob=m/m.rowsum #an n by k matrix
   pinew=normalize(colSums(classprob))
-  munew=optimize(f=nonzeromodeEMoptim,interval=c(min(betahat),max(betahat)),pinew=pinew,betahat=betahat,sebetahat=sebetahat,g=g,df=df)$minimum
+  munew=optimize(f=nonzeromodeEMoptim,interval=c(min(betahat),max(betahat)),pi=pinew,betahat=betahat,sebetahat=sebetahat,g=g,df=df)$minimum
   mupi=c(munew,pinew)
   return(mupi)
 }
 
 
+# given components in g, compute the loglikelihood for given mupi = (mu,pi)
 nonzeromodeEMoptimobj = function(mupi,betahat,sebetahat,g,df){
-  mu=mupi[1]
-  pimean=normalize(pmax(0,mupi[-1])) #avoid occasional problems with negative pis due to rounding
-  matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))
-  m = t(pimean * t(matrix_lik))
-  m.rowsum = rowSums(m)
-  loglik = sum(log(m.rowsum))
+  nonzeromodeEMoptim(mupi[1],mupi[-1],betahat,sebetahat,g,df)
+}
+
+
+nonzeromodeEMoptim = function(mu,pi,betahat,sebetahat,g,df){
+  pi=normalize(pmax(0,pi)) #avoid occasional problems with negative pis due to rounding
+  g$pi = pi
+  loglik=ashr::calc_loglik(g, betahat - mu,sebetahat,df)
   return(-loglik)
 }
 
-
-nonzeromodeEMoptim = function(mu,pinew,betahat,sebetahat,g,df){
-  matrix_lik = t(compdens_conv(g,betahat-mu,sebetahat,df))
-  pinew=normalize(pmax(0,pinew)) #avoid occasional problems with negative pis due to rounding
-  m = t(pinew * t(matrix_lik))
-  m.rowsum = rowSums(m)
-  nloglik =- sum(log(m.rowsum))
-  return(nloglik)
-}
-
-
+# this is the EM fix point for normal components and normal likelihood - no need to use optim function
 nonzeromodeEMfixpoint = function(mupi,betahat,sebetahat,mixsd){
   mu=mupi[1]
   pimean=normalize(pmax(0,mupi[-1])) #avoid occasional problems with negative pis due to rounding
@@ -125,6 +123,8 @@ nonzeromodeEMfixpoint = function(mupi,betahat,sebetahat,mixsd){
   return(mupi)
 }
 
+# this is the EM objective fn for normal components and normal likelihood - no need to use optim function
+# Looks like it should be the same as objective function more general above... check this!
 nonzeromodeEMobj = function(mupi,betahat,sebetahat,mixsd){
   mu=mupi[1]
   pimean=normalize(pmax(0,mupi[-1])) #avoid occasional problems with negative pis due to rounding
