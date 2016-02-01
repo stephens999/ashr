@@ -908,6 +908,7 @@ comp_sd.unimix = function(m){
   (m$b-m$a)/sqrt(12)
 }
 
+#' @export
 comp_mean.unimix = function(m){
   (m$a+m$b)/2
 }
@@ -1090,6 +1091,7 @@ comp_sd.igmix = function(m){
   m$beta/(m$alpha-1)/sqrt(m$alpha-2)
 }
 
+#' @export
 comp_mean.igmix = function(m){
   m$beta/(m$alpha-1)
 }
