@@ -89,7 +89,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @param prior string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component), or "unit" (1/K,...,1/K) [for optmethod=mixVBEM version only]
 #' @param mixsd vector of sds for underlying mixture components 
 #' @param gridmult the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)
-#' @param outputlevel determines amount of output [0=just fitted g; 1=also PosteriorMean and PosteriorSD; 2= all but data; 3=everything, including copy of input data]
+#' @param outputlevel determines amount of output [0=just fitted g; 1=also PosteriorMean and PosteriorSD; 2= all but data; 3=also include copy of input data; 4= output additional things required by flash (flash.data)]
 #' @param g the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
 #' @param fixg if TRUE, don't estimate g but use the specified g - useful for computations under the "true" g in simulations
 #' @param VB (deprecated, use optmethod) whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}
@@ -390,6 +390,22 @@ ash.workhorse = function(betahat,sebetahat,
     qvalue = qval.from.lfdr(lfdr)
   }
   
+  if(outputlevel>3){ #compute the flash output
+    comp_postprob = matrix(0,nrow = k, ncol = n)
+    comp_postmean = matrix(0,nrow = k, ncol = n)
+    comp_postmean2 =  matrix(0,nrow = k, ncol = n)
+    
+    comp_postprob[,completeobs] = comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
+    comp_postmean[,completeobs] = comp_postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
+    comp_postmean2[,completeobs] = comp_postmean2(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
+    
+    #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
+    comp_postprob[,!completeobs] = mixprop(pi.fit$g)
+    comp_postmean[,!completeobs] = comp_mean(pi.fit$g)
+    comp_postmean2[,!completeobs] = comp_mean2(pi.fit$g)
+    
+    flash.data = list(comp_postprob = comp_postprob,comp_postmean = comp_postmean,comp_postmean2 = comp_postmean2)
+  }
   if(nonzeromode){
     #Adding back the nonzero mean
     betahat[completeobs]= betahat[completeobs]+nonzeromode.fit$nonzeromode
@@ -406,8 +422,10 @@ ash.workhorse = function(betahat,sebetahat,
   if(model=="ET"){
     betahat=betahat*sebetahat.orig
     sebetahat = sebetahat.orig
-    PosteriorMean = PosteriorMean * sebetahat
-    PosteriorSD= PosteriorSD * sebetahat
+    if(outputlevel>0){
+      PosteriorMean = PosteriorMean * sebetahat
+      PosteriorSD= PosteriorSD * sebetahat
+    }
   }
   
   loglik = calc_loglik(pi.fit$g, betahat, sebetahat,df, model) 
@@ -422,6 +440,7 @@ ash.workhorse = function(betahat,sebetahat,
                  excludeindex = excludeindex,model = model, optmethod =optmethod))}
   if (outputlevel >2) {result = c(result,list(
     data= list(betahat = betahat, sebetahat = sebetahat,df=df),fit=pi.fit))}
+  if (outputlevel >3) {result = c(result, flash.data=list(flash.data))}
   class(result) = "ash"
   return(result)
   
@@ -537,7 +556,6 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
   }
 
   pi = fit$pihat     
-  penloglik = penloglik(pi,matrix_lik, prior)
   converged = fit$converged
   
   loglik.final =  penloglik(pi,matrix_lik,1) #compute penloglik without penalty
