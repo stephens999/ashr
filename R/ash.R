@@ -428,8 +428,8 @@ ash.workhorse = function(betahat,sebetahat,
     }
   }
   
-  loglik = calc_loglik(pi.fit$g, betahat, sebetahat,df, model) 
-  logLR = loglik - calc_null_loglik(betahat,sebetahat,df,model)
+  loglik = calc_loglik(pi.fit$g, betahat[completeobs], sebetahat[completeobs],df, model) 
+  logLR = loglik - calc_null_loglik(betahat[completeobs],sebetahat[completeobs],df,model)
   ##5. Returning the result
   
   result = list(fitted.g=pi.fit$g,call=match.call())
