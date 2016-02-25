@@ -429,13 +429,12 @@ ash.workhorse = function(betahat,sebetahat,
   }
   
   loglik = calc_loglik(pi.fit$g, betahat, sebetahat,df, model) 
-  
+  logLR = loglik - calc_null_loglik(betahat,sebetahat,df,model)
   ##5. Returning the result
   
   result = list(fitted.g=pi.fit$g,call=match.call())
-  if (outputlevel>0) {result=c(result,list(PosteriorMean = PosteriorMean,PosteriorSD = PosteriorSD,loglik = loglik))}
-  if (outputlevel>1) {result=c(result,list(logLR = calc_logLR(pi.fit$g,betahat,sebetahat,df,model),
-                PositiveProb = PositiveProb, NegativeProb = NegativeProb, 
+  if (outputlevel>0) {result=c(result,list(PosteriorMean = PosteriorMean,PosteriorSD = PosteriorSD,loglik = loglik, logLR=logLR))}
+  if (outputlevel>1) {result=c(result,list(PositiveProb = PositiveProb, NegativeProb = NegativeProb, 
                 ZeroProb = ZeroProb,lfsr = lfsr,lfdr = lfdr, qvalue = qvalue, 
                  excludeindex = excludeindex,model = model, optmethod =optmethod))}
   if (outputlevel >2) {result = c(result,list(
