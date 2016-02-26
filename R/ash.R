@@ -169,7 +169,11 @@ ash.workhorse = function(betahat,sebetahat,
   
   ##1.Handling Input Parameters
   
-
+  if(length(sebetahat)==1){  sebetahat = rep(sebetahat,length(betahat))  }
+  if(length(sebetahat) != length(betahat)){
+    stop("Error: sebetahat must have length 1, or same length as betahat")
+  }
+  
   # Set optimization method (optmethod)
   
   # if user tries to set both optmethod and VB/cxx that's an error
@@ -258,7 +262,7 @@ ash.workhorse = function(betahat,sebetahat,
   if(model=="ET"){ #for ET model, standardize
     betahat = betahat/sebetahat
     sebetahat.orig = sebetahat #store so that can be reinstated later
-    sebetahat=1
+    sebetahat=rep(1,length(betahat))
   }
   
   mixcompdist = match.arg(mixcompdist)
@@ -275,10 +279,7 @@ ash.workhorse = function(betahat,sebetahat,
   }
   
   if(gridmult<=1){stop("gridmult must be > 1")}  
-  if(length(sebetahat)==1){  sebetahat = rep(sebetahat,length(betahat))  }
-  if(length(sebetahat) != length(betahat)){
-    stop("Error: sebetahat must have length 1, or same length as betahat")
-  }
+
   
   completeobs = (!is.na(betahat) & !is.na(sebetahat))
   n=sum(completeobs)
