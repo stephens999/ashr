@@ -21,6 +21,7 @@
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
 #' \item{fitted.g}{fitted mixture, either a normalmix or unimix}
 #' \item{loglik}{log P(D|mle(pi))}
+#' \item{logLR}{log[P(D|mle(pi))/P(D|beta==0)]}
 #' \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
 #' \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
 #' \item{PositiveProb}{A vector of posterior probability that beta is positive}
@@ -29,7 +30,6 @@
 #' \item{lfsr}{The local false sign rate}
 #' \item{lfdr}{A vector of estimated local false discovery rate}
 #' \item{qvalue}{A vector of q values}
-#' \item{fit}{The fitted mixture object}
 #' \item{call}{a call in which all of the specified arguments are specified by their full names}
 #' \item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
 #' \item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T stats (ET) has been used}
@@ -47,6 +47,7 @@
 #' betahat = rnorm(200,beta,sebetahat)
 #' beta.ash = ash(betahat, sebetahat)
 #' summary(beta.ash)
+#' names(beta.ash)
 #' plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 #' 
 #' CIMatrix=ashci(beta.ash,betahat,sebetahat,level=0.95) 
@@ -101,6 +102,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
 #' \item{fitted.g}{fitted mixture, either a normalmix or unimix}
 #' \item{loglik}{log P(D|mle(pi))}
+#' \item{logLR}{log[P(D|mle(pi))/P(D|beta==0)]}
 #' \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
 #' \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
 #' \item{PositiveProb}{A vector of posterior probability that beta is positive}
@@ -109,7 +111,6 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' \item{lfsr}{The local false sign rate}
 #' \item{lfdr}{A vector of estimated local false discovery rate}
 #' \item{qvalue}{A vector of q values}
-#' \item{fit}{The fitted mixture object}
 #' \item{call}{a call in which all of the specified arguments are specified by their full names}
 #' \item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
 #' \item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T stats (ET) has been used}
