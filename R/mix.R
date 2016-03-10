@@ -1002,7 +1002,7 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   tmp
 }
   
-  
+# add second moment  
 
 #note that with uniform prior, posterior is truncated normal, so
 #this is computed using formula for mean of truncated normal 
