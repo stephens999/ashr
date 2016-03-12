@@ -1129,21 +1129,62 @@ my_etrunct= function(a,b,v){
   tmp = ifelse(G==Inf & ABpart==0, my_etruncnorm(a,b),G*ABpart) #deal with extreme cases using normal
   return(ifelse(a==b,a,tmp)) #deal with extreme case a=b
 }
+# this is my_e2trunct is wrong function
+# my_e2trunct= function(a,b,v){
+#   A = v+a^2
+#   B = v+b^2
+#   F_a = pt(a,df=v)
+#   F_b = pt(b,df=v)
+#   lG=lgamma((v-1)/2)+(v/2)*log(v)-log(2*(F_b-F_a))-lgamma(v/2)-lgamma(1/2)
+#   G=exp(lG)
+#   ABpart = (a*A^(-(v-1)/2)-b*B^(-(v-1)/2))
+#   # for the second moment
+#   EY2 = v/(v-2) + G * ABpart
+#   #EY2 = ifelse(G==Inf & ABpart==0, my_e2truncnorm(a,b),EY2) #deal with extreme cases using normal
+#   EY2 = ifelse(G==Inf & abs(ABpart)<1e-20, my_e2truncnorm(a,b),EY2)
+#   # maybe we also need to deal with extreme case using normal, so I add a truncate normal later
+#   return(ifelse(a==b,a^2,EY2)) #deal with extreme case a=b
+# }
+
+# we propose a new my_e2trunct function depending on library("hypergeo")
+# D_const is a function that used in my_e_n_trunct
+D_const = function(A,B,v){
+  f_1 = (A)/(beta(1/2,v/2) * sqrt(v+A^2))
+  f_2 = hypergeo(1/2,1-v/2,3/2,A^2/(v+A^2))
+  part_1 = f_1 * f_2
+  f_1 = (B)/(beta(1/2,v/2) * sqrt(v+B^2))
+  f_2 = hypergeo(1/2,1-v/2,3/2,B^2/(v+B^2))
+  part_2 = f_1 * f_2
+  output = part_1 - part_2
+}
+# this function can be use as any moment calculation, but here we just use it as second moment.
+#' @title my_etrunct
+#' @description Compute second moment of truncated t, the result is from the paper "Moments of truncated t and F distributions" by Saralees Nadarajah · Samuel Kotz
+#' @param n is moment, the default is 2 which means second moment
+#' @param a left limit of distribution
+#' @param b right limit of distribution
+#' @param v degree of freedom of error distribution
 #' @export
-my_e2trunct= function(a,b,v){
-  A = v+a^2
-  B = v+b^2
-  F_a = pt(a,df=v)
-  F_b = pt(b,df=v)
-  lG=lgamma((v-1)/2)+(v/2)*log(v)-log(2*(F_b-F_a))-lgamma(v/2)-lgamma(1/2)
-  G=exp(lG)
-  ABpart = (a*A^(-(v-1)/2)-b*B^(-(v-1)/2))
-  # for the second moment
-  EY2 = v/(v-2) + G * ABpart
-  #EY2 = ifelse(G==Inf & ABpart==0, my_e2truncnorm(a,b),EY2) #deal with extreme cases using normal
-  EY2 = ifelse(G==Inf & abs(ABpart)<1e-20, my_e2truncnorm(a,b),EY2)
-  # maybe we also need to deal with extreme case using normal, so I add a truncate normal later
-  return(ifelse(a==b,a^2,EY2)) #deal with extreme case a=b
+my_e2trunct = function(a,b,v,n=2){
+  if(a==b){
+    return(a^n)
+  }
+  # deal with extreme case, use normal
+  # this is just for second moment
+  if(v >= 1e5){
+    return(my_e2truncnorm(a,b))
+  }
+  B = a
+  A = b
+  D = D_const(A,B,v)
+  f_1 = 1/((n+1)*sqrt(v)*beta(v/2,1/2)*D)
+  f_2 = A^(n+1) * hypergeo((1+v)/2,(1+n)/2,(3+n)/2,-A^2/v) - B^(n+1) * hypergeo((1+v)/2,(1+n)/2,(3+n)/2,-B^2/v)
+  output = f_1 * f_2
+  if(Im(output)==0){
+    return(Re(output))
+  }else{
+    return(output)
+  }
 }
 
 ############################### METHODS FOR igmix class ###########################
