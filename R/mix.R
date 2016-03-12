@@ -858,7 +858,7 @@ comp_postmean_mixlik.default=function(m,betahat,sebetahat,v,pilik){
 #' @title comp_postsd_mixlik
 #' 
 #' @description output posterior sd for beta for each component of prior mixture m,given observations betahat, sebetahat, df v
-#1 from l-components mixture likelihood with mixture proportion pilik
+#' from l-components mixture likelihood with mixture proportion pilik
 #' @param m mixture distribution
 #' @param betahat the data 
 #' @param sebetahat the observed standard errors
@@ -1060,8 +1060,8 @@ my_e2truncnorm= function(a,b,mean=0,sd=1){
 #' @export
 #' 
 my_vtruncnorm = function(a,b,mean = 0, sd = 1){
-  if(a == -Inf){a = -1e5}
-  if(b == Inf){b = 1e5}
+  a = ifelse(a== -Inf, -1e5,a)
+  b = ifelse(b== Inf, 1e5, b)
   alpha = (a-mean)/sd
   beta =  (b-mean)/sd
   frac1 = (beta*dnorm(beta,0,1) - alpha*dnorm(alpha,0,1)) / (pnorm(beta,0,1)-pnorm(alpha,0,1) )
@@ -1092,23 +1092,29 @@ comp_postmean.unimix = function(m,betahat,sebetahat,v){
   ismissing = is.na(betahat) | is.na(sebetahat)
   tmp[ismissing,]= (m$a+m$b)/2
   t(tmp)
-#   t(
-#     betahat + sebetahat* 
-#       exp(dnorm(alpha,log=TRUE)- pnorm(alpha,log=TRUE))
-#    * 
-#       (-expm1(dnorm(beta,log=TRUE)-dnorm(alpha,log=TRUE)))
-#     /
-#       (expm1(pnorm(beta,log=TRUE)-pnorm(alpha,log=TRUE)))
-#   )
+}
+
+#' as for posterior mean, but compute posterior mean squared value
+comp_postmean2.unimix = function(m,betahat,sebetahat,v){
+  alpha = outer(-betahat, m$a,FUN="+")/sebetahat
+  beta = outer(-betahat, m$b, FUN="+")/sebetahat
+  if(is.null(v)){
+    tmp = betahat + sebetahat*my_e2truncnorm(alpha,beta,0,1)
+  }else{
+    tmp = betahat + sebetahat*my_e2trunct(alpha,beta,v)
+  }
+  ismissing = is.na(betahat) | is.na(sebetahat)
+  tmp[ismissing,]= (m$b^2+m$a*m$b+m$a^2)/3
+  t(tmp)
 }
 
 #not yet implemented!
 #just returns 0s for now
 comp_postsd.unimix = function(m,betahat,sebetahat,v){
-  #print("Function ashci() is provided for computing the credible interval(symmetric),see documentation for usage and example.")
   k= ncomp(m)
   n=length(betahat)
   return(matrix(NA,nrow=k,ncol=n)) 
+#  return(sqrt(comp_postmean2(m,betahat,sebetahat,v)-comp_postmean(m,betahat,sebetahat,v)^2))
 }
 
 #' @title my_etrunct
