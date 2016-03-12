@@ -1147,16 +1147,17 @@ my_etrunct= function(a,b,v){
 # }
 
 # we propose a new my_e2trunct function depending on library("hypergeo")
-# D_const is a function that used in my_e_n_trunct
-D_const = function(A,B,v){
-  f_1 = (A)/(beta(1/2,v/2) * sqrt(v+A^2))
-  f_2 = hypergeo(1/2,1-v/2,3/2,A^2/(v+A^2))
-  part_1 = f_1 * f_2
-  f_1 = (B)/(beta(1/2,v/2) * sqrt(v+B^2))
-  f_2 = hypergeo(1/2,1-v/2,3/2,B^2/(v+B^2))
-  part_2 = f_1 * f_2
-  output = part_1 - part_2
-}
+# D_const is a function that used in my_e2trunct, but not been used any more
+# D_const = function(A,B,v){
+#   f_1 = (A)/(beta(1/2,v/2) * sqrt(v+A^2))
+#   f_2 = hypergeo(1/2,1-v/2,3/2,A^2/(v+A^2))
+#   part_1 = f_1 * f_2
+#   f_1 = (B)/(beta(1/2,v/2) * sqrt(v+B^2))
+#   f_2 = hypergeo(1/2,1-v/2,3/2,B^2/(v+B^2))
+#   part_2 = f_1 * f_2
+#   output = part_1 - part_2
+#   return(output)
+# }
 # this function can be use as any moment calculation, but here we just use it as second moment.
 #' @title my_etrunct
 #' @description Compute second moment of truncated t, the result is from the paper "Moments of truncated t and F distributions" by Saralees Nadarajah · Samuel Kotz
@@ -1176,7 +1177,8 @@ my_e2trunct = function(a,b,v,n=2){
   }
   B = a
   A = b
-  D = D_const(A,B,v)
+  # D = D_const(A,B,v)
+  D = pt(A,df = v) - pt(B,df = v)
   f_1 = 1/((n+1)*sqrt(v)*beta(v/2,1/2)*D)
   f_2 = A^(n+1) * hypergeo((1+v)/2,(1+n)/2,(3+n)/2,-A^2/v) - B^(n+1) * hypergeo((1+v)/2,(1+n)/2,(3+n)/2,-B^2/v)
   output = f_1 * f_2
