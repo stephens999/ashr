@@ -1095,6 +1095,7 @@ comp_postmean.unimix = function(m,betahat,sebetahat,v){
 }
 
 #' as for posterior mean, but compute posterior mean squared value
+#' @export
 comp_postmean2.unimix = function(m,betahat,sebetahat,v){
   alpha = outer(-betahat, m$a,FUN="+")/sebetahat
   beta = outer(-betahat, m$b, FUN="+")/sebetahat
@@ -1174,12 +1175,9 @@ my_etrunct= function(a,b,v){
 #' @export
 my_e2trunct = function(a,b,v,n=2){
   # deal with infinity case
-  if(a == -Inf){a = -1e6}
-  if(b == Inf){b = 1e6}
-  # deal with same limits case
-  if(a==b){
-    return(a^n)
-  }
+  a = ifelse(a< (-1e6),-1e6,a)
+  b = ifelse(b> (1e6), 1e6, b)
+
   # deal with extreme case, use normal
   # this is just for second moment
   if(v >= 1e5){
@@ -1190,13 +1188,13 @@ my_e2trunct = function(a,b,v,n=2){
   # D = D_const(A,B,v)
   D = pt(A,df = v) - pt(B,df = v)
   f_1 = 1/((n+1)*sqrt(v)*beta(v/2,1/2)*D)
-  f_2 = A^(n+1) * hypergeo((1+v)/2,(1+n)/2,(3+n)/2,-A^2/v) - B^(n+1) * hypergeo((1+v)/2,(1+n)/2,(3+n)/2,-B^2/v)
+  f_2 = A^(n+1) * hypergeo::hypergeo((1+v)/2,(1+n)/2,(3+n)/2,-A^2/v) - B^(n+1) * hypergeo::hypergeo((1+v)/2,(1+n)/2,(3+n)/2,-B^2/v)
   output = f_1 * f_2
-  if(Im(output)==0){
-    return(Re(output))
-  }else{
-    return(output)
-  }
+  
+  # deal with same limits case
+  output= ifelse(a==b,a^n,output)
+  output = ifelse(Im(output)==0,Re(output),output)
+  return(output)
 }
 
 ############################### METHODS FOR igmix class ###########################

@@ -1,7 +1,7 @@
 Package: ashr
 Maintainer: Matthew Stephens <mstephens@uchicago.edu>
 Author: Matthew Stephens, Chaoxing Dai, Mengyin Lu
-Version: 1.0.13
+Version: 1.0.14
 License: GPL-3
 Title: Methods for Adaptive Shrinkage, using Empirical Bayes
 Description: The main function in the ashr package is \code{\link{ash}}, which
@@ -17,7 +17,8 @@ Imports:
     doParallel,
     pscl,
     testthat,
-    Rcpp (>= 0.10.5)
+    Rcpp (>= 0.10.5),
+    hypergeo
 LinkingTo: Rcpp
 Suggests:
     REBayes,
