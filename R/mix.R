@@ -1167,6 +1167,10 @@ my_etrunct= function(a,b,v){
 #' @param v degree of freedom of error distribution
 #' @export
 my_e2trunct = function(a,b,v,n=2){
+  # deal with infinity case
+  if(a == -Inf){a = -1e6}
+  if(b == Inf){b = 1e6}
+  # deal with same limits case
   if(a==b){
     return(a^n)
   }
