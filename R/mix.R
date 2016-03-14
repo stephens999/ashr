@@ -407,7 +407,8 @@ comp_postmean2 = function(m,betahat,sebetahat,v){
 }
 #' @export
 comp_postmean2.default = function(m,betahat,sebetahat,v){
-  comp_postsd(m,betahat,sebetahat,v)^2 + comp_postmean(m,betahat,sebetahat,v)^2
+  stop("method comp_postmean2 not written for this class")
+  #comp_postsd(m,betahat,sebetahat,v)^2 + comp_postmean(m,betahat,sebetahat,v)^2
 }
 
 
@@ -600,6 +601,10 @@ comp_postsd.normalmix = function(m,betahat,sebetahat,v){
   t(sqrt(outer(sebetahat^2,m$sd^2,FUN="*")/outer(sebetahat^2,m$sd^2,FUN="+")))
 }
 
+#' @export
+comp_postmean2.normalmix = function(m,betahat,sebetahat,v){
+  comp_postsd(m,betahat,sebetahat,v)^2 + comp_postmean(m,betahat,sebetahat,v)^2
+}
 
 #' @title loglik_conv_mixlik
 #' 
@@ -1100,9 +1105,9 @@ comp_postmean2.unimix = function(m,betahat,sebetahat,v){
   alpha = outer(-betahat, m$a,FUN="+")/sebetahat
   beta = outer(-betahat, m$b, FUN="+")/sebetahat
   if(is.null(v)){
-    tmp = betahat + sebetahat*my_e2truncnorm(alpha,beta,0,1)
+    tmp = betahat^2 + 2*betahat*sebetahat*my_etruncnorm(alpha,beta,0,1) + sebetahat^2*my_e2truncnorm(alpha,beta,0,1)
   }else{
-    tmp = betahat + sebetahat*my_e2trunct(alpha,beta,v)
+    tmp = betahat^2 + 2*betahat*sebetahat*my_etrunct(alpha,beta,v) + sebetahat^2*my_e2trunct(alpha,beta,v)
   }
   ismissing = is.na(betahat) | is.na(sebetahat)
   tmp[ismissing,]= (m$b^2+m$a*m$b+m$a^2)/3
@@ -1174,6 +1179,7 @@ my_etrunct= function(a,b,v){
 #' @param v degree of freedom of error distribution
 #' @export
 my_e2trunct = function(a,b,v,n=2){
+  if(v<=2){warning("my_e2trunct known to be unstable for degrees of freedom v<=2; proceed with caution")}
   # deal with infinity case
   a = ifelse(a< (-1e6),-1e6,a)
   b = ifelse(b> (1e6), 1e6, b)
