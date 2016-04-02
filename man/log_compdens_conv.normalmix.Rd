@@ -4,7 +4,7 @@
 \alias{log_compdens_conv.normalmix}
 \title{log_compdens_conv.normalmix}
 \usage{
-log_compdens_conv.normalmix(m, x, s, v, FUN = "+")
+\method{log_compdens_conv}{normalmix}(m, x, s, v, FUN = "+")
 }
 \arguments{
 \item{m}{mixture distribution with k components}

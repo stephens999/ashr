@@ -264,15 +264,23 @@ comppostprob=function(m,x,s,v){
 }
 
 #' @export
-comppostprob.default = function(m,x,s,v){
-  
+old.comppostprob.default = function(m,x,s,v){
   tmp= (t(m$pi * compdens_conv(m,x,s,v))/dens_conv(m,x,s,v))
   ismissing = (is.na(x) | is.na(s))
   tmp[ismissing,]=m$pi
   t(tmp)
 }
 
-
+#' @export
+comppostprob.default = function(m,x,s,v){
+  lpost = log_compdens_conv(m,x,s,v) + log(m$pi) # lpost is k by n of log posterior prob (unnormalized)
+  lpmax = apply(lpost,2,max) #dmax is of length n
+  tmp = exp(t(lpost)-lpmax) #subtracting the max of the logs is just done for numerical stability
+  tmp = tmp/rowSums(tmp)
+  ismissing = (is.na(x) | is.na(s))
+  tmp[ismissing,]=m$pi
+  t(tmp)
+}
 
 #' @title compcdf_post
 #' @description evaluate cdf of posterior distribution of beta at c. m is the prior on beta, a mixture; c is location of evaluation assumption is betahat | beta ~ t_v(beta,sebetahat)
