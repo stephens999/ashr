@@ -250,6 +250,7 @@ comppostprob=function(m,x,s,v){
 
 #' @export
 comppostprob.default = function(m,x,s,v){
+  
   tmp= (t(m$pi * compdens_conv(m,x,s,v))/dens_conv(m,x,s,v))
   ismissing = (is.na(x) | is.na(s))
   tmp[ismissing,]=m$pi
@@ -555,6 +556,25 @@ compdens_conv.normalmix = function(m,x,s,v,FUN="+"){
   sdmat = sqrt(outer(s^2,m$sd^2,FUN)) #n by k matrix of standard deviations of convolutions
   return(t(dnorm(outer(x,m$mean,FUN="-")/sdmat)/sdmat))
 }
+
+#' @title log_compdens_conv.normalmix
+#' @description returns log-density of convolution of each component of a normal mixture with N(0,s^2) or s*t(v) at x. Note that convolution of two normals is normal, so it works that way
+#' @param m mixture distribution with k components
+#' @param x an n-vector at which density is to be evaluated
+#' @param s an n vector of standard errors
+#' @param v degree of freedom of error distribution
+#' @param FUN default is "+"
+#' @return a k by n matrix
+log_compdens_conv.normalmix = function(m,x,s,v,FUN="+"){
+  if(!is.null(v)){
+    stop("method compdens_conv of normal mixture not written for df!=NULL")
+  }
+  if(length(s)==1){s=rep(s,length(x))}
+  sdmat = sqrt(outer(s^2,m$sd^2,FUN)) #n by k matrix of standard deviations of convolutions
+  return(t(dnorm(outer(x,m$mean,FUN="-")/sdmat,log=TRUE) - log(sdmat)))
+}
+
+
 
 #' @export
 comp_cdf.normalmix = function(x,y,lower.tail=TRUE){
@@ -941,6 +961,30 @@ compdens_conv.unimix = function(m,x,s,v, FUN="+"){
     compdens[m$a==m$b,]=t(dt(outer(x,m$a,FUN="-")/s,df=v)/s)[m$a==m$b,]
   }
   return(compdens)
+}
+
+#log density of convolution of each component of a unif mixture with s*t_nu() at x
+# x an n-vector
+#return a k by n matrix
+log_compdens_conv.unimix = function(m,x,s,v, FUN="+"){
+  if(FUN!="+") stop("Error; log_compdens_conv not implemented for uniform with FUN!=+")
+  b = pmax(m$b,m$a) #ensure a<b
+  a = pmin(m$b,m$a)
+  if(is.null(v)){
+    lpa = pnorm(outer(x,a,FUN="-")/s,log=TRUE)
+    lpb = pnorm(outer(x,b,FUN="-")/s,log=TRUE)
+    
+    lcompdens= t( lpa - log(1-exp(lpb-lpa)) ) - log(b-a)
+    lcompdens[a==b,]=t(dnorm(outer(x,a,FUN="-")/s,log=TRUE) - log(s))[a==b,]
+  }
+  else{
+    lpa = pt(outer(x,a,FUN="-")/s,df=v,log=TRUE)
+    lpb = pt(outer(x,b,FUN="-")/s,df=v,log=TRUE)
+    lcompdens= t( lpa + log(1-exp(lpb-lpa)) ) -log(b-a)
+    lcompdens[a==b,]=
+      t(dt(outer(x,a,FUN="-")/s,df=v,log=TRUE) - log(s))[a==b,]
+  }
+  return(lcompdens)
 }
 
 

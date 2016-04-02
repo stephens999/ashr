@@ -1,0 +1,9 @@
+test_that("exp(log_compdens_conv) gives same results as compdens_conv", {
+  g = unimix(c(0.5,0.5),c(1,2),c(0,0))
+  gn = normalmix(c(0.5,0.5),c(0,0),c(0.1,1))
+  x=c(-10,2)
+  s = c(1,2)
+  expect_equal(compdens_conv(g, x, s, NULL), exp(log(compdens_conv(g,x,s, NULL))))
+  expect_equal(compdens_conv(g, x, s, 2), exp(log(compdens_conv(g,x,s, 2))))
+  expect_equal(compdens_conv(gn, x, s, NULL), exp(log(compdens_conv(gn,x,s, NULL))))
+})
