@@ -219,6 +219,21 @@ compdens_conv.default = function(m,x,s,v,FUN="+"){
   stop(paste("Invalid class", class(m), "for first argument in",  match.call()))  
 }
 
+#' @title compdens_conv
+#' @description compute the density of the components of the mixture m when convoluted with a normal with standard deviation s or a scaled (se) student.t with df v, the density is evaluated at x
+#' @param m mixture distribution
+#' @param x an n vector
+#' @param s an n vector or integer
+#' @param v degree of freedom of error distribution
+#' @param FUN default is "+"
+#' @return a k by n matrix of densities
+log_compdens_conv = function(m,x,s,v,FUN="+"){
+  UseMethod("log_compdens_conv")
+}
+log_compdens_conv.default = function(m,x,s,v,FUN="+"){
+  log(compdens_conv(m,x,s,v,FUN)) 
+}
+
 
 
 #' @title dens_conv
@@ -974,7 +989,7 @@ log_compdens_conv.unimix = function(m,x,s,v, FUN="+"){
     lpa = pnorm(outer(x,a,FUN="-")/s,log=TRUE)
     lpb = pnorm(outer(x,b,FUN="-")/s,log=TRUE)
     
-    lcompdens= t( lpa - log(1-exp(lpb-lpa)) ) - log(b-a)
+    lcompdens= t( lpa + log(1-exp(lpb-lpa)) ) - log(b-a)
     lcompdens[a==b,]=t(dnorm(outer(x,a,FUN="-")/s,log=TRUE) - log(s))[a==b,]
   }
   else{
