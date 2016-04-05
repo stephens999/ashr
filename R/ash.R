@@ -542,7 +542,9 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
   
   if(controlinput$trace==TRUE){tic()}
   
-  matrix_lik = t(compdens_conv(g,betahat,sebetahat,df))
+  matrix_llik = t(log_compdens_conv(g,betahat,sebetahat,df)) #an n by k matrix
+  matrix_llik = matrix_llik - apply(matrix_llik,1, max) #avoid numerical issues by subtracting max of each row
+  matrix_lik = exp(matrix_llik)
   
   # the last of these conditions checks whether the gradient at the null is negative wrt pi0
   # to avoid running the optimization when the global null (pi0=1) is the optimal.

@@ -219,14 +219,14 @@ compdens_conv.default = function(m,x,s,v,FUN="+"){
   stop(paste("Invalid class", class(m), "for first argument in",  match.call()))  
 }
 
-#' @title compdens_conv
-#' @description compute the density of the components of the mixture m when convoluted with a normal with standard deviation s or a scaled (se) student.t with df v, the density is evaluated at x
+#' @title log_compdens_conv
+#' @description compute the log density of the components of the mixture m when convoluted with a normal with standard deviation s or a scaled (se) student.t with df v, the density is evaluated at x
 #' @param m mixture distribution
 #' @param x an n vector
 #' @param s an n vector or integer
 #' @param v degree of freedom of error distribution
 #' @param FUN default is "+"
-#' @return a k by n matrix of densities
+#' @return a k by n matrix of log densities
 log_compdens_conv = function(m,x,s,v,FUN="+"){
   UseMethod("log_compdens_conv")
 }

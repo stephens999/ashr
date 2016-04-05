@@ -2,7 +2,7 @@
 % Please edit documentation in R/mix.R
 \name{log_compdens_conv}
 \alias{log_compdens_conv}
-\title{compdens_conv}
+\title{log_compdens_conv}
 \usage{
 log_compdens_conv(m, x, s, v, FUN = "+")
 }
@@ -18,9 +18,9 @@ log_compdens_conv(m, x, s, v, FUN = "+")
 \item{FUN}{default is "+"}
 }
 \value{
-a k by n matrix of densities
+a k by n matrix of log densities
 }
 \description{
-compute the density of the components of the mixture m when convoluted with a normal with standard deviation s or a scaled (se) student.t with df v, the density is evaluated at x
+compute the log density of the components of the mixture m when convoluted with a normal with standard deviation s or a scaled (se) student.t with df v, the density is evaluated at x
 }
 
