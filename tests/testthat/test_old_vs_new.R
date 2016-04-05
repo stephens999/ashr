@@ -4,5 +4,6 @@ test_that("new results match old ones ", {
 #  set.seed(1); z=rnorm(100); z.ash=ash(z,1); saveRDS(z.ash,file="tests/testthat/z.ash.test")
   set.seed(1); z=rnorm(100); z.ash=ash(z,1);
   oldres = readRDS("z.ash.test")
-  expect_equal(oldres,z.ash)
+  expect_equal(modifyList(oldres,list(optmethod=NULL)),
+               modifyList(z.ash,list(optmethod=NULL)))
 })
