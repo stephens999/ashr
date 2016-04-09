@@ -1266,8 +1266,8 @@ my_e2trunct = function(a,b,v,n=2){
   
   # deal with same limits case
   output= ifelse(a==b,a^n,output)
-  output = ifelse(Im(output)==0,Re(output),output)
-  return(output)
+  #output = ifelse(Im(output)==0,Re(output),output)
+  return(Re(output))
 }
 
 ############################### METHODS FOR igmix class ###########################
