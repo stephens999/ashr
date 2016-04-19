@@ -9,7 +9,7 @@
 #' @description Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
 #' shrinkage to them, using Empirical Bayes methods, to compute shrunk estimates for beta.
 #'
-#' @details This function is actually just a simple wrapper that passes its parameters to ash.workhorse which provides more documented options for advanced use. See readme for more details. 
+#' @details This function is actually just a simple wrapper that passes its parameters to \code{\link{ash.workhorse}} which provides more documented options for advanced use. See readme for more details. 
 #' 
 #' @param betahat  a p vector of estimates 
 #' @param sebetahat a p vector of corresponding standard errors
