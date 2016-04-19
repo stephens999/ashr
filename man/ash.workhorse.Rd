@@ -43,7 +43,7 @@ use "halfuniform" to allow for assymetric g, and "+uniform"/"-uniform" to constr
 
 \item{gridmult}{the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)}
 
-\item{outputlevel}{determines amount of output [0=just fitted g; 1=also PosteriorMean and PosteriorSD; 2= all but data; 3=also include copy of input data; 4= output additional things required by flash (flash.data); 10=debugging]}
+\item{outputlevel}{determines amount of output [0=just fitted g; 1=also PosteriorMean and PosteriorSD; 2= all but data; 3=also include copy of input data; 4= output additional things required by flash (flash.data)]}
 
 \item{g}{the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)}
 
