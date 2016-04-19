@@ -554,7 +554,7 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
 
   ## check if IP method returns negative mixing proportions. If so, run EM.
   if (optmethod == "mixIP" & (min(fit$pihat) < -10 ^ -12)) {
-      warning("Interior point method returned negative mixing proportions.\n Switching to EM optimization.")
+      message("Interior point method returned negative mixing proportions.\n Switching to EM optimization.")
       optmethod <- "mixEM"
       fit = do.call(optmethod, args = list(matrix_lik = matrix_lik,
                                            prior = prior, pi_init = pi_init,
