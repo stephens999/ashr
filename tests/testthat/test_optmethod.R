@@ -4,7 +4,7 @@ test_that("optmethod switches to EM when given negative probabilities", {
                      0.7125, 0.7201, 0.7498, 0.7553)
         sebetahat <- rep(0.01, length = length(betahat))
         ash_out <- ash(betahat = betahat, sebetahat = sebetahat,
-                             mixcompdist = "uniform", optmethod = "mixIP")
+                             mixcompdist = "uniform")
         expect_true(min(ash_out$fitted.g$pi) > -10 ^ -12)                 
 })
 
