@@ -355,7 +355,10 @@ ash.workhorse = function(betahat,sebetahat,
     }
   }
   
-  
+  #check that all prior are >=1 (as otherwise have problems with infinite penalty)
+  if(!all(prior>=1) & optmethod != "mixVBEM"){
+    stop("Error: prior must all be >=1 (unless using optmethod mixVBEM)")}
+    
   ##3. Fitting the mixture
   if(!fixg){
     pi.fit=estimate_mixprop(betahat[completeobs],sebetahat[completeobs],g,prior,null.comp=null.comp,
