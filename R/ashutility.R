@@ -165,7 +165,83 @@ calc_logLR = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
   return(calc_loglik(g,betahat,betahatsd,df,model,alpha) - calc_null_loglik(betahat,betahatsd,df,model,alpha))
 }
   
+#' @title Compute vector of loglikelihood for data from ash fit
+#'
+#' @description Return the vector of log-likelihoods of the data betahat, with standard errors betahatsd, 
+#' for a given g() prior on beta, or an ash object containing that
+#' 
+#' @param g the fitted g, or an ash object containing g
+#' @param betahat the data
+#' @param betahatsd the observed standard errors
+#' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat
+#' @param model indicates whether you want the likelihood under the EE or ET model
+#' @param alpha a scalar performing transformation on betahat and sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~ g()},and eqn{betahat_j / s_j^alpha ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ET model. \eqn{alpha} should be in between 0 and 1, inclusively. Default is alpha=0.
+#' @details See example in CompareBetahatvsZscoreAnalysis.rmd
+#' 
+#' @export
+#' 
+calc_vloglik = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
+  if(missing(df)){
+    stop("error: must supply df for calc_loglik; supply df=NULL for normal likelihood")
+  }
   
+  if(missing(alpha)){
+    model = match.arg(model) 
+    if(class(g)=="ash" && g$model != model){
+      warning("Model used to fit ash does not match model used to compute loglik! Probably you have made a mistake!")
+    }
+    if(model=="ET"){ alpha=1
+    } else {alpha=0}
+  }  
+  
+  if(class(g)=="ash"){g = g$fitted.g} #extract g object from ash object if ash object passed 
+  
+  
+  return(log(
+    dens_conv(g,betahat/(betahatsd^alpha),betahatsd^(1-alpha),df)-
+      alpha*sum(log(betahatsd))))
+}
+
+
+#' @title Compute vector of loglikelihood for data under null that all beta are 0
+#'
+#' @description Return the vector of log-likelihoods of the data betahat, with standard errors betahatsd, 
+#' under the null that beta==0
+#' 
+#' @param betahat the data
+#' @param betahatsd the observed standard errors
+#' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat
+#' @param model indicates whether you want the likelihood under the EE or ET model
+#' @param alpha a scalar performing transformation on betahat and sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~ g()},and eqn{betahat_j / s_j^alpha ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ET model. \eqn{alpha} should be in between 0 and 1, inclusively. Default is alpha=0.
+#' 
+#' @export
+#' 
+#'
+calc_null_vloglik = function(betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
+  if(is.null(df)){return(-log(betahatsd) + dnorm(betahat/betahatsd,log=TRUE))}
+  else{return(-log(betahatsd) + dt(betahat/betahatsd,df,log=TRUE))}
+  #g=unimix(1,0,0)
+  #return(calc_loglik(g,betahat,betahatsd,df,model,alpha))
+}
+
+#' @title Compute vector of loglikelihood ratio for data from ash fit
+#'
+#' @description Return the vector of log-likelihood ratios of the data betahat, with standard errors betahatsd, 
+#' for a given g() prior on beta, or an ash object containing that, vs the null that g() is point mass on 0
+#' 
+#' @param g the fitted g, or an ash object containing g
+#' @param betahat the data
+#' @param betahatsd the observed standard errors
+#' @param df appropriate degrees of freedom for (t) distribution of betahat/sebetahat
+#' @param model indicates whether you want the likelihood under the EE or ET model
+#' @param alpha a scalar performing transformation on betahat and sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~ g()},and eqn{betahat_j / s_j^alpha ~ N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have the ET model. \eqn{alpha} should be in between 0 and 1, inclusively. Default is alpha=0.
+#' @details See example in CompareBetahatvsZscoreAnalysis.rmd
+#' 
+#' @export
+calc_vlogLR = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
+  return(calc_vloglik(g,betahat,betahatsd,df,model,alpha) - calc_null_vloglik(betahat,betahatsd,df,model,alpha))
+}
+
   
 #' @title Density method for ash object
 #'

@@ -14,6 +14,6 @@ my_etrunct(a, b, v)
 \item{v}{degree of freedom of error distribution}
 }
 \description{
-Compute expectation of truncated t, the result is from the paper 'a
+Compute expectation of truncated t, the result is from the paper "Moments of truncated Student-t distribution by Hea-Jung Kim"
 }
 

@@ -219,6 +219,21 @@ compdens_conv.default = function(m,x,s,v,FUN="+"){
   stop(paste("Invalid class", class(m), "for first argument in",  match.call()))  
 }
 
+#' @title log_compdens_conv
+#' @description compute the log density of the components of the mixture m when convoluted with a normal with standard deviation s or a scaled (se) student.t with df v, the density is evaluated at x
+#' @param m mixture distribution
+#' @param x an n vector
+#' @param s an n vector or integer
+#' @param v degree of freedom of error distribution
+#' @param FUN default is "+"
+#' @return a k by n matrix of log densities
+log_compdens_conv = function(m,x,s,v,FUN="+"){
+  UseMethod("log_compdens_conv")
+}
+log_compdens_conv.default = function(m,x,s,v,FUN="+"){
+  log(compdens_conv(m,x,s,v,FUN)) 
+}
+
 
 
 #' @title dens_conv
@@ -249,14 +264,23 @@ comppostprob=function(m,x,s,v){
 }
 
 #' @export
-comppostprob.default = function(m,x,s,v){
+old.comppostprob.default = function(m,x,s,v){
   tmp= (t(m$pi * compdens_conv(m,x,s,v))/dens_conv(m,x,s,v))
   ismissing = (is.na(x) | is.na(s))
   tmp[ismissing,]=m$pi
   t(tmp)
 }
 
-
+#' @export
+comppostprob.default = function(m,x,s,v){
+  lpost = log_compdens_conv(m,x,s,v) + log(m$pi) # lpost is k by n of log posterior prob (unnormalized)
+  lpmax = apply(lpost,2,max) #dmax is of length n
+  tmp = exp(t(lpost)-lpmax) #subtracting the max of the logs is just done for numerical stability
+  tmp = tmp/rowSums(tmp)
+  ismissing = (is.na(x) | is.na(s))
+  tmp[ismissing,]=m$pi
+  t(tmp)
+}
 
 #' @title compcdf_post
 #' @description evaluate cdf of posterior distribution of beta at c. m is the prior on beta, a mixture; c is location of evaluation assumption is betahat | beta ~ t_v(beta,sebetahat)
@@ -407,7 +431,8 @@ comp_postmean2 = function(m,betahat,sebetahat,v){
 }
 #' @export
 comp_postmean2.default = function(m,betahat,sebetahat,v){
-  comp_postsd(m,betahat,sebetahat,v)^2 + comp_postmean(m,betahat,sebetahat,v)^2
+  stop("method comp_postmean2 not written for this class")
+  #comp_postsd(m,betahat,sebetahat,v)^2 + comp_postmean(m,betahat,sebetahat,v)^2
 }
 
 
@@ -555,6 +580,25 @@ compdens_conv.normalmix = function(m,x,s,v,FUN="+"){
   return(t(dnorm(outer(x,m$mean,FUN="-")/sdmat)/sdmat))
 }
 
+#' @title log_compdens_conv.normalmix
+#' @description returns log-density of convolution of each component of a normal mixture with N(0,s^2) or s*t(v) at x. Note that convolution of two normals is normal, so it works that way
+#' @param m mixture distribution with k components
+#' @param x an n-vector at which density is to be evaluated
+#' @param s an n vector of standard errors
+#' @param v degree of freedom of error distribution
+#' @param FUN default is "+"
+#' @return a k by n matrix
+log_compdens_conv.normalmix = function(m,x,s,v,FUN="+"){
+  if(!is.null(v)){
+    stop("method compdens_conv of normal mixture not written for df!=NULL")
+  }
+  if(length(s)==1){s=rep(s,length(x))}
+  sdmat = sqrt(outer(s^2,m$sd^2,FUN)) #n by k matrix of standard deviations of convolutions
+  return(t(dnorm(outer(x,m$mean,FUN="-")/sdmat,log=TRUE) - log(sdmat)))
+}
+
+
+
 #' @export
 comp_cdf.normalmix = function(x,y,lower.tail=TRUE){
   vapply(y,pnorm,x$mean,x$mean,x$sd,lower.tail)
@@ -600,6 +644,10 @@ comp_postsd.normalmix = function(m,betahat,sebetahat,v){
   t(sqrt(outer(sebetahat^2,m$sd^2,FUN="*")/outer(sebetahat^2,m$sd^2,FUN="+")))
 }
 
+#' @export
+comp_postmean2.normalmix = function(m,betahat,sebetahat,v){
+  comp_postsd(m,betahat,sebetahat,v)^2 + comp_postmean(m,betahat,sebetahat,v)^2
+}
 
 #' @title loglik_conv_mixlik
 #' 
@@ -858,7 +906,7 @@ comp_postmean_mixlik.default=function(m,betahat,sebetahat,v,pilik){
 #' @title comp_postsd_mixlik
 #' 
 #' @description output posterior sd for beta for each component of prior mixture m,given observations betahat, sebetahat, df v
-#1 from l-components mixture likelihood with mixture proportion pilik
+#' from l-components mixture likelihood with mixture proportion pilik
 #' @param m mixture distribution
 #' @param betahat the data 
 #' @param sebetahat the observed standard errors
@@ -938,6 +986,30 @@ compdens_conv.unimix = function(m,x,s,v, FUN="+"){
   return(compdens)
 }
 
+#log density of convolution of each component of a unif mixture with s*t_nu() at x
+# x an n-vector
+#return a k by n matrix
+log_compdens_conv.unimix = function(m,x,s,v, FUN="+"){
+  if(FUN!="+") stop("Error; log_compdens_conv not implemented for uniform with FUN!=+")
+  b = pmax(m$b,m$a) #ensure a<b
+  a = pmin(m$b,m$a)
+  if(is.null(v)){
+    lpa = pnorm(outer(x,a,FUN="-")/s,log=TRUE)
+    lpb = pnorm(outer(x,b,FUN="-")/s,log=TRUE)
+    
+    lcompdens= t( lpa + log(1-exp(lpb-lpa)) ) - log(b-a)
+    lcompdens[a==b,]=t(dnorm(outer(x,a,FUN="-")/s,log=TRUE) - log(s))[a==b,]
+  }
+  else{
+    lpa = pt(outer(x,a,FUN="-")/s,df=v,log=TRUE)
+    lpb = pt(outer(x,b,FUN="-")/s,df=v,log=TRUE)
+    lcompdens= t( lpa + log(1-exp(lpb-lpa)) ) -log(b-a)
+    lcompdens[a==b,]=
+      t(dt(outer(x,a,FUN="-")/s,df=v,log=TRUE) - log(s))[a==b,]
+  }
+  return(lcompdens)
+}
+
 
 #' @export
 compcdf_post.unimix=function(m,c,betahat,sebetahat,v){
@@ -1001,8 +1073,74 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   tmp[toobig] = max_ab[toobig]
   tmp
 }
+
+# more about truncated normal
+#' @export
+my_e2truncnorm= function(a,b,mean=0,sd=1){
+  alpha = (a-mean)/sd
+  beta =  (b-mean)/sd
+  #Flip the onese where both are positive, as the computations are more stable
+  #when both negative
+  flip = (alpha>0 & beta>0)
+  flip[is.na(flip)]=FALSE #deal with NAs
+  alpha[flip]= -alpha[flip]
+  beta[flip]=-beta[flip]
   
+  #Fix a bug of quoting the truncnorm package
+  #E(X|a<X<b)=a when a==b as a natural result
+  #while etruncnorm would simply return NaN,causing PosteriorMean also NaN
+  tmp1=etruncnorm(alpha,beta,0,1)
+  isequal=(alpha==beta)
+  tmp1[isequal]=alpha[isequal]
+  tmp= (-1)^flip * (mean+sd*tmp1)
+  # for the variance
+  # error report in vtruncnorm
+  # vtruncnorm(10,-10,0,1)
+  # vtruncnorm(-10,10,0,1)
+  # vtruncnorm(3,-3,0,1)
+  # vtruncnorm(-3,3,0,1)
+  # I am not sure smaller one should be put in the first or not
+  # vtruncnorm(-7,-8,0,1)
+  # vtruncnorm(-8,-7,0,1)
+  # vtruncnorm(7,8,0,1)
+  # vtruncnorm(8,7,0,1)
+  # vtruncnorm(-8,-9,0,1)
+  # vtruncnorm(-9,-10,0,1)
+  # maybe we should try ourselves according to some result
+  # https://people.sc.fsu.edu/~jburkardt/presentations/truncated_normal.pdf
+  # tmpvar = vtruncnorm(alpha,beta,0,1)
+  tmpvar = my_vtruncnorm(ifelse(alpha<beta,alpha,beta),ifelse(alpha<beta,beta,alpha),0,1)
+  # for the second moment
+  tmp2 = tmp^2 + tmpvar*sd^2
+  isequal=(a==b)
+  tmp2[isequal]=(a[isequal])^2
   
+  # if the truncate value is too big
+  max_alphabeta = ifelse(alpha<beta, beta,alpha)
+  max_ab = ifelse(alpha<beta,b,a)
+  # I think here, 8 or 7 is enough for this case. try the following:
+  toobig = max_alphabeta<(-20)
+  toobig[is.na(toobig)]=FALSE 
+  tmp2[toobig] = (max_ab[toobig])^2
+  tmp2
+}
+#pnorm also have some problems......
+#pnorm(7);pnorm(8)
+#pnorm(-7);pnorm(-8)
+# but it is fine since we flip the sign if a and b are all positive in function my_e2truncnorm
+# this version is better than trunvnorm package
+#' @export
+#' 
+my_vtruncnorm = function(a,b,mean = 0, sd = 1){
+  a = ifelse(a== -Inf, -1e5,a)
+  b = ifelse(b== Inf, 1e5, b)
+  alpha = (a-mean)/sd
+  beta =  (b-mean)/sd
+  frac1 = (beta*dnorm(beta,0,1) - alpha*dnorm(alpha,0,1)) / (pnorm(beta,0,1)-pnorm(alpha,0,1) )
+  frac2 = (dnorm(beta,0,1) - dnorm(alpha,0,1)) / (pnorm(beta,0,1)-pnorm(alpha,0,1) )
+  truncnormvar = sd^2 * (1 - frac1 - frac2^2)
+  return(truncnormvar)
+}
 
 #note that with uniform prior, posterior is truncated normal, so
 #this is computed using formula for mean of truncated normal 
@@ -1026,27 +1164,34 @@ comp_postmean.unimix = function(m,betahat,sebetahat,v){
   ismissing = is.na(betahat) | is.na(sebetahat)
   tmp[ismissing,]= (m$a+m$b)/2
   t(tmp)
-#   t(
-#     betahat + sebetahat* 
-#       exp(dnorm(alpha,log=TRUE)- pnorm(alpha,log=TRUE))
-#    * 
-#       (-expm1(dnorm(beta,log=TRUE)-dnorm(alpha,log=TRUE)))
-#     /
-#       (expm1(pnorm(beta,log=TRUE)-pnorm(alpha,log=TRUE)))
-#   )
+}
+
+#' as for posterior mean, but compute posterior mean squared value
+#' @export
+comp_postmean2.unimix = function(m,betahat,sebetahat,v){
+  alpha = outer(-betahat, m$a,FUN="+")/sebetahat
+  beta = outer(-betahat, m$b, FUN="+")/sebetahat
+  if(is.null(v)){
+    tmp = betahat^2 + 2*betahat*sebetahat*my_etruncnorm(alpha,beta,0,1) + sebetahat^2*my_e2truncnorm(alpha,beta,0,1)
+  }else{
+    tmp = betahat^2 + 2*betahat*sebetahat*my_etrunct(alpha,beta,v) + sebetahat^2*my_e2trunct(alpha,beta,v)
+  }
+  ismissing = is.na(betahat) | is.na(sebetahat)
+  tmp[ismissing,]= (m$b^2+m$a*m$b+m$a^2)/3
+  t(tmp)
 }
 
 #not yet implemented!
 #just returns 0s for now
 comp_postsd.unimix = function(m,betahat,sebetahat,v){
-  #print("Function ashci() is provided for computing the credible interval(symmetric),see documentation for usage and example.")
   k= ncomp(m)
   n=length(betahat)
   return(matrix(NA,nrow=k,ncol=n)) 
+#  return(sqrt(comp_postmean2(m,betahat,sebetahat,v)-comp_postmean(m,betahat,sebetahat,v)^2))
 }
 
 #' @title my_etrunct
-#' @description Compute expectation of truncated t, the result is from the paper 'a
+#' @description Compute expectation of truncated t, the result is from the paper "Moments of truncated Student-t distribution by Hea-Jung Kim"
 #' 
 #' @param a left limit of distribution
 #' @param b right limit of distribution
@@ -1063,7 +1208,67 @@ my_etrunct= function(a,b,v){
   tmp = ifelse(G==Inf & ABpart==0, my_etruncnorm(a,b),G*ABpart) #deal with extreme cases using normal
   return(ifelse(a==b,a,tmp)) #deal with extreme case a=b
 }
+# this is my_e2trunct is wrong function
+# my_e2trunct= function(a,b,v){
+#   A = v+a^2
+#   B = v+b^2
+#   F_a = pt(a,df=v)
+#   F_b = pt(b,df=v)
+#   lG=lgamma((v-1)/2)+(v/2)*log(v)-log(2*(F_b-F_a))-lgamma(v/2)-lgamma(1/2)
+#   G=exp(lG)
+#   ABpart = (a*A^(-(v-1)/2)-b*B^(-(v-1)/2))
+#   # for the second moment
+#   EY2 = v/(v-2) + G * ABpart
+#   #EY2 = ifelse(G==Inf & ABpart==0, my_e2truncnorm(a,b),EY2) #deal with extreme cases using normal
+#   EY2 = ifelse(G==Inf & abs(ABpart)<1e-20, my_e2truncnorm(a,b),EY2)
+#   # maybe we also need to deal with extreme case using normal, so I add a truncate normal later
+#   return(ifelse(a==b,a^2,EY2)) #deal with extreme case a=b
+# }
 
+# we propose a new my_e2trunct function depending on library("hypergeo")
+# D_const is a function that used in my_e2trunct, but not been used any more
+# D_const = function(A,B,v){
+#   f_1 = (A)/(beta(1/2,v/2) * sqrt(v+A^2))
+#   f_2 = hypergeo(1/2,1-v/2,3/2,A^2/(v+A^2))
+#   part_1 = f_1 * f_2
+#   f_1 = (B)/(beta(1/2,v/2) * sqrt(v+B^2))
+#   f_2 = hypergeo(1/2,1-v/2,3/2,B^2/(v+B^2))
+#   part_2 = f_1 * f_2
+#   output = part_1 - part_2
+#   return(output)
+# }
+# this function can be use as any moment calculation, but here we just use it as second moment.
+#' @title my_etrunct
+#' @description Compute second moment of truncated t, the result is from the paper "Moments of truncated t and F distributions" by Saralees Nadarajah · Samuel Kotz
+#' @param n is moment, the default is 2 which means second moment
+#' @param a left limit of distribution
+#' @param b right limit of distribution
+#' @param v degree of freedom of error distribution
+#' @export
+my_e2trunct = function(a,b,v,n=2){
+  if(v<=2){warning("my_e2trunct known to be unstable for degrees of freedom v<=2; proceed with caution")}
+  # deal with infinity case
+  a = ifelse(a< (-1e6),-1e6,a)
+  b = ifelse(b> (1e6), 1e6, b)
+
+  # deal with extreme case, use normal
+  # this is just for second moment
+  if(v >= 1e5){
+    return(my_e2truncnorm(a,b))
+  }
+  B = a
+  A = b
+  # D = D_const(A,B,v)
+  D = pt(A,df = v) - pt(B,df = v)
+  f_1 = 1/((n+1)*sqrt(v)*beta(v/2,1/2)*D)
+  f_2 = A^(n+1) * hypergeo::hypergeo((1+v)/2,(1+n)/2,(3+n)/2,-A^2/v) - B^(n+1) * hypergeo::hypergeo((1+v)/2,(1+n)/2,(3+n)/2,-B^2/v)
+  output = f_1 * f_2
+  
+  # deal with same limits case
+  output= ifelse(a==b,a^n,output)
+  #output = ifelse(Im(output)==0,Re(output),output)
+  return(Re(output))
+}
 
 ############################### METHODS FOR igmix class ###########################
 

@@ -19,5 +19,6 @@ comp_postsd_mixlik(m, betahat, sebetahat, v, pilik)
 }
 \description{
 output posterior sd for beta for each component of prior mixture m,given observations betahat, sebetahat, df v
+from l-components mixture likelihood with mixture proportion pilik
 }
 

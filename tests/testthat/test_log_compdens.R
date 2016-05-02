@@ -1,0 +1,26 @@
+test_that("exp(log_compdens_conv) gives same results as compdens_conv", {
+  g = unimix(c(0.5,0.5),c(1,2),c(0,0))
+  gn = normalmix(c(0.5,0.5),c(0,0),c(0.1,1))
+  gig = igmix(c(0.5,0.5),c(1,2),c(3,4))
+  x=c(-10,2)
+  s = c(1,2)
+  expect_equal(compdens_conv(g, x, s, NULL), exp(log_compdens_conv(g,x,s, NULL)))
+  expect_equal(compdens_conv(g, x, s, 2), exp(log_compdens_conv(g,x,s, 2)))
+  expect_equal(compdens_conv(gn, x, s, NULL), exp(log_compdens_conv(gn,x,s, NULL)))
+  expect_equal(compdens_conv(gig, x, s, 2), exp(log_compdens_conv(gig,x,s, 2)))
+})
+
+test_that("comppostprob is numerically stable", {
+  g = unimix(c(0.5,0.5),c(1,2),c(0,0))
+  gn = normalmix(c(0.5,0.5),c(0,0),c(0.1,1))
+  gig = igmix(c(0.5,0.5),c(1,2),c(3,4))
+  x=c(-10,2)
+  s = c(1,2)
+  expect_equal(comppostprob(g,x,s,NULL),old.comppostprob.default(g,x,s,NULL))
+  expect_equal(comppostprob(g,x,s,2),old.comppostprob.default(g,x,s,2))
+  expect_equal(comppostprob(gn,x,s,NULL),old.comppostprob.default(gn,x,s,NULL))
+  expect_equal(comppostprob(gig,x,s,2),old.comppostprob.default(gig,x,s,2))
+  
+  expect_equal(comppostprob(g,-10,0.5,NULL),cbind(c(2/3,1/3)))
+  expect_equal(comppostprob(g,-20,0.5,NULL),cbind(c(2/3,1/3)))
+})

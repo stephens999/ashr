@@ -40,7 +40,7 @@ Takes vectors of estimates (betahat) and their standard errors (sebetahat), and 
 shrinkage to them, using Empirical Bayes methods, to compute shrunk estimates for beta.
 }
 \details{
-This function is actually just a simple wrapper that passes its parameters to ash.workhorse which provides more documented options for advanced use. See readme for more details.
+This function is actually just a simple wrapper that passes its parameters to \code{\link{ash.workhorse}} which provides more documented options for advanced use. See readme for more details.
 }
 \examples{
 beta = c(rep(0,100),rnorm(100))

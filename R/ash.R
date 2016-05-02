@@ -9,7 +9,7 @@
 #' @description Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
 #' shrinkage to them, using Empirical Bayes methods, to compute shrunk estimates for beta.
 #'
-#' @details This function is actually just a simple wrapper that passes its parameters to ash.workhorse which provides more documented options for advanced use. See readme for more details. 
+#' @details This function is actually just a simple wrapper that passes its parameters to \code{\link{ash.workhorse}} which provides more documented options for advanced use. See readme for more details. 
 #' 
 #' @param betahat  a p vector of estimates 
 #' @param sebetahat a p vector of corresponding standard errors
@@ -355,7 +355,10 @@ ash.workhorse = function(betahat,sebetahat,
     }
   }
   
-  
+  #check that all prior are >=1 (as otherwise have problems with infinite penalty)
+  if(!all(prior>=1) & optmethod != "mixVBEM"){
+    stop("Error: prior must all be >=1 (unless using optmethod mixVBEM)")}
+    
   ##3. Fitting the mixture
   if(!fixg){
     pi.fit=estimate_mixprop(betahat[completeobs],sebetahat[completeobs],g,prior,null.comp=null.comp,
@@ -542,7 +545,9 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
   
   if(controlinput$trace==TRUE){tic()}
   
-  matrix_lik = t(compdens_conv(g,betahat,sebetahat,df))
+  matrix_llik = t(log_compdens_conv(g,betahat,sebetahat,df)) #an n by k matrix
+  matrix_llik = matrix_llik - apply(matrix_llik,1, max) #avoid numerical issues by subtracting max of each row
+  matrix_lik = exp(matrix_llik)
   
   # the last of these conditions checks whether the gradient at the null is negative wrt pi0
   # to avoid running the optimization when the global null (pi0=1) is the optimal.
