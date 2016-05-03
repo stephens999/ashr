@@ -17,6 +17,36 @@ summary.ash=function(object,...){
   print(object$fit$converged)
 }
 
+#' @title Create data from from ash object
+#'
+#' @description Creates data frame for easy plotting of results etc
+#'
+#' @details Returns a data frame with named columnns
+#' @param a the fitted ash object 
+#' @param ... not used, included for consistency as an S3 generic/method.
+#'
+#' @export
+#' 
+as.data.frame.ash=function(a,include_fdr=FALSE,...){
+  if(is.null(a$lfsr)){stop("Can't make data.frame from ash object unless outputlevel>=1.5")}
+  df = data.frame(row.names=1:length(a$lfsr))
+  
+  if(!is.null(a$data)){
+    df$betahat = a$data$betahat
+    df$sebetahat = a$data$sebetahat
+  }
+  
+  df$lfsr = a$lfsr
+  df$svalue = a$svalue
+  df$PosteriorMean = a$PosteriorMean
+  df$PosteriorSD = a$PosteriorSD
+  
+  df$lfdr = a$lfdr
+  df$qvalue = a$qvalue
+
+  return(df)
+}
+
 #' @title Print method for ash object
 #'
 #' @description Print the fitted distribution of beta values in the EB hierarchical model
