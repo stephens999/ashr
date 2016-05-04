@@ -50,7 +50,7 @@
 #' names(beta.ash)
 #' plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 #' 
-#' CIMatrix=ashci(beta.ash,betahat,sebetahat,level=0.95) 
+#' CIMatrix=ashci(beta.ash,level=0.95) 
 #' print(CIMatrix)
 #'
 #' #Illustrating the non-zero mode feature
@@ -401,9 +401,10 @@ ash.workhorse = function(betahat,sebetahat,
   }
   
   if(outputlevel>3){ #compute the flash output
-    comp_postprob = matrix(0,nrow = k, ncol = n)
-    comp_postmean = matrix(0,nrow = k, ncol = n)
-    comp_postmean2 =  matrix(0,nrow = k, ncol = n)
+    kk = ncomp(pi.fit$g)
+    comp_postprob = matrix(0,nrow = kk, ncol = n)
+    comp_postmean = matrix(0,nrow = kk, ncol = n)
+    comp_postmean2 =  matrix(0,nrow = kk, ncol = n)
     
     comp_postprob[,completeobs] = comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
     comp_postmean[,completeobs] = comp_postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)

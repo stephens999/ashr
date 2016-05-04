@@ -382,7 +382,17 @@ toc <- function()
 #the searching interval from the mixture
 #2.A:Done by shrinking searching interval using while loop
 #
-ashci = function (a, betahat, sebetahat,df=NULL,model=c("EE","ET"),level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=100,shrinkingcoefficient=0.9,trace=FALSE,ncores=FALSE){
+ashci = function (a, betahat=NULL, sebetahat=NULL,df=NULL,model=c("EE","ET"),level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=100,shrinkingcoefficient=0.9,trace=FALSE,ncores=FALSE){
+  if(missing(betahat)){
+      betahat= a$data$betahat
+  }
+  if(missing(sebetahat)){
+      sebetahat = a$data$sebetahat
+  }
+  if(missing(df)){
+      df = a$data$df
+  }
+  
   options(warn=-1)  
   if(missing(betaindex)){
     betaindex =(a$lfsr<=lfsrcriteria)
