@@ -398,8 +398,11 @@ ashci = function (a, betahat=NULL, sebetahat=NULL,df=NULL,model=c("EE","ET"),lev
     betaindex =(a$lfsr<=lfsrcriteria)
     betaindex[is.na(betaindex)]=FALSE #Some lfsrs would have NA
   }
-
+  
   PosteriorMean=a$PosteriorMean[betaindex]
+  ZeroProb = a$ZeroProb[betaindex]
+  NegativeProb = a$NegativeProb[betaindex]
+  PositiveProb = a$PositiveProb[betaindex]
   x=betahat[betaindex]
   s=sebetahat[betaindex]
   m=a$fitted.g
@@ -453,37 +456,45 @@ ashci = function (a, betahat=NULL, sebetahat=NULL,df=NULL,model=c("EE","ET"),lev
       }
       
       #Calculating the lower bound
-      CImatrix[i,4]=optimize(f=ci.lower,interval=c(lower,PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,
+      if(NegativeProb[i]<(1-level)/2 & (ZeroProb[i]+NegativeProb[i])> (1-level)/2){
+          CImatrix[i,4]=0;
+          CImatrix[i,6]=cdf_post(m,CImatrix[i,4],x[i],s[i],df)
+      } else {
+        CImatrix[i,4]=optimize(f=ci.lower,interval=c(lower,PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,
                              df=df, tol=tol)$minimum
-      CImatrix[i,6]=cdf_post(m,CImatrix[i,4],x[i],s[i],df)
-      #If the actual cdf deviates by too much, refine the optimization search interval
-      #currently we set maximum value of execution to maxcounts to avoid dead loop
-      counts=0
-      intervallength=PosteriorMean[i]-lower
-      while(abs(CImatrix[i,6]-(1-level)/2)>(10*tol) & counts<maxcounts){
-        intervallength= intervallength* shrinkingcoefficient
-        CImatrix[i,4]=optimize(f=ci.lower,interval=c(PosteriorMean[i]-intervallength,
+        CImatrix[i,6]=cdf_post(m,CImatrix[i,4],x[i],s[i],df)
+        #If the actual cdf deviates by too much, refine the optimization search interval
+        #currently we set maximum value of execution to maxcounts to avoid dead loop
+        counts=0
+        intervallength=PosteriorMean[i]-lower
+        while(abs(CImatrix[i,6]-(1-level)/2)>(10*tol) & counts<maxcounts){
+          intervallength= intervallength* shrinkingcoefficient
+          CImatrix[i,4]=optimize(f=ci.lower,interval=c(PosteriorMean[i]-intervallength,
                                                      PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,df=df, tol=tol)$minimum
-        CImatrix[i,6]=cdf_post(m,CImatrix[i,4],x[i],s[i],df)	  
-        counts=counts+1	
+          CImatrix[i,6]=cdf_post(m,CImatrix[i,4],x[i],s[i],df)	  
+          counts=counts+1	
+        }
       }
-      
       #Calculating the upper bound
-      CImatrix[i,5]=optimize(f=ci.upper,interval=c(PosteriorMean[i],upper),m=m,x=x[i],s=s[i],level=level,
+      if(PositiveProb[i] < ((1-level)/2) & (ZeroProb[i]+PositiveProb[i])> (1-level)/2){
+        CImatrix[i,5]=0;
+        CImatrix[i,7]=cdf_post(m,CImatrix[i,5],x[i],s[i],df)
+      } else {
+        CImatrix[i,5]=optimize(f=ci.upper,interval=c(PosteriorMean[i],upper),m=m,x=x[i],s=s[i],level=level,
                              df=df, tol=tol)$minimum
-      CImatrix[i,7]=cdf_post(m,CImatrix[i,5],x[i],s[i],df)
-      #If the actual cdf deviates by too much, refine the optimization search interval
-      #currently we set maximum value of execution to maxcounts to avoid dead loop
-      counts=0
-      intervallength=upper-PosteriorMean[i]
-      while(abs(CImatrix[i,7]-(1+level)/2)>(10*tol) & counts<maxcounts){
-        intervallength= intervallength*shrinkingcoefficient
-        CImatrix[i,5]=optimize(f=ci.upper,interval=c(PosteriorMean[i],PosteriorMean[i]+intervallength),m=m,x=x[i],s=s[i],level=level,
+        CImatrix[i,7]=cdf_post(m,CImatrix[i,5],x[i],s[i],df)
+        #If the actual cdf deviates by too much, refine the optimization search interval
+        #currently we set maximum value of execution to maxcounts to avoid dead loop
+        counts=0
+        intervallength=upper-PosteriorMean[i]
+        while(abs(CImatrix[i,7]-(1+level)/2)>(10*tol) & counts<maxcounts){
+          intervallength= intervallength*shrinkingcoefficient
+          CImatrix[i,5]=optimize(f=ci.upper,interval=c(PosteriorMean[i],PosteriorMean[i]+intervallength),m=m,x=x[i],s=s[i],level=level,
                                df=df, tol=tol)$minimum
-        CImatrix[i,7]=cdf_post(m,CImatrix[i,5],x[i],s[i],df)  	
-        counts=counts+1		    
+          CImatrix[i,7]=cdf_post(m,CImatrix[i,5],x[i],s[i],df)  	
+          counts=counts+1		    
+        }
       }
-      
       if(trace==TRUE & percentage <=100){
         currentpercentage=round(i*100/length(x))
         if(currentpercentage == percentage){
