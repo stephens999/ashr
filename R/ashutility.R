@@ -400,6 +400,7 @@ ashci = function (a, betahat=NULL, sebetahat=NULL,df=NULL,model=c("EE","ET"),lev
   }
   
   PosteriorMean=a$PosteriorMean[betaindex]
+  PosteriorSD = a$PosteriorSD[betaindex]
   ZeroProb = a$ZeroProb[betaindex]
   NegativeProb = a$NegativeProb[betaindex]
   PositiveProb = a$PositiveProb[betaindex]
@@ -442,20 +443,21 @@ ashci = function (a, betahat=NULL, sebetahat=NULL,df=NULL,model=c("EE","ET"),lev
       tic()
     }
     for(i in 1:length(x)){
-      #Now the search interval is better restricted, avoiding the crash of optimize() due to discontinuity of cdf_post
-      #The discontinuity is due to the pointmass component of the mixture
-      cumpi=cumsum(comppostprob(m,x[i],s[i],df))-level
-      maxposition=min(which(cumpi>0))
-      if(class(m)=="normalmix"){
-        maxsd=m$sd[maxposition]
-        lower=PosteriorMean[i]-errorspan*maxsd
-        upper=PosteriorMean[i]+errorspan*maxsd
-      }else{
-        lower=min(c(m$a[1: maxposition],m$b[1: maxposition]))
-        upper=max(c(m$a[1: maxposition],m$b[1: maxposition])) 	
+    #Starting at Posterior Mean, step out until exceed required level
+      #The search will go from the PosteriorMean to the upper or lower point
+      #Note: this assumes the Posterior Mean is in the CI... !
+      lower = PosteriorMean[i]-PosteriorSD[i]
+      while(cdf_post(m,lower,x[i],s[i],df) > (1-level)/2){
+          lower = lower-PosteriorSD[i]
       }
+      upper = PosteriorMean[i]+PosteriorSD[i]
+      while(cdf_post(m,upper,x[i],s[i],df) < 1 - (1-level)/2){
+        upper = upper+PosteriorSD[i]
+      }
+ 
       
       #Calculating the lower bound
+      #First check if lower bound is 0
       if(NegativeProb[i]<(1-level)/2 & (ZeroProb[i]+NegativeProb[i])> (1-level)/2){
           CImatrix[i,4]=0;
           CImatrix[i,6]=cdf_post(m,CImatrix[i,4],x[i],s[i],df)
@@ -463,19 +465,9 @@ ashci = function (a, betahat=NULL, sebetahat=NULL,df=NULL,model=c("EE","ET"),lev
         CImatrix[i,4]=optimize(f=ci.lower,interval=c(lower,PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,
                              df=df, tol=tol)$minimum
         CImatrix[i,6]=cdf_post(m,CImatrix[i,4],x[i],s[i],df)
-        #If the actual cdf deviates by too much, refine the optimization search interval
-        #currently we set maximum value of execution to maxcounts to avoid dead loop
-        counts=0
-        intervallength=PosteriorMean[i]-lower
-        while(abs(CImatrix[i,6]-(1-level)/2)>(10*tol) & counts<maxcounts){
-          intervallength= intervallength* shrinkingcoefficient
-          CImatrix[i,4]=optimize(f=ci.lower,interval=c(PosteriorMean[i]-intervallength,
-                                                     PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,df=df, tol=tol)$minimum
-          CImatrix[i,6]=cdf_post(m,CImatrix[i,4],x[i],s[i],df)	  
-          counts=counts+1	
-        }
       }
       #Calculating the upper bound
+      #First check if upper bound is 0
       if(PositiveProb[i] < ((1-level)/2) & (ZeroProb[i]+PositiveProb[i])> (1-level)/2){
         CImatrix[i,5]=0;
         CImatrix[i,7]=cdf_post(m,CImatrix[i,5],x[i],s[i],df)
@@ -483,17 +475,6 @@ ashci = function (a, betahat=NULL, sebetahat=NULL,df=NULL,model=c("EE","ET"),lev
         CImatrix[i,5]=optimize(f=ci.upper,interval=c(PosteriorMean[i],upper),m=m,x=x[i],s=s[i],level=level,
                              df=df, tol=tol)$minimum
         CImatrix[i,7]=cdf_post(m,CImatrix[i,5],x[i],s[i],df)
-        #If the actual cdf deviates by too much, refine the optimization search interval
-        #currently we set maximum value of execution to maxcounts to avoid dead loop
-        counts=0
-        intervallength=upper-PosteriorMean[i]
-        while(abs(CImatrix[i,7]-(1+level)/2)>(10*tol) & counts<maxcounts){
-          intervallength= intervallength*shrinkingcoefficient
-          CImatrix[i,5]=optimize(f=ci.upper,interval=c(PosteriorMean[i],PosteriorMean[i]+intervallength),m=m,x=x[i],s=s[i],level=level,
-                               df=df, tol=tol)$minimum
-          CImatrix[i,7]=cdf_post(m,CImatrix[i,5],x[i],s[i],df)  	
-          counts=counts+1		    
-        }
       }
       if(trace==TRUE & percentage <=100){
         currentpercentage=round(i*100/length(x))
@@ -513,16 +494,15 @@ ashci = function (a, betahat=NULL, sebetahat=NULL,df=NULL,model=c("EE","ET"),lev
     cl <- makePSOCKcluster(ncores)#This number corresponding to number of workers
     registerDoParallel(cl)
     CImatrix[,4:7]=foreach(i=1:length(x), .combine='rbind') %dopar% {
-      cumpi=cumsum(ashr:::comppostprob(m,x[i],s[i],df))-level
-      maxposition=min(which(cumpi>0))
-      if(class(m)=="normalmix"){
-        maxsd=m$sd[maxposition]
-        lower=PosteriorMean[i]-errorspan*maxsd
-        upper=PosteriorMean[i]+errorspan*maxsd
-      }else{
-        lower=min(c(m$a[1: maxposition],m$b[1: maxposition]))
-        upper=max(c(m$a[1: maxposition],m$b[1: maxposition])) 	
+      lower = PosteriorMean[i]-PosteriorSD[i]
+      while(cdf_post(m,lower,x[i],s[i],df) > (1-level)/2){
+        lower = lower-PosteriorSD[i]
       }
+      upper = PosteriorMean[i]+PosteriorSD[i]
+      while(cdf_post(m,upper,x[i],s[i],df) < 1 - (1-level)/2){
+        upper = upper+PosteriorSD[i]
+      }
+      
       
       #Calculating the lower bound	  
       CIentryl=optimize(f=ashr:::ci.lower,interval=c(lower,PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,
