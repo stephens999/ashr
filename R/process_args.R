@@ -2,6 +2,7 @@
 #'
 #' @param oldargs captured argument list
 #' @return list containing the processed arguments
+#' @importFrom utils modifyList
 #' @export process_args
 process_args = function (oldargs) {
   
@@ -17,7 +18,6 @@ process_args = function (oldargs) {
   if (exists("df"))          df          = get("df")
   if (exists("gridmult"))    gridmult    = get("gridmult")
   if (exists("control"))     control     = get("control")
-  if (exists("modifyList"))  modifyList  = get("modifyList")
   
   # Start processing arguments
   
@@ -148,7 +148,9 @@ process_args = function (oldargs) {
   # Collect everything into a new list
   newargs_names = setdiff(ls(), c("oldargs", "i", "call"))
   newargs = list()
-  for (i in 1L:length(newargs_names)) newargs[[i]] = get(newargs_names[i])
+  # assigning NULL to list component will remove that component; so use lapply
+  safe_assign = function(x) if (is.null(get(x))) return(NULL) else return(get(x))
+  newargs = lapply(newargs_names, safe_assign)
   names(newargs) = newargs_names
   
   return(newargs)
