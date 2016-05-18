@@ -166,8 +166,8 @@ ash.workhorse = function(betahat,sebetahat,
                          outputlevel=2,
                          g=NULL,
                          fixg=FALSE,
-                         cxx=FALSE,
-                         VB=FALSE,
+                         cxx=NULL,
+                         VB=NULL,
                          model=c("EE","ET"),
                          control=list()
 ){
@@ -179,11 +179,11 @@ ash.workhorse = function(betahat,sebetahat,
   optmethod   = match.arg(optmethod)
   model       = match.arg(model)
   
-  # dark magic to capture all arguments into a list
+  # Capture all arguments into a list
   oldargs = mget(names(formals()), sys.frame(sys.nframe()))
   newargs = process_args(oldargs)
   
-  # assign each argument in returned list to a variable used by the code next
+  # Assign each argument in returned list to a variable used by the code next
   for (i in 1:length(newargs)) assign(names(newargs)[i], newargs[[i]])
   
   ##2. Generating mixture distribution

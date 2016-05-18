@@ -5,19 +5,19 @@
 #' @export process_args
 process_args = function (oldargs) {
   
-  # assign each captured argument in the list to a variable
+  # Assign each captured argument in the list to a variable
   for (i in 1L:length(oldargs)) assign(names(oldargs)[i], oldargs[[i]])
   
-  # avoid "no visible binding for global variable" notes in R CMD check
-  VB          = get("VB")
-  cxx         = get("cxx")
-  method      = get("method")
-  model       = get("model")
-  mixcompdist = get("mixcompdist")
-  df          = get("df")
-  gridmult    = get("gridmult")
-  control     = get("control")
-  modifyList  = get("modifyList")
+  # Avoid "no visible binding for global variable" notes in R CMD check
+  if (exists("VB"))          VB          = get("VB")
+  if (exists("cxx"))         cxx         = get("cxx")
+  if (exists("method"))      method      = get("method")
+  if (exists("model"))       model       = get("model")
+  if (exists("mixcompdist")) mixcompdist = get("mixcompdist")
+  if (exists("df"))          df          = get("df")
+  if (exists("gridmult"))    gridmult    = get("gridmult")
+  if (exists("control"))     control     = get("control")
+  if (exists("modifyList"))  modifyList  = get("modifyList")
   
   # Start processing arguments
   
@@ -28,10 +28,10 @@ process_args = function (oldargs) {
   # Set optimization method (optmethod)
   
   # if user tries to set both optmethod and VB/cxx that's an error
-  if (!is.null(optmethod) && (VB || cxx))
+  if ( !is.null(optmethod) && (!is.null(VB) || !is.null(cxx)) )
     stop("VB and cxx options are deprecated and incompatible with optmethod; use optmethod instead")
   
-  # optmethod fallbacks
+  # Fallbacks for optmethod
   # By default it will be "mixIP", if REBayes not present then fallback to EM
   if (!require("REBayes", quietly = TRUE)) {  # check whether REBayes package is present
     # If REBayes package missing
@@ -44,8 +44,17 @@ process_args = function (oldargs) {
     }
   }
   
-  if (VB) stop("VB option is deprecated, use optmethod instead")
-  if (cxx) stop("cxx option is deprecated, use optmethod instead")
+  # Check if VB and cxx are set to logical; for backwards compatibility
+  if (!is.null(VB)) {
+    warning("VB option is deprecated, use optmethod instead")
+    if (VB == TRUE) optmethod = "mixVBEM"
+  }
+  
+  if (!is.null(cxx)) {
+    warning("cxx option is deprecated, use optmethod instead")
+    if (cxx == TRUE)  optmethod = "cxxMixSquarem"
+    if (cxx == FALSE) optmethod = "mixEM"
+  }
   
   if (optmethod == "mixIP") assertthat::assert_that(require("REBayes", quietly = TRUE))
   if (optmethod == "cxxMixSquarem") assertthat::assert_that(require("Rcpp"))
@@ -56,7 +65,7 @@ process_args = function (oldargs) {
   # If method is supplied use the user-supplied values (or defaults if user does not specify them)
   if (method == "shrink") {
     
-    # almost equivalent to is.missing(prior)
+    # Almost equivalent to is.missing(prior)
     if (identical(sort(prior), sort(c("nullbiased","uniform","unit")))) {
       prior = "uniform"
     } else {
@@ -73,7 +82,7 @@ process_args = function (oldargs) {
   
   if (method == "fdr") {
     
-    # almost equivalent to is.missing(prior)
+    # Almost equivalent to is.missing(prior)
     if (identical(sort(prior), sort(c("nullbiased","uniform","unit")))) {
       prior = "nullbiased"
     } else {
@@ -136,7 +145,7 @@ process_args = function (oldargs) {
   
   if (n == 0) stop("Error: all input values are missing")
   
-  # collect everything into new list
+  # Collect everything into a new list
   newargs_names = setdiff(ls(), c("oldargs", "i", "call"))
   newargs = list()
   for (i in 1L:length(newargs_names)) newargs[[i]] = get(newargs_names[i])
