@@ -43,7 +43,7 @@ use "halfuniform" to allow for assymetric g, and "+uniform"/"-uniform" to constr
 
 \item{gridmult}{the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)}
 
-\item{outputlevel}{determines amount of output [0=just fitted g; 1=also PosteriorMean and PosteriorSD; 2= all but data; 3=also include copy of input data; 4= output additional things required by flash (flash.data)]}
+\item{outputlevel}{determines amount of output [0=just fitted g; 1=also PosteriorMean and PosteriorSD; 2= everything usually needed; 3=also include results of mixture fitting procedure (includes matrix of log-likelihoods used to fit mixture); 4= output additional things required by flash (flash.data)]}
 
 \item{g}{the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)}
 
@@ -70,11 +70,13 @@ ash returns an object of \code{\link[base]{class}} "ash", a list with some or al
 \item{lfsr}{The local false sign rate}
 \item{lfdr}{A vector of estimated local false discovery rate}
 \item{qvalue}{A vector of q values}
+\item{svalue}{A vector of s values}
 \item{call}{a call in which all of the specified arguments are specified by their full names}
 \item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
 \item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T stats (ET) has been used}
 \item{optmethod}{the optimization method used}
 \item{data}{a list consisting the input betahat and sebetahat (only included if outputlevel>2)}
+\item{fit}{a list containing results of mixture optimization, and matrix of component log-likelihoods used in this optimization}
 }
 \description{
 Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
@@ -89,7 +91,9 @@ beta = c(rep(0,100),rnorm(100))
 sebetahat = abs(rnorm(200,0,1))
 betahat = rnorm(200,beta,sebetahat)
 beta.ash = ash(betahat, sebetahat)
+names(beta.ash) 
 summary(beta.ash)
+head(as.data.frame(beta.ash))
 plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 
 CIMatrix=ashci(beta.ash,betahat,sebetahat,level=0.95) 

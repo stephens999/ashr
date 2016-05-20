@@ -50,7 +50,7 @@
 #' names(beta.ash)
 #' plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 #' 
-#' CIMatrix=ashci(beta.ash,betahat,sebetahat,level=0.95) 
+#' CIMatrix=ashci(beta.ash,level=0.95) 
 #' print(CIMatrix)
 #'
 #' #Illustrating the non-zero mode feature
@@ -90,7 +90,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @param prior string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component), or "unit" (1/K,...,1/K) [for optmethod=mixVBEM version only]
 #' @param mixsd vector of sds for underlying mixture components 
 #' @param gridmult the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)
-#' @param outputlevel determines amount of output [0=just fitted g; 1=also PosteriorMean and PosteriorSD; 2= all but data; 3=also include copy of input data; 4= output additional things required by flash (flash.data)]
+#' @param outputlevel determines amount of output [0=just fitted g; 1=also PosteriorMean and PosteriorSD; 2= everything usually needed; 3=also include results of mixture fitting procedure (includes matrix of log-likelihoods used to fit mixture); 4= output additional things required by flash (flash.data)]
 #' @param g the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)
 #' @param fixg if TRUE, don't estimate g but use the specified g - useful for computations under the "true" g in simulations
 #' @param VB (deprecated, use optmethod) whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}
@@ -111,11 +111,13 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' \item{lfsr}{The local false sign rate}
 #' \item{lfdr}{A vector of estimated local false discovery rate}
 #' \item{qvalue}{A vector of q values}
+#' \item{svalue}{A vector of s values}
 #' \item{call}{a call in which all of the specified arguments are specified by their full names}
 #' \item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
 #' \item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T stats (ET) has been used}
 #' \item{optmethod}{the optimization method used}
 #' \item{data}{a list consisting the input betahat and sebetahat (only included if outputlevel>2)}
+#' \item{fit}{a list containing results of mixture optimization, and matrix of component log-likelihoods used in this optimization}
 #'
 #' @seealso \code{\link{ash}} for simplified specification of ash function
 #' @seealso \code{\link{ashci}} for computation of credible intervals after getting the ash object return by \code{ash()}
@@ -128,7 +130,9 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' sebetahat = abs(rnorm(200,0,1))
 #' betahat = rnorm(200,beta,sebetahat)
 #' beta.ash = ash(betahat, sebetahat)
+#' names(beta.ash) 
 #' summary(beta.ash)
+#' head(as.data.frame(beta.ash))
 #' plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 #' 
 #' CIMatrix=ashci(beta.ash,betahat,sebetahat,level=0.95) 
@@ -393,12 +397,14 @@ ash.workhorse = function(betahat,sebetahat,
     PositiveProb = 1 - NegativeProb - ZeroProb
     lfdr = ZeroProb
     qvalue = qval.from.lfdr(lfdr)
+    svalue = qval.from.lfdr(lfsr)
   }
   
   if(outputlevel>3){ #compute the flash output
-    comp_postprob = matrix(0,nrow = k, ncol = n)
-    comp_postmean = matrix(0,nrow = k, ncol = n)
-    comp_postmean2 =  matrix(0,nrow = k, ncol = n)
+    kk = ncomp(pi.fit$g)
+    comp_postprob = matrix(0,nrow = kk, ncol = n)
+    comp_postmean = matrix(0,nrow = kk, ncol = n)
+    comp_postmean2 =  matrix(0,nrow = kk, ncol = n)
     
     comp_postprob[,completeobs] = comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
     comp_postmean[,completeobs] = comp_postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
@@ -440,10 +446,10 @@ ash.workhorse = function(betahat,sebetahat,
   result = list(fitted.g=pi.fit$g,call=match.call())
   if (outputlevel>0) {result=c(result,list(PosteriorMean = PosteriorMean,PosteriorSD = PosteriorSD,loglik = loglik, logLR=logLR))}
   if (outputlevel>1) {result=c(result,list(PositiveProb = PositiveProb, NegativeProb = NegativeProb, 
-                ZeroProb = ZeroProb,lfsr = lfsr,lfdr = lfdr, qvalue = qvalue, 
+                ZeroProb = ZeroProb,lfsr = lfsr,lfdr = lfdr, qvalue = qvalue, svalue=svalue,
                  excludeindex = excludeindex,model = model, optmethod =optmethod))}
-  if (outputlevel >2) {result = c(result,list(
-    data= list(betahat = betahat, sebetahat = sebetahat,df=df),fit=pi.fit))}
+  if (outputlevel > 1.5){result = c(result,list(data= list(betahat = betahat, sebetahat = sebetahat,df=df)))}
+  if (outputlevel >2) {result=c(result,fit=pi.fit)}
   if (outputlevel >3) {result = c(result, flash.data=list(flash.data))}
   class(result) = "ash"
   return(result)

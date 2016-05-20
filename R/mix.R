@@ -1198,15 +1198,21 @@ comp_postsd.unimix = function(m,betahat,sebetahat,v){
 #' @param v degree of freedom of error distribution
 #' @export
 my_etrunct= function(a,b,v){
-  A = v+a^2
- 	B = v+b^2
-  F_a = pt(a,df=v)
-  F_b = pt(b,df=v)
+  mult=ifelse(a>0 & b>0,-1,1) # calculations more stable for negative 
+  #a and b, but in this case need to multiply result by -1
+  aa = ifelse(a>0 & b>0, -b, a)
+  bb = ifelse(a>0 & b>0, -a, b)
+  
+  A = v+aa^2
+ 	B = v+bb^2
+  F_a = pt(aa,df=v)
+  F_b = pt(bb,df=v)
   lG=lgamma((v-1)/2)+(v/2)*log(v)-log(2*(F_b-F_a))-lgamma(v/2)-lgamma(1/2)
  	G=exp(lG)
  	ABpart=(A^(-(v-1)/2)-B^(-(v-1)/2))
-  tmp = ifelse(G==Inf & ABpart==0, my_etruncnorm(a,b),G*ABpart) #deal with extreme cases using normal
-  return(ifelse(a==b,a,tmp)) #deal with extreme case a=b
+  tmp = ifelse(G==Inf & ABpart==0, my_etruncnorm(aa,bb),G*ABpart) #deal with extreme cases using normal
+  tmp = ifelse(aa==bb,aa,tmp) #deal with case a=b
+  return(mult*tmp) 
 }
 # this is my_e2trunct is wrong function
 # my_e2trunct= function(a,b,v){
@@ -1247,6 +1253,10 @@ my_etrunct= function(a,b,v){
 #' @export
 my_e2trunct = function(a,b,v,n=2){
   if(v<=2){warning("my_e2trunct known to be unstable for degrees of freedom v<=2; proceed with caution")}
+  aa = ifelse(a>0 & b>0, -b, a)   # calculations more stable for negative 
+  bb = ifelse(a>0 & b>0, -a, b)  #a and b, because involve cdf(a)-cdf(b)
+  a=aa; b=bb; # so switch them where necessary
+  
   # deal with infinity case
   a = ifelse(a< (-1e6),-1e6,a)
   b = ifelse(b> (1e6), 1e6, b)

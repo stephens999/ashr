@@ -4,8 +4,8 @@
 \alias{ashci}
 \title{Credible Interval Computation for the ash object}
 \usage{
-ashci(a, betahat, sebetahat, df = NULL, model = c("EE", "ET"),
-  level = 0.95, betaindex, lfsrcriteria = 0.05, tol = 1e-05,
+ashci(a, betahat = NULL, sebetahat = NULL, df = NULL, model = c("EE",
+  "ET"), level = 0.95, betaindex, lfsrcriteria = 0.05, tol = 1e-05,
   maxcounts = 100, shrinkingcoefficient = 0.9, trace = FALSE,
   ncores = FALSE)
 }

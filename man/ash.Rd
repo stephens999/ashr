@@ -51,7 +51,7 @@ summary(beta.ash)
 names(beta.ash)
 plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 
-CIMatrix=ashci(beta.ash,betahat,sebetahat,level=0.95) 
+CIMatrix=ashci(beta.ash,level=0.95) 
 print(CIMatrix)
 
 #Illustrating the non-zero mode feature
