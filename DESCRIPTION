@@ -1,7 +1,7 @@
 Package: ashr
 Maintainer: Matthew Stephens <mstephens@uchicago.edu>
 Author: Matthew Stephens, Chaoxing Dai, Mengyin Lu
-Version: 1.1.14
+Version: 1.2
 License: GPL-3
 Title: Methods for Adaptive Shrinkage, using Empirical Bayes
 Description: The main function in the ashr package is \code{\link{ash}}, which
