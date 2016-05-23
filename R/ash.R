@@ -155,155 +155,36 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' #Passing this g into ash causes it to i) take the sd and the means for each component from this g, and ii) initialize pi to the value from this g.
 #' beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
 ash.workhorse = function(betahat,sebetahat,
-               method = c("fdr","shrink"),
-               mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),
-               optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
-               df=NULL,randomstart=FALSE,
-               nullweight=10,nonzeromode=FALSE, 
-               pointmass = TRUE, 
-               prior=c("nullbiased","uniform","unit"), 
-               mixsd=NULL, gridmult=sqrt(2),
-               outputlevel=2,
-               g=NULL,
-               fixg=FALSE,
-               cxx=FALSE,
-               VB=FALSE,
-               model=c("EE","ET"),
-               control=list()
+                         method = c("fdr","shrink"),
+                         mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),
+                         optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
+                         df=NULL,randomstart=FALSE,
+                         nullweight=10,nonzeromode=FALSE,
+                         pointmass = NULL,
+                         prior=c("nullbiased","uniform","unit"),
+                         mixsd=NULL, gridmult=sqrt(2),
+                         outputlevel=2,
+                         g=NULL,
+                         fixg=FALSE,
+                         cxx=NULL,
+                         VB=NULL,
+                         model=c("EE","ET"),
+                         control=list()
 ){
   
   ##1.Handling Input Parameters
   
-  if(length(sebetahat)==1){  sebetahat = rep(sebetahat,length(betahat))  }
-  if(length(sebetahat) != length(betahat)){
-    stop("Error: sebetahat must have length 1, or same length as betahat")
-  }
-  
-  # Set optimization method (optmethod)
-  
-  # if user tries to set both optmethod and VB/cxx that's an error
-  if(!missing(optmethod) && (!missing(VB) || !missing(cxx)) ){
-    stop("VB and cxx options are deprecated and incompatible with optmethod; use optmethod instead")
-  }
-
-  # if no optmethod specified, select a default
-  if(missing(optmethod)){
-    if(require(REBayes,quietly=TRUE)){ #check whether REBayes package is present
-      optmethod = "mixIP"
-    } else{  #If REBayes package missing
-      message("Due to absence of package REBayes, switching to EM algorithm")
-      if(require(Rcpp)){
-        optmethod = "cxxMixSquarem"}
-      else {
-        optmethod = "mixEM" #fallback if neither Rcpp or REBayes are installed
-        message("Using vanilla EM; for faster performance install REBayes (preferred) or Rcpp")
-      }
-    }
-  } else { #if optmethod specified
-    optmethod = match.arg(optmethod)
-  }
-  
-  if(!missing(VB)){
-    warning("VB option is deprecated, use optmethod instead")
-    if(VB==TRUE){optmethod = "mixVBEM"}
-  }
-    
-  if(!missing(cxx)){
-    warning("cxx option is deprecated, use optmethod instead")
-    if (cxx==TRUE){optmethod = "cxxMixSquarem"}
-    if (cxx==FALSE){optmethod = "mixEM"}
-  }
-    
-  if(optmethod == "mixIP"){assertthat::assert_that(require(REBayes,quietly=TRUE))}
-  if(optmethod == "cxxMixSquarem"){assertthat::assert_that(require(Rcpp))}
-  
-  #method provides a convenient interface to set a particular combinations of parameters for prior an
-  #If method is supplied, use it to set up specific values for these parameters; provide warning if values
-  #are also specified by user
-  #If method is not supplied use the user-supplied values (or defaults if user does not specify them)  
-  if(!missing(method)){
-    method = match.arg(method) 
-    if(method=="shrink"){
-      if(missing(prior)){
-        prior = "uniform"
-      } else {
-        warning("Specification of prior overrides default for method shrink")
-      }
-      if(missing(pointmass)){
-        pointmass=FALSE
-      } else {
-        warning("Specification of pointmass overrides default for method shrink")
-      }    
-    }
-        
-    if(method=="fdr"){
-      if(missing(prior)){
-        prior = "nullbiased"
-      } else {
-        warning("Specification of prior overrides default for method fdr")
-      }
-      if(missing(pointmass)){
-        pointmass=TRUE
-      } else {
-        warning("Specification of pointmass overrides default for method fdr")
-      }
-    }  
-  }
-  
-  #Dealing with precise input of betahat, currently we exclude them from the EM algorithm
-  betahat.input=betahat
-  sebetahat.input=sebetahat
-  excludeindex=c(1:length(sebetahat.input))[sebetahat.input==0]
-  if(length(excludeindex)==0) excludeindex=NULL
-  betahat= betahat.input[sebetahat.input!=0]
-  sebetahat= sebetahat.input[sebetahat.input!=0]
-  
-  #Set observations with infinite standard errors to missing
-  #later these missing observations will be ignored in EM, and posterior will be same as prior.
-  sebetahat[sebetahat==Inf]=NA 
-  betahat[sebetahat==Inf]=NA
-  
-  model = match.arg(model)
-  if(model=="ET"){ #for ET model, standardize
-    betahat = betahat/sebetahat
-    sebetahat.orig = sebetahat #store so that can be reinstated later
-    sebetahat=rep(1,length(betahat))
-  }
-  
+  method      = match.arg(method)
   mixcompdist = match.arg(mixcompdist)
-  if(!is.numeric(prior)){  prior = match.arg(prior)  } 
+  optmethod   = match.arg(optmethod)
+  model       = match.arg(model)
   
-  if(mixcompdist=="normal" & !is.null(df)){
-    stop("Error:Normal mixture for student-t likelihood is not yet implemented")
-  }
-  if(prior=="unit" & optmethod!="mixVBEM"){
-    stop("Error: unit prior only valid for mixVBEM")
-  }
-  if(mixcompdist=="halfuniform" & prior!="nullbiased"){
-    warning("Use of halfuniform without nullbiased prior can lead to misleading local false sign rates, and so is not recommended")
-  }
+  # Capture all arguments into a list
+  oldargs = mget(names(formals()), sys.frame(sys.nframe()))
+  newargs = process_args(oldargs)
   
-  if(gridmult<=1){stop("gridmult must be > 1")}  
-
-  
-  completeobs = (!is.na(betahat) & !is.na(sebetahat))
-  n=sum(completeobs)
-  
-  #Handling control variables
-  control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE)
-  if(n>50000){control.default$trace=TRUE}
-  namc=names(control)
-  if (!all(namc %in% names(control.default))) 
-    stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
-  controlinput=modifyList(control.default, control)
-  if(controlinput$maxiter==0){
-    stop("option control$maxiter=0 deprecated; used fixg=TRUE instead")
-  }
-  
-  if(n==0){
-    stop("Error: all input values are missing") 
-  }
-  
+  # Assign each argument in returned list to a variable used by the code next
+  for (i in 1:length(newargs)) assign(names(newargs)[i], newargs[[i]])
   
   ##2. Generating mixture distribution
   
