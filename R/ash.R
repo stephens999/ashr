@@ -331,7 +331,7 @@ ash.workhorse = function(betahat,sebetahat,
                 ZeroProb = ZeroProb,lfsr = lfsr,lfdr = lfdr, qvalue = qvalue, svalue=svalue,
                  excludeindex = excludeindex,model = model, optmethod =optmethod))}
   if (outputlevel > 1.5){result = c(result,list(data= list(betahat = betahat, sebetahat = sebetahat,df=df)))}
-  if (outputlevel >2) {result=c(result,fit=pi.fit)}
+  if (outputlevel >2) {result=c(result,list(fit=pi.fit))}
   if (outputlevel >3) {result = c(result, flash.data=list(flash.data))}
   class(result) = "ash"
   return(result)
@@ -460,6 +460,7 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
 
   pi = fit$pihat     
   converged = fit$converged
+  niter = fit$niter
   
   loglik.final =  penloglik(pi,matrix_lik,1) #compute penloglik without penalty
   null.loglik = sum(log(matrix_lik[,null.comp]))  
@@ -467,7 +468,7 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
   if(controlinput$trace==TRUE){toc()}
   
   return(list(loglik=loglik.final,null.loglik=null.loglik,
-              matrix_lik=matrix_lik,converged=converged,g=g))
+              matrix_lik=matrix_lik,converged=converged,g=g,niter=niter))
 }
 
 
