@@ -276,6 +276,7 @@ ash.workhorse = function(betahat,sebetahat,
     NegativeProb[!completeobs] = mixcdf(pi.fit$g,0)
     lfsr = compute_lfsr(NegativeProb,ZeroProb)  
     PositiveProb = 1 - NegativeProb - ZeroProb
+    PositiveProb = ifelse(PositiveProb<0,0,PositiveProb) #deal with numerical issues that lead to numbers <0
     lfdr = ZeroProb
     qvalue = qval.from.lfdr(lfdr)
     svalue = qval.from.lfdr(lfsr)
