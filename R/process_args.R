@@ -33,10 +33,10 @@ process_args = function (oldargs) {
   
   # Fallbacks for optmethod
   # By default it will be "mixIP", if REBayes not present then fallback to EM
-  if (!require("REBayes", quietly = TRUE)) {  # check whether REBayes package is present
+  if (!requireNamespace("REBayes", quietly = TRUE)) {  # check whether REBayes package is present
     # If REBayes package missing
     message("Due to absence of package REBayes, switching to EM algorithm")
-    if (require("Rcpp")) {
+    if (requireNamespace("Rcpp")) {
       optmethod = "cxxMixSquarem"
     } else {
       optmethod = "mixEM"  # fallback if neither Rcpp or REBayes are installed
@@ -56,8 +56,8 @@ process_args = function (oldargs) {
     if (cxx == FALSE) optmethod = "mixEM"
   }
   
-  if (optmethod == "mixIP") assertthat::assert_that(require("REBayes", quietly = TRUE))
-  if (optmethod == "cxxMixSquarem") assertthat::assert_that(require("Rcpp"))
+  if (optmethod == "mixIP") assertthat::assert_that(requireNamespace("REBayes", quietly = TRUE))
+  if (optmethod == "cxxMixSquarem") assertthat::assert_that(requireNamespace("Rcpp"))
   
   # method provides a convenient interface to set a particular combinations of parameters for prior an
   # If method is supplied, use it to set up specific values for these parameters; provide warning if values

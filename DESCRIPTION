@@ -12,17 +12,16 @@ Description: The main function in the ashr package is \code{\link{ash}}, which
 Imports:
     assertthat,
     truncnorm,
-    plyr,
     SQUAREM,
     doParallel,
     pscl,
-    testthat,
     Rcpp (>= 0.10.5),
     hypergeo,
     foreach
 LinkingTo: Rcpp
 Suggests:
     REBayes,
+    testthat,
     roxygen2
 URL: "http://github.com/stephens999/ashr
 RoxygenNote: 5.0.1
