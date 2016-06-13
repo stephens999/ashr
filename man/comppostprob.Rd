@@ -16,6 +16,9 @@ comppostprob(m, x, s, v)
 \item{v}{degree of freedom of error distribution}
 }
 \description{
-compute the posterior prob that each observation came from each component of the mixture m,output a k by n vector of probabilities computed by weighting the component densities by pi and then normalizing
+compute the posterior prob that each observation came
+    from each component of the mixture m,output a k by n vector of
+    probabilities computed by weighting the component densities by
+    pi and then normalizing
 }
 

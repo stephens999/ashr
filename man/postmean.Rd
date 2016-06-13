@@ -15,4 +15,7 @@ postmean(m, betahat, sebetahat, v)
 
 \item{v}{degree of freedom of error distribution}
 }
+\description{
+postmean
+}
 

@@ -12,9 +12,19 @@ ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal",
 
 \item{sebetahat}{a p vector of corresponding standard errors}
 
-\item{mixcompdist}{distribution of components in mixture ("uniform","halfuniform" or "normal";}
+\item{mixcompdist}{distribution of components in mixture
+("uniform","halfuniform" or "normal"; "+uniform" or
+"-uniform"), the default is "uniform". If you believe your
+effects may be asymmetric, use "halfuniform". If you want to
+allow only positive/negative effects use "+uniform"/"-uniform".
+The use of "normal" is permitted only if df=NULL.}
 
-\item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL which is actually treated as infinity (Gaussian)}
+\item{df}{appropriate degrees of freedom for (t) distribution of
+betahat/sebetahat, default is NULL which is actually treated as
+infinity (Gaussian)}
+
+\item{...}{Further arguments to be passed to
+\code{\link{ash.workhorse}}.}
 }
 \value{
 ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
@@ -36,11 +46,16 @@ ash returns an object of \code{\link[base]{class}} "ash", a list with some or al
 \item{data}{a list consisting the input betahat and sebetahat (only included if outputlevel>2)}
 }
 \description{
-Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
-shrinkage to them, using Empirical Bayes methods, to compute shrunk estimates for beta.
+Takes vectors of estimates (betahat) and their
+    standard errors (sebetahat), and applies shrinkage to them,
+    using Empirical Bayes methods, to compute shrunk estimates for
+    beta.
 }
 \details{
-This function is actually just a simple wrapper that passes its parameters to \code{\link{ash.workhorse}} which provides more documented options for advanced use. See readme for more details.
+This function is actually just a simple wrapper that
+    passes its parameters to \code{\link{ash.workhorse}} which
+    provides more documented options for advanced use. See readme
+    for more details.
 }
 \examples{
 beta = c(rep(0,100),rnorm(100))
@@ -49,18 +64,18 @@ betahat = rnorm(200,beta,sebetahat)
 beta.ash = ash(betahat, sebetahat)
 summary(beta.ash)
 names(beta.ash)
-plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
+graphics::plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 
-CIMatrix=ashci(beta.ash,level=0.95) 
+CIMatrix=ashci(beta.ash,level=0.95)
 print(CIMatrix)
 
 #Illustrating the non-zero mode feature
 betahat=betahat+5
 beta.ash = ash(betahat, sebetahat)
-plot(betahat,beta.ash$PosteriorMean)
+graphics::plot(betahat,beta.ash$PosteriorMean)
 summary(beta.ash)
 betan.ash=ash(betahat, sebetahat,nonzeromode=TRUE)
-plot(betahat, betan.ash$PosteriorMean)
+graphics::plot(betahat, betan.ash$PosteriorMean)
 summary(betan.ash)
 }
 \seealso{

@@ -18,7 +18,8 @@ Imports:
     pscl,
     testthat,
     Rcpp (>= 0.10.5),
-    hypergeo
+    hypergeo,
+    foreach
 LinkingTo: Rcpp
 Suggests:
     REBayes,

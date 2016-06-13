@@ -7,19 +7,22 @@
 posterior_dist(g, betahat, sebetahat)
 }
 \arguments{
-\item{g}{a normalmix with components indicating the prior; works only if g has means 0}
+\item{g}{a normalmix with components indicating the prior; works
+only if g has means 0}
 
 \item{betahat}{(n vector of observations)}
 
-\item{sebetahat}{(n vector of standard errors/deviations of observations)}
+\item{sebetahat}{(n vector of standard errors/deviations of
+observations)}
 }
 \value{
 A list, (pi1,mu1,sigma1) whose components are each k by n matrices
 where k is number of mixture components in g, n is number of observations in betahat
 }
 \description{
-Return the posterior on beta given a prior (g) that is a mixture of normals (class normalmix) 
-and observation \eqn{betahat ~ N(beta,sebetahat)}
+Return the posterior on beta given a prior (g) that is
+    a mixture of normals (class normalmix) and observation
+    \eqn{betahat ~ N(beta,sebetahat)}
 }
 \details{
 This can be used to obt

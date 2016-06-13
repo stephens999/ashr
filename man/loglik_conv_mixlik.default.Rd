@@ -20,4 +20,7 @@
 
 \item{FUN}{default is "+"}
 }
+\description{
+The default version of \code{\link{loglik_conv}}.
+}
 

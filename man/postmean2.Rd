@@ -16,6 +16,7 @@ postmean2(m, betahat, sebetahat, v)
 \item{v}{degree of freedom of error distribution}
 }
 \description{
-output posterior mean-squared value for beta for prior mixture m,given observations betahat, sebetahat, df v
+output posterior mean-squared value for beta for prior
+    mixture m,given observations betahat, sebetahat, df v
 }
 

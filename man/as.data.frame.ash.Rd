@@ -9,7 +9,10 @@
 \arguments{
 \item{a}{the fitted ash object}
 
-\item{...}{not used, included for consistency as an S3 generic/method.}
+\item{include_fdr}{A logical, but never actually used.}
+
+\item{...}{not used, included for consistency as an S3
+generic/method.}
 }
 \description{
 Creates data frame for easy plotting of results etc

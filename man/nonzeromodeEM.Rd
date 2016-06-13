@@ -31,8 +31,8 @@ Given the data, standard error of the data and standard deviations of the Gaussi
 }
 \details{
 Fits a k component mixture model \deqn{f(x|\pi) = \sum_k \pi_k f_k(x)} to independent
-and identically distributed data \eqn{x_1,\dots,x_n}. 
-Estimates unimodal mean \eqn{\mu} by EM algorithm. Uses the SQUAREM package to accelerate convergence of EM. Used by the ash main function; there is no need for a user to call this 
+and identically distributed data \eqn{x_1,\dots,x_n}.
+Estimates unimodal mean \eqn{\mu} by EM algorithm. Uses the SQUAREM package to accelerate convergence of EM. Used by the ash main function; there is no need for a user to call this
 function separately, but it is exported for convenience.
 }
 

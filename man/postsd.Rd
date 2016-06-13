@@ -16,6 +16,7 @@ postsd(m, betahat, sebetahat, v)
 \item{v}{degree of freedom of error distribution}
 }
 \description{
-output posterior sd for beta for prior mixture m,given observations betahat, sebetahat, df v
+output posterior sd for beta for prior mixture m,given
+    observations betahat, sebetahat, df v
 }
 

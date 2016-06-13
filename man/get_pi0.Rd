@@ -13,6 +13,7 @@ get_pi0(a)
 Return estimate of the null proportion, pi0
 }
 \details{
-Extracts the estimate of the null proportion, pi0, from the object a
+Extracts the estimate of the null proportion, pi0, from
+    the object a
 }
 

@@ -18,32 +18,54 @@ ashci(a, betahat = NULL, sebetahat = NULL, df = NULL, model = c("EE",
 
 \item{df}{the degrees of freedom}
 
+\item{model}{the model used.}
+
 \item{level}{the level for the credible interval, (default=0.95)}
 
-\item{betaindex}{a vector consisting of locations of betahat where you would like to compute the credible interval}
+\item{betaindex}{a vector consisting of locations of betahat where
+you would like to compute the credible interval}
 
-\item{lfsrcriteria}{a scalar, in which the function would autoselect betahats based on lfsr value smaller than lfsrcriteria when index is not supplied. Setting it to 1 would compute credible interval for all observations.}
+\item{lfsrcriteria}{a scalar, in which the function would
+autoselect betahats based on lfsr value smaller than
+lfsrcriteria when index is not supplied. Setting it to 1 would
+compute credible interval for all observations.}
 
 \item{tol}{the desired accuracy, default value is 1e-5.}
 
-\item{maxcounts}{a positive integer used as the maximum iterations to carry additional optimization on a refined interval,when you see Actual cdf deviates from (1-level)/2,(1+level)/2 by too much, try to increase this number. (default is 100)}
+\item{maxcounts}{a positive integer used as the maximum iterations
+to carry additional optimization on a refined interval,when you
+see Actual cdf deviates from (1-level)/2,(1+level)/2 by too
+much, try to increase this number. (default is 100)}
 
-\item{shrinkingcoefficient}{A positive real number smaller than 1 (default is 0.9), used to shrink to search interval for lower and upper bound of the credible interval}
+\item{shrinkingcoefficient}{A positive real number smaller than 1
+(default is 0.9), used to shrink to search interval for lower
+and upper bound of the credible interval}
 
-\item{trace}{a logical variable denoting whether some of the intermediate results of iterations should be displayed to the user. Default is FALSE.}
+\item{trace}{a logical variable denoting whether some of the
+intermediate results of iterations should be displayed to the
+user. Default is FALSE.}
 
-\item{ncores}{Whether to use parallel computing, defaults to FALSE, user could specify number of cores they would like to use. Further, if user does not specify and we have over 1000 entries to compute,  then the function would perform parallel computation  using number of CPU cores on the current host.}
-
-\item{the}{model used}
+\item{ncores}{Whether to use parallel computing, defaults to FALSE,
+user could specify number of cores they would like to
+use. Further, if user does not specify and we have over 1000
+entries to compute, then the function would perform parallel
+computation using number of CPU cores on the current host.}
 }
 \value{
-A matrix, with first column being the location,second column being lfsr, 3rd column being posterior mean,4th and 5th column being the lower bound and upper bound for the credible interval.
+A matrix, with first column being the location,second
+    column being lfsr, 3rd column being posterior mean,4th and 5th
+    column being the lower bound and upper bound for the credible
+    interval.
 }
 \description{
-Given the ash object return by the main function ash, this function computes the corresponding credible interval of the mixture model.
+Given the ash object return by the main function ash,
+    this function computes the corresponding credible interval of
+    the mixture model.
 }
 \details{
-Uses default optimization function and perform component-wise credible interval computation. The computation cost is linear of the length of betahat.
+Uses default optimization function and perform
+    component-wise credible interval computation. The computation
+    cost is linear of the length of betahat.
 }
 \examples{
 beta = c(rep(0,20),rnorm(20))

@@ -16,6 +16,6 @@ my_e2trunct(a, b, v, n = 2)
 \item{n}{is moment, the default is 2 which means second moment}
 }
 \description{
-Compute second moment of truncated t, the result is from the paper "Moments of truncated t and F distributions" by Saralees Nadarajah · Samuel Kotz
+Compute second moment of the truncated t. The result is from the paper "Moments of truncated t and F distributions" by Saralees Nadarajah and Samuel Kotz.
 }
 

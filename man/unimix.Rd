@@ -17,7 +17,8 @@ unimix(pi, a, b)
 an object of class unimix
 }
 \description{
-Creates an object of class unimix (finite mixture of univariate uniforms)
+Creates an object of class unimix (finite mixture of
+    univariate uniforms)
 }
 \details{
 None

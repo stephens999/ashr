@@ -16,8 +16,10 @@ vector of q values
 Computes q values from a vector of local fdr estimates
 }
 \details{
-The q value for a given lfdr is an estimate of the (tail) False Discovery Rate 
-for all findings with a smaller lfdr, and is found by the average of the lfdr for
-all more significant findings. See Storey (2003), Annals of Statistics, for definition of q value.
+The q value for a given lfdr is an estimate of the (tail)
+    False Discovery Rate for all findings with a smaller lfdr, and
+    is found by the average of the lfdr for all more significant
+    findings. See Storey (2003), Annals of Statistics, for
+    definition of q value.
 }
 

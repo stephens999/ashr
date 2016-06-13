@@ -17,7 +17,8 @@ normalmix(pi, mean, sd)
 an object of class normalmix
 }
 \description{
-Creates an object of class normalmix (finite mixture of univariate normals)
+Creates an object of class normalmix (finite mixture
+    of univariate normals)
 }
 \details{
 None
