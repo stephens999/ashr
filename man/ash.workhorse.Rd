@@ -8,9 +8,9 @@ ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
   mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform"),
   optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"), df = NULL,
   randomstart = FALSE, nullweight = 10, nonzeromode = FALSE,
-  pointmass = TRUE, prior = c("nullbiased", "uniform", "unit"),
+  pointmass = NULL, prior = c("nullbiased", "uniform", "unit"),
   mixsd = NULL, gridmult = sqrt(2), outputlevel = 2, g = NULL,
-  fixg = FALSE, cxx = FALSE, VB = FALSE, model = c("EE", "ET"),
+  fixg = FALSE, cxx = NULL, VB = NULL, model = c("EE", "ET"),
   control = list())
 }
 \arguments{
