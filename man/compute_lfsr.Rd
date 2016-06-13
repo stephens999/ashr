@@ -7,11 +7,16 @@
 compute_lfsr(NegativeProb, ZeroProb)
 }
 \arguments{
-\item{NegativeProb}{A vector of posterior probability that beta is negative.}
+\item{NegativeProb}{A vector of posterior probability that beta is
+negative.}
 
-\item{ZeroProb}{A vector of posterior probability that beta is zero.}
+\item{ZeroProb}{A vector of posterior probability that beta is
+zero.}
 }
 \value{
 The local false sign rate.
+}
+\description{
+Function to compute the local false sign rate
 }
 

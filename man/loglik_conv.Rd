@@ -18,6 +18,7 @@ loglik_conv(m, betahat, betahatsd, v, FUN = "+")
 \item{FUN}{default is "+"}
 }
 \description{
-find log likelihood of data in betahat, when the mixture m is convolved with a normal with sd betahatsd
+find log likelihood of data in betahat, when the
+    mixture m is convolved with a normal with sd betahatsd
 }
 

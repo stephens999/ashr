@@ -17,7 +17,8 @@ igmix(pi, alpha, beta)
 an object of class igmix
 }
 \description{
-Creates an object of class igmix (finite mixture of univariate inverse-gammas)
+Creates an object of class igmix (finite mixture of
+    univariate inverse-gammas)
 }
 \details{
 None

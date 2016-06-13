@@ -14,6 +14,10 @@ comp_cdf(x, y, lower.tail = TRUE)
 \item{lower.tail}{boolean indicating whether to report lower tail}
 }
 \value{
-it returns a vector of probabilities, with length equals to number of components in x
+it returns a vector of probabilities, with length equals to
+    number of components in x
+}
+\description{
+Generic function of computing the cdf for each component
 }
 

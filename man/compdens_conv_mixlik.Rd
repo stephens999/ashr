@@ -23,6 +23,10 @@ compdens_conv_mixlik(m, x, s, v, pilik, FUN = "+")
 a (k*l) by n matrix of densities
 }
 \description{
-compute the density of the components of the mixture m when convoluted with l-components normal mixture with standard deviation s or C (scale vector) multiplies scaled (se) student.t l-components mixture with df v with mixture proportion pilik the density is evaluated at x
+compute the density of the components of the mixture m
+    when convoluted with l-components normal mixture with standard
+    deviation s or C (scale vector) multiplies scaled (se)
+    student.t l-components mixture with df v with mixture
+    proportion pilik the density is evaluated at x
 }
 

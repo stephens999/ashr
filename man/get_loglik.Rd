@@ -10,7 +10,8 @@ get_loglik(a)
 \item{a}{the fitted ash object}
 }
 \description{
-Return the log-likelihood of the data under the fitted distribution
+Return the log-likelihood of the data under the fitted
+    distribution
 }
 \details{
 None

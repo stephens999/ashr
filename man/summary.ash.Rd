@@ -9,12 +9,15 @@
 \arguments{
 \item{object}{the fitted ash object}
 
-\item{...}{not used, included for consistency as an S3 generic/method.}
+\item{...}{not used, included for consistency as an S3
+generic/method.}
 }
 \description{
 Print summary of fitted ash object
 }
 \details{
-\code{\link{summary}} prints the fitted mixture, the fitted log likelihood with 10 digits and a flag to indicate convergence
+\code{\link{summary}} prints the fitted mixture, the
+    fitted log likelihood with 10 digits and a flag to indicate
+    convergence
 }
 

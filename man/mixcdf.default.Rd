@@ -13,4 +13,7 @@
 
 \item{lower.tail}{boolean indicating whether to report lower tail}
 }
+\description{
+The default version of \code{\link{mixcdf}}.
+}
 

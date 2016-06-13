@@ -20,6 +20,8 @@ dens_conv_mixlik(m, x, s, v, pilik, FUN = "+")
 \item{FUN}{default is "+"}
 }
 \description{
-compute density of mixture m convoluted with l-components normal mixture of sd (s) or student t mixture with df v with mixture proportion pilik at locations x
+compute density of mixture m convoluted with
+    l-components normal mixture of sd (s) or student t mixture with
+    df v with mixture proportion pilik at locations x
 }
 

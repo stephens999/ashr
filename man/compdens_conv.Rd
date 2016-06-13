@@ -21,6 +21,8 @@ compdens_conv(m, x, s, v, FUN = "+")
 a k by n matrix of densities
 }
 \description{
-compute the density of the components of the mixture m when convoluted with a normal with standard deviation s or a scaled (se) student.t with df v, the density is evaluated at x
+compute the density of the components of the mixture m
+    when convoluted with a normal with standard deviation s or a
+    scaled (se) student.t with df v, the density is evaluated at x
 }
 

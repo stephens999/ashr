@@ -2,7 +2,7 @@
 % Please edit documentation in R/ash.R
 \name{estimate_mixprop}
 \alias{estimate_mixprop}
-\title{estimate mixture proportions of sigmaa by EM algorithm}
+\title{Estimate mixture proportions of sigmaa by EM algorithm}
 \usage{
 estimate_mixprop(betahat, sebetahat, g, prior, optmethod = c("mixEM",
   "mixVBEM", "cxxMixSquarem", "mixIP"), null.comp = 1, df = NULL,
@@ -11,21 +11,33 @@ estimate_mixprop(betahat, sebetahat, g, prior, optmethod = c("mixEM",
 \arguments{
 \item{betahat}{(n vector of observations)}
 
-\item{sebetahat}{(n vector of standard errors/deviations of observations)}
+\item{sebetahat}{(n vector of standard errors/deviations of
+observations)}
 
-\item{g}{the prior distribution for beta (usually estimated from the data}
+\item{g}{the prior distribution for beta (usually estimated from
+the data}
 
-\item{prior}{string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component)}
+\item{prior}{string, or numeric vector indicating Dirichlet prior
+on mixture proportions (defaults to "uniform", or (1,1...,1);
+also can be "nullbiased" (nullweight,1,...,1) to put more
+weight on first component)}
 
 \item{optmethod}{name of function to use to do optimization}
 
 \item{null.comp}{the position of the null component}
 
-\item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)}
+\item{df}{appropriate degrees of freedom for (t) distribution of
+betahat/sebetahat, default is NULL(Gaussian)}
 
-\item{control}{A list of control parameters for the SQUAREM algorithm, default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE).}
+\item{control}{A list of control parameters for the SQUAREM
+algorithm, default value is set to be control.default=list(K =
+1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4,
+kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE).}
 }
 \value{
 A list, including the final loglikelihood, the null loglikelihood, a n by k likelihoodmatrix with (j,k)th element equal to \eqn{f_k(x_j)},and a flag to indicate convergence.
+}
+\description{
+Estimate mixture proportions of sigmaa by EM algorithm
 }
 

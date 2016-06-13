@@ -18,44 +18,86 @@ ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
 
 \item{sebetahat}{a p vector of corresponding standard errors}
 
-\item{method}{specifies how ash is to be run. Can be "shrinkage" (if main aim is shrinkage) or "fdr" (if main aim is to assess fdr or fsr)
-This is simply a convenient way to specify certain combinations of parameters: "shrinkage" sets pointmass=FALSE and prior="uniform";
-"fdr" sets pointmass=TRUE and prior="nullbiased".}
+\item{method}{specifies how ash is to be run. Can be "shrinkage"
+(if main aim is shrinkage) or "fdr" (if main aim is to assess
+fdr or fsr) This is simply a convenient way to specify certain
+combinations of parameters: "shrinkage" sets pointmass=FALSE
+and prior="uniform"; "fdr" sets pointmass=TRUE and
+prior="nullbiased".}
 
-\item{mixcompdist}{distribution of components in mixture ( "uniform","halfuniform","normal" or "+uniform"), the default value is "uniform"
-use "halfuniform" to allow for assymetric g, and "+uniform"/"-uniform" to constrain g to be positive/negative.}
+\item{mixcompdist}{distribution of components in mixture (
+"uniform","halfuniform","normal" or "+uniform"), the default
+value is "uniform" use "halfuniform" to allow for assymetric g,
+and "+uniform"/"-uniform" to constrain g to be
+positive/negative.}
 
-\item{optmethod}{specifies optimization method used. Default is "mixIP", an interior point method, if REBayes is installed; otherwise an EM algorithm is used. The interior point method is faster for large problems (n>2000).}
+\item{optmethod}{specifies optimization method used. Default is
+"mixIP", an interior point method, if REBayes is installed;
+otherwise an EM algorithm is used. The interior point method is
+faster for large problems (n>2000).}
 
-\item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)}
+\item{df}{appropriate degrees of freedom for (t) distribution of
+betahat/sebetahat, default is NULL(Gaussian)}
 
-\item{randomstart}{logical, indicating whether to initialize EM randomly. If FALSE, then initializes to prior mean (for EM algorithm) or prior (for VBEM)}
+\item{randomstart}{logical, indicating whether to initialize EM
+randomly. If FALSE, then initializes to prior mean (for EM
+algorithm) or prior (for VBEM)}
 
-\item{nullweight}{scalar, the weight put on the prior under "nullbiased" specification, see \code{prior}}
+\item{nullweight}{scalar, the weight put on the prior under
+"nullbiased" specification, see \code{prior}}
 
-\item{nonzeromode}{logical, indicating whether to use a non-zero unimodal mixture(default is "FALSE")}
+\item{nonzeromode}{logical, indicating whether to use a non-zero
+unimodal mixture(default is "FALSE")}
 
-\item{pointmass}{logical, indicating whether to use a point mass at zero as one of components for a mixture distribution}
+\item{pointmass}{logical, indicating whether to use a point mass at
+zero as one of components for a mixture distribution}
 
-\item{prior}{string, or numeric vector indicating Dirichlet prior on mixture proportions (defaults to "uniform", or (1,1...,1); also can be "nullbiased" (nullweight,1,...,1) to put more weight on first component), or "unit" (1/K,...,1/K) [for optmethod=mixVBEM version only]}
+\item{prior}{string, or numeric vector indicating Dirichlet prior
+on mixture proportions (defaults to "uniform", or (1,1...,1);
+also can be "nullbiased" (nullweight,1,...,1) to put more
+weight on first component), or "unit" (1/K,...,1/K) [for
+optmethod=mixVBEM version only]}
 
 \item{mixsd}{vector of sds for underlying mixture components}
 
-\item{gridmult}{the multiplier by which the default grid values for mixsd differ by one another. (Smaller values produce finer grids)}
+\item{gridmult}{the multiplier by which the default grid values for
+mixsd differ by one another. (Smaller values produce finer
+grids)}
 
-\item{outputlevel}{determines amount of output [0=just fitted g; 1=also PosteriorMean and PosteriorSD; 2= everything usually needed; 3=also include results of mixture fitting procedure (includes matrix of log-likelihoods used to fit mixture); 4= output additional things required by flash (flash.data)]}
+\item{outputlevel}{determines amount of output [0=just fitted g;
+1=also PosteriorMean and PosteriorSD; 2= everything usually
+needed; 3=also include results of mixture fitting procedure
+(includes matrix of log-likelihoods used to fit mixture); 4=
+output additional things required by flash (flash.data)]}
 
-\item{g}{the prior distribution for beta (usually estimated from the data; this is used primarily in simulated data to do computations with the "true" g)}
+\item{g}{the prior distribution for beta (usually estimated from
+the data; this is used primarily in simulated data to do
+computations with the "true" g)}
 
-\item{fixg}{if TRUE, don't estimate g but use the specified g - useful for computations under the "true" g in simulations}
+\item{fixg}{if TRUE, don't estimate g but use the specified g -
+useful for computations under the "true" g in simulations}
 
-\item{cxx}{flag (deprecated, use optmethod) to indicate whether to use the c++ (Rcpp) version. After application of Squared extrapolation methods for accelerating fixed-point iterations (R Package "SQUAREM"), the c++ version is no longer faster than non-c++ version, thus we do not recommend using this one, and might be removed at any point.}
+\item{cxx}{flag (deprecated, use optmethod) to indicate whether to
+use the c++ (Rcpp) version. After application of Squared
+extrapolation methods for accelerating fixed-point iterations
+(R Package "SQUAREM"), the c++ version is no longer faster than
+non-c++ version, thus we do not recommend using this one, and
+might be removed at any point.}
 
-\item{VB}{(deprecated, use optmethod) whether to use Variational Bayes to estimate mixture proportions (instead of EM to find MAP estimate), see \code{\link{mixVBEM}} and \code{\link{mixEM}}}
+\item{VB}{(deprecated, use optmethod) whether to use Variational
+Bayes to estimate mixture proportions (instead of EM to find
+MAP estimate), see \code{\link{mixVBEM}} and
+\code{\link{mixEM}}}
 
-\item{model}{c("EE","ET") specifies whether to assume exchangeable effects (EE) or exchangeable T stats (ET).}
+\item{model}{c("EE","ET") specifies whether to assume exchangeable
+effects (EE) or exchangeable T stats (ET).}
 
-\item{control}{A list of control parameters for the optmization algorithm. Default value is set to be   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User may supply changes to this list of parameter, say, control=list(maxiter=10000,trace=TRUE)}
+\item{control}{A list of control parameters for the optmization
+algorithm. Default value is set to be control.default=list(K =
+1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4,
+kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User
+may supply changes to this list of parameter, say,
+control=list(maxiter=10000,trace=TRUE)}
 }
 \value{
 ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
@@ -79,9 +121,13 @@ ash returns an object of \code{\link[base]{class}} "ash", a list with some or al
 \item{fit}{a list containing results of mixture optimization, and matrix of component log-likelihoods used in this optimization}
 }
 \description{
-Takes vectors of estimates (betahat) and their standard errors (sebetahat), and applies
-shrinkage to them, using Empirical Bayes methods, to compute shrunk estimates for beta. This is the more detailed version of ash for "research" use. 
-Most users will be happy with the ash function, which provides the same usage, but documents only the main options for simplicity.
+Takes vectors of estimates (betahat) and their
+    standard errors (sebetahat), and applies shrinkage to them,
+    using Empirical Bayes methods, to compute shrunk estimates for
+    beta. This is the more detailed version of ash for "research"
+    use.  Most users will be happy with the ash function, which
+    provides the same usage, but documents only the main options
+    for simplicity.
 }
 \details{
 See readme for more details.
@@ -91,36 +137,41 @@ beta = c(rep(0,100),rnorm(100))
 sebetahat = abs(rnorm(200,0,1))
 betahat = rnorm(200,beta,sebetahat)
 beta.ash = ash(betahat, sebetahat)
-names(beta.ash) 
+names(beta.ash)
 summary(beta.ash)
 head(as.data.frame(beta.ash))
-plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
+graphics::plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 
-CIMatrix=ashci(beta.ash,betahat,sebetahat,level=0.95) 
+CIMatrix=ashci(beta.ash,betahat,sebetahat,level=0.95)
 print(CIMatrix)
 
 #Testing the non-zero mode feature
 betahat=betahat+5
 beta.ash = ash(betahat, sebetahat)
-plot(betahat,beta.ash$PosteriorMean)
+graphics::plot(betahat,beta.ash$PosteriorMean)
 summary(beta.ash)
 betan.ash=ash(betahat, sebetahat,nonzeromode=TRUE)
-plot(betahat, betan.ash$PosteriorMean)
+graphics::plot(betahat, betan.ash$PosteriorMean)
 summary(betan.ash)
 
 #Running ash with a pre-specified g, rather than estimating it
 beta = c(rep(0,100),rnorm(100))
 sebetahat = abs(rnorm(200,0,1))
 betahat = rnorm(200,beta,sebetahat)
-true_g = normalmix(c(0.5,0.5),c(0,0),c(0,1)) # define true g 
-#Passing this g into ash causes it to i) take the sd and the means for each component from this g, and ii) initialize pi to the value from this g.
+true_g = normalmix(c(0.5,0.5),c(0,0),c(0,1)) # define true g
+## Passing this g into ash causes it to i) take the sd and the means
+## for each component from this g, and ii) initialize pi to the value
+## from this g.
 beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
 }
 \seealso{
-\code{\link{ash}} for simplified specification of ash function
+\code{\link{ash}} for simplified specification of ash
+    function
 
-\code{\link{ashci}} for computation of credible intervals after getting the ash object return by \code{ash()}
+\code{\link{ashci}} for computation of credible intervals
+    after getting the ash object return by \code{ash()}
 
-\code{\link{ashm}} for Multi-model Adaptive Shrinkage function
+\code{\link{ashm}} for Multi-model Adaptive Shrinkage
+    function
 }
 

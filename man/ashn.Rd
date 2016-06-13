@@ -12,26 +12,47 @@ ashn(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal",
 
 \item{sebetahat}{a p vector of corresponding standard errors}
 
-\item{mixcompdist}{distribution of components in mixture ( "uniform","halfuniform" or "normal"), the default value would be "uniform"}
+\item{mixcompdist}{distribution of components in mixture (
+"uniform","halfuniform" or "normal"), the default value would
+be "uniform"}
 
-\item{df}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, default is NULL(Gaussian)}
+\item{df}{appropriate degrees of freedom for (t) distribution of
+betahat/sebetahat, default is NULL(Gaussian)}
 
-\item{mu}{Could be a vector of grid values for mu. that this wrapper would select based on likelihood principle. Could also be a positive integer greater or equal to 4, then mu number of grid values would be generated from [-abs(mean(betahat)),2*abs(mean(betahat)], equally spaced.}
+\item{mu}{Could be a vector of grid values for mu. that this
+wrapper would select based on likelihood principle. Could also
+be a positive integer greater or equal to 4, then mu number of
+grid values would be generated from
+[-abs(mean(betahat)),2*abs(mean(betahat)], equally spaced.}
 
-\item{ncores}{Whether to use parallel computing, defaults to FALSE, user could specify number of cores they would like to use. Further, if user does not specify and length(betahat)>50000, then the function would perform parallel computation using number of CPU cores on the current host.}
+\item{ncores}{Whether to use parallel computing, defaults to FALSE,
+user could specify number of cores they would like to
+use. Further, if user does not specify and
+length(betahat)>50000, then the function would perform parallel
+computation using number of CPU cores on the current host.}
+
+\item{...}{Further arguments to be passed to \code{\link{ash}}.}
 }
 \value{
-ashm returns a list of objects
-\item{beta.ash}{the best fitted ash object}
-\item{BestMode}{the best fitted mode, note that all models are fitted with betahat subtracting the corresponding mode}
-\item{loglikvector}{the vector of loglikelihood of various models}
-\item{allash}{the fitted ash of various models}
+ashm returns a list of objects \item{beta.ash}{the best
+    fitted ash object} \item{BestMode}{the best fitted mode, note
+    that all models are fitted with betahat subtracting the
+    corresponding mode} \item{loglikvector}{the vector of
+    loglikelihood of various models} \item{allash}{the fitted ash
+    of various models}
 }
 \description{
-This is a wrapper function that takes a grid value of \eqn{mu} and then consider the model \eqn{betahat_j - mu ~ g()},and eqn{beta_j  ~ N(0,sebetahat^2) or student t distribution}. \eqn{mu} should be a grid of mu,this wrapper function would select the best \eqn{mu} and reports the ash item based on that \eqn{mu}.
+This is a wrapper function that takes a grid value of
+    \eqn{mu} and then consider the model \eqn{betahat_j - mu ~
+    g()},and eqn{beta_j ~ N(0,sebetahat^2) or student t
+    distribution}. \eqn{mu} should be a grid of mu,this wrapper
+    function would select the best \eqn{mu} and reports the ash
+    item based on that \eqn{mu}.
 }
 \details{
-All other inputs are exactly the same as the main function ash, and would pass to the main function to evaluate the likelihood.
+All other inputs are exactly the same as the main function
+    ash, and would pass to the main function to evaluate the
+    likelihood.
 }
 \examples{
 beta = c(rep(0,100),rnorm(100))+0.2
@@ -46,6 +67,7 @@ print(beta.ashn[[3]])  #log-likelihood for all models
 
 }
 \seealso{
-\code{\link{ash}} the main function that this wrapper function is calling
+\code{\link{ash}} the main function that this wrapper
+    function is calling
 }
 
