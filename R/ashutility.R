@@ -25,29 +25,34 @@ summary.ash=function(object,...){
 #' @description Creates data frame for easy plotting of results etc
 #'
 #' @details Returns a data frame with named columnns
-#' @param a the fitted ash object
-#' @param include_fdr A logical, but never actually used.
+#' @param x the fitted ash object
+#' @param row.names NULL or a character vector giving the row names for the data frame. Missing values are not allowed.
+#' @param optional not used, included for consistency as an S3 generic/method
 #' @param ... not used, included for consistency as an S3
 #'     generic/method.
 #'
+#' @examples
+#' a = ash(rnorm(100,0,2),1)
+#' head(as.data.frame(a))
+#' 
 #' @export
-#'
-as.data.frame.ash=function(a,include_fdr=FALSE,...){
-  if(is.null(a$lfsr)){stop("Can't make data.frame from ash object unless outputlevel>=1.5")}
-  df = data.frame(row.names=1:length(a$lfsr))
+as.data.frame.ash=function(x,row.names=NULL,optional=FALSE,...){
+  if(is.null(x$lfsr)){stop("Can't make data.frame from ash object unless outputlevel>=1.5")}
+  if(is.null(row.names)){row.names=1:length(x$lfsr)}
+  df = data.frame(row.names=row.names)
 
-  if(!is.null(a$data)){
-    df$betahat = a$data$betahat
-    df$sebetahat = a$data$sebetahat
+  if(!is.null(x$data)){
+    df$betahat = x$data$betahat
+    df$sebetahat = x$data$sebetahat
   }
 
-  df$lfsr = a$lfsr
-  df$svalue = a$svalue
-  df$PosteriorMean = a$PosteriorMean
-  df$PosteriorSD = a$PosteriorSD
+  df$lfsr = x$lfsr
+  df$svalue = x$svalue
+  df$PosteriorMean = x$PosteriorMean
+  df$PosteriorSD = x$PosteriorSD
 
-  df$lfdr = a$lfdr
-  df$qvalue = a$qvalue
+  df$lfdr = x$lfdr
+  df$qvalue = x$qvalue
 
   return(df)
 }
@@ -593,7 +598,7 @@ ashci = function (a, betahat=NULL, sebetahat=NULL,df=NULL,model=c("EE","ET"),lev
 
 
       #Calculating the lower bound
-      CIentryl=stats::optimize(f=ashr:::ci.lower,interval=c(lower,PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,
+      CIentryl=stats::optimize(f=ci.lower,interval=c(lower,PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,
                         df=df, tol=tol)$minimum
       cdfl=cdf_post(m, CIentryl,x[i],s[i],df)
       #If the actual cdf deviates by too much, refine the optimization search interval
@@ -602,14 +607,14 @@ ashci = function (a, betahat=NULL, sebetahat=NULL,df=NULL,model=c("EE","ET"),lev
       intervallength=PosteriorMean[i]-lower
       while(abs(cdfl-(1-level)/2)>(10*tol) & counts<maxcounts){
         intervallength= intervallength*shrinkingcoefficient
-        CIentryl=stats::optimize(f=ashr:::ci.lower,interval=c(PosteriorMean[i]-intervallength,
+        CIentryl=stats::optimize(f=ci.lower,interval=c(PosteriorMean[i]-intervallength,
                                                        PosteriorMean[i]),m=m,x=x[i],s=s[i],level=level,df=df, tol=tol)$minimum
         cdfl=cdf_post(m, CIentryl,x[i],s[i],df)
         counts=counts+1
       }
 
       #Calculating the upper bound
-      CIentryu=stats::optimize(f=ashr:::ci.upper,interval=c(PosteriorMean[i],upper),m=m,x=x[i],s=s[i],level=level,
+      CIentryu=stats::optimize(f=ci.upper,interval=c(PosteriorMean[i],upper),m=m,x=x[i],s=s[i],level=level,
                         df=df, tol=tol)$minimum
       cdfu=cdf_post(m, CIentryu,x[i],s[i],df)
       #If the actual cdf deviates by too much, refine the optimization search interval
@@ -618,7 +623,7 @@ ashci = function (a, betahat=NULL, sebetahat=NULL,df=NULL,model=c("EE","ET"),lev
       intervallength=upper-PosteriorMean[i]
       while(abs(cdfu-(1+level)/2)>(10*tol) & counts<maxcounts){
         intervallength= intervallength*shrinkingcoefficient
-        CIentryu=stats::optimize(f=ashr:::ci.upper,interval=c(PosteriorMean[i],PosteriorMean[i]+intervallength),
+        CIentryu=stats::optimize(f=ci.upper,interval=c(PosteriorMean[i],PosteriorMean[i]+intervallength),
                           m=m,x=x[i],s=s[i],level=level,
                           df=df, tol=tol)$minimum
         cdfu=cdf_post(m, CIentryu,x[i],s[i],df)

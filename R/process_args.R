@@ -1,3 +1,7 @@
+# avoid "no visible binding for global variable" note in CRAN check
+# These variables are actually defined in process_args
+if(getRversion() >= "2.15.1") utils::globalVariables(c("VB","cxx","method","model","mixcompdist","gridmult","control"))
+
 #' Process input arguments for ash.workhorse
 #'
 #' @param oldargs captured argument list
@@ -5,19 +9,8 @@
 #' @importFrom utils modifyList
 #' @export process_args
 process_args = function (oldargs) {
-  
   # Assign each captured argument in the list to a variable
   for (i in 1L:length(oldargs)) assign(names(oldargs)[i], oldargs[[i]])
-  
-  # Avoid "no visible binding for global variable" notes in R CMD check
-  if (exists("VB"))          VB          = get("VB")
-  if (exists("cxx"))         cxx         = get("cxx")
-  if (exists("method"))      method      = get("method")
-  if (exists("model"))       model       = get("model")
-  if (exists("mixcompdist")) mixcompdist = get("mixcompdist")
-  if (exists("df"))          df          = get("df")
-  if (exists("gridmult"))    gridmult    = get("gridmult")
-  if (exists("control"))     control     = get("control")
   
   # Start processing arguments
   
@@ -57,7 +50,7 @@ process_args = function (oldargs) {
   }
   
   if (optmethod == "mixIP") assertthat::assert_that(requireNamespace("REBayes", quietly = TRUE))
-  if (optmethod == "cxxMixSquarem") assertthat::assert_that(requireNamespace("Rcpp"))
+  if (optmethod == "cxxMixSquarem") assertthat::assert_that(requireNamespace("Rcpp", quietly = TRUE))
   
   # method provides a convenient interface to set a particular combinations of parameters for prior an
   # If method is supplied, use it to set up specific values for these parameters; provide warning if values

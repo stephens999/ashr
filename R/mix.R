@@ -164,17 +164,17 @@ mixcdf.default = function(x,y,lower.tail=TRUE){
 
 #find cdf for each component, a generic function
 #' Generic function of computing the cdf for each component
-#' @param x a mixture (eg of type normalmix or unimix)
+#' @param m a mixture (eg of type normalmix or unimix)
 #' @param y locations at which cdf to be computed
 #' @param lower.tail boolean indicating whether to report lower tail
 #' @return it returns a vector of probabilities, with length equals to
-#'     number of components in x
+#'     number of components in m
 #' @export
-comp_cdf = function(x,y,lower.tail=TRUE){
+comp_cdf = function(m,y,lower.tail=TRUE){
   UseMethod("comp_cdf")
 }
 #' @export
-comp_cdf.default = function(x,y,lower.tail=TRUE){
+comp_cdf.default = function(m,y,lower.tail=TRUE){
   stop("comp_cdf not implemented for this class")
 }
 
@@ -656,8 +656,8 @@ log_compdens_conv.normalmix = function(m,x,s,v,FUN="+"){
 
 
 #' @export
-comp_cdf.normalmix = function(x,y,lower.tail=TRUE){
-  vapply(y,stats::pnorm,x$mean,x$mean,x$sd,lower.tail)
+comp_cdf.normalmix = function(m,y,lower.tail=TRUE){
+  vapply(y,stats::pnorm,m$mean,m$mean,m$sd,lower.tail)
 }
 
 

@@ -4,10 +4,10 @@
 \alias{comp_cdf}
 \title{Generic function of computing the cdf for each component}
 \usage{
-comp_cdf(x, y, lower.tail = TRUE)
+comp_cdf(m, y, lower.tail = TRUE)
 }
 \arguments{
-\item{x}{a mixture (eg of type normalmix or unimix)}
+\item{m}{a mixture (eg of type normalmix or unimix)}
 
 \item{y}{locations at which cdf to be computed}
 
@@ -15,7 +15,7 @@ comp_cdf(x, y, lower.tail = TRUE)
 }
 \value{
 it returns a vector of probabilities, with length equals to
-    number of components in x
+    number of components in m
 }
 \description{
 Generic function of computing the cdf for each component

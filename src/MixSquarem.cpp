@@ -69,18 +69,18 @@ List squarem1(NumericVector par,NumericMatrix matrix_lik,NumericVector prior,Lis
     stepmin=stepmin0;
     stepmax=stepmax0;
     
-    if(trace){std::cout<<"Squarem-1"<<std::endl;}
+    if(trace){Rcout<<"Squarem-1"<<std::endl;}
     iter=1;
     p=par;
     
     try{p1list=fixptfn(p,matrix_lik,prior);feval=1;}
     catch(...){
-        std::cout<<"Error in fixptfn function evaluation";
+        Rcout<<"Error in fixptfn function evaluation";
         return 1;
     }
     p=p1list["fixedpointvector"];
     lold=p1list["objfn"];
-    if(trace){std::cout<<"Objective fn: "<<lold[0]<<std::endl;}
+    if(trace){Rcout<<"Objective fn: "<<lold[0]<<std::endl;}
     conv=true;
     
     p=par;
@@ -91,7 +91,7 @@ List squarem1(NumericVector par,NumericMatrix matrix_lik,NumericVector prior,Lis
         pcpp=p;
         try{p1list=fixptfn(p,matrix_lik,prior); feval++;}
         catch(...){
-            std::cout<<"Error in fixptfn function evaluation";
+            Rcout<<"Error in fixptfn function evaluation";
             return 1;
         }
         p1cpp=p1list["fixedpointvector"];
@@ -105,7 +105,7 @@ List squarem1(NumericVector par,NumericMatrix matrix_lik,NumericVector prior,Lis
         //Step 2
         try{p2list=fixptfn(p1cpp,matrix_lik,prior);feval++;}
         catch(...){
-            std::cout<<"Error in fixptfn function evaluation";
+            Rcout<<"Error in fixptfn function evaluation";
             return 1;
         }
         p2cpp=p2list["fixedpointvector"];
@@ -131,7 +131,7 @@ List squarem1(NumericVector par,NumericMatrix matrix_lik,NumericVector prior,Lis
             case 2: alpha= -sr2_scalar/srv_scalar;
             case 3: alpha= sqrt(sr2_scalar/sv2_scalar);
                 //default: {
-                //    std::cout<<"Misspecification in method, when K=1, method should be either 1, 2 or 3!";
+                //    Rcout<<"Misspecification in method, when K=1, method should be either 1, 2 or 3!";
                 //    break;}
         }
         
@@ -154,7 +154,7 @@ List squarem1(NumericVector par,NumericMatrix matrix_lik,NumericVector prior,Lis
                 p=pnew;
                 lnewcpp=lnew;
                 if(!std::isnan(lnewcpp[0])){lold=lnew;}
-                if(trace){std::cout<<"Objective fn: "<<lnewcpp[0]<<"  Extrapolation: "<<extrap<<"  Steplength: "<<alpha<<std::endl;}
+                if(trace){Rcout<<"Objective fn: "<<lnewcpp[0]<<"  Extrapolation: "<<extrap<<"  Steplength: "<<alpha<<std::endl;}
                 iter++;
                 continue;//next round in while loop
             }
@@ -191,7 +191,7 @@ List squarem1(NumericVector par,NumericMatrix matrix_lik,NumericVector prior,Lis
         lnewcpp=lnew;
         if(!std::isnan(lnewcpp[0])){lold=lnew;}
         loldcpp=lold;
-        if(trace){std::cout<<"Objective fn: "<<lnewcpp[0]<<"  Extrapolation: "<<extrap<<"  Steplength: "<<alpha<<std::endl;}
+        if(trace){Rcout<<"Objective fn: "<<lnewcpp[0]<<"  Extrapolation: "<<extrap<<"  Steplength: "<<alpha<<std::endl;}
         
         iter++;
     }

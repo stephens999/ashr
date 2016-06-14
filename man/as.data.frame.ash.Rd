@@ -4,12 +4,14 @@
 \alias{as.data.frame.ash}
 \title{Create data from from ash object}
 \usage{
-\method{as.data.frame}{ash}(a, include_fdr = FALSE, ...)
+\method{as.data.frame}{ash}(x, row.names = NULL, optional = FALSE, ...)
 }
 \arguments{
-\item{a}{the fitted ash object}
+\item{x}{the fitted ash object}
 
-\item{include_fdr}{A logical, but never actually used.}
+\item{row.names}{NULL or a character vector giving the row names for the data frame. Missing values are not allowed.}
+
+\item{optional}{not used, included for consistency as an S3 generic/method}
 
 \item{...}{not used, included for consistency as an S3
 generic/method.}
@@ -19,5 +21,10 @@ Creates data frame for easy plotting of results etc
 }
 \details{
 Returns a data frame with named columnns
+}
+\examples{
+a = ash(rnorm(100,0,2),1)
+head(as.data.frame(a))
+
 }
 

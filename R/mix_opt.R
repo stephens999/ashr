@@ -34,7 +34,7 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list()){
   A = A[w!=0,]    #remove zero weight entries, as these otherwise cause errors
   w = w[w!=0]
   #w = rep(1,n+k)
-  res = REBayes::KWDual(A, rep(1,k), ashr:::normalize(w), control=control)
+  res = REBayes::KWDual(A, rep(1,k), normalize(w), control=control)
   return(list(pihat = normalize(res$f), niter = NULL, converged=(res$status=="OPTIMAL")))
 }
 

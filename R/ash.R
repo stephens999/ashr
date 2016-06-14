@@ -1,3 +1,7 @@
+# avoid "no visible binding for global variable" note in CRAN check
+# These variables are actually defined in process_args
+if(getRversion() >= "2.15.1") utils::globalVariables(c("completeobs","controlinput","sebetahat.orig","excludeindex"))
+
 #' @useDynLib ashr
 #' @import truncnorm SQUAREM doParallel pscl Rcpp foreach parallel
 #
@@ -241,6 +245,7 @@ ash.workhorse = function(betahat,sebetahat,
   mixcompdist = match.arg(mixcompdist)
   optmethod   = match.arg(optmethod)
   model       = match.arg(model)
+
 
   # Capture all arguments into a list
   oldargs = mget(names(formals()), sys.frame(sys.nframe()))
