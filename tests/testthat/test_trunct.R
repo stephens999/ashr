@@ -20,7 +20,7 @@ test_that("comp_postmean2 is 0 for null", {
   expect_equal(comp_postmean2(unimix(1,0,0),z,rep(1,10),v=NULL),matrix(0,10,nrow=1))
   expect_equal(comp_postmean2(unimix(1,0,0),z,rep(1,10),v=4), matrix(0,10,nrow=1))
   expect_equal(comp_postmean2(normalmix(1,0,0),z,rep(1,10),v=NULL),matrix(0,10,nrow=1))
-  z.ash = ash(z,1,df=4,g=unimix(1,0,0),fixg=TRUE)
+  z.ash = ash(z,1,df=4,g=unimix(1,0,0),fixg=TRUE,outputlevel=3)
   expect_equal(z.ash$PosteriorSD,rep(0,10))
   expect_equal(z.ash$PosteriorMean,rep(0,10))
 })
@@ -41,7 +41,7 @@ test_that("comp_postmean2.unimix matches simulations", {
 test_that("posterior means and sds computed for unimix from very flat prior are correct", {
   set.seed(1); z = rnorm(10,0,2); s=rgamma(10,10,10)
   #fit under t likelihood
-  z.ash=ash(z,s,df=5,g=unimix(c(0.5,0.5),c(-100,-20),c(100,20)),fixg=TRUE)
+  z.ash=ash(z,s,df=5,g=unimix(c(0.5,0.5),c(-100,-20),c(100,20)),fixg=TRUE,outputlevel=3)
   expect_equal(z.ash$PosteriorSD,s*sd(rt(1000000,df=5)),tolerance=0.01)
   #now do normal version
   z.ash=ash(z,s,df=NULL,g=unimix(c(0.5,0.5),c(-100,-20),c(100,20)),fixg=TRUE)
@@ -50,7 +50,7 @@ test_that("posterior means and sds computed for unimix from very flat prior are 
 
 test_that("posterior means and sds computed for unimix from NAs match prior mean and sd", {
   set.seed(1); z = c(NA,rnorm(10,0,2)); s=c(rgamma(10,10,10),NA)
-  z.ash=ash(z,s,df=5,g=unimix(c(0.5,0.5),c(-100,-20),c(100,20)),fixg=TRUE)
+  z.ash=ash(z,s,df=5,g=unimix(c(0.5,0.5),c(-100,-20),c(100,20)),fixg=TRUE,outputlevel=3)
   priorsd = sd(c(runif(1000000,-100,100),runif(1000000,-20,20)))
   expect_equal(z.ash$PosteriorMean[1],0)
   expect_equal(z.ash$PosteriorMean[11],0)

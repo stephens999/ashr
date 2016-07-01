@@ -132,7 +132,8 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #'     mixsd differ by one another. (Smaller values produce finer
 #'     grids)
 #' @param outputlevel determines amount of output [0=just fitted g;
-#'     1=also PosteriorMean and PosteriorSD; 2= everything usually
+#'     1=also PosteriorMean and PosteriorSD (provided df=NULL - 
+#'     if df non-null, set outputlevel =3 to get these); 2= everything usually
 #'     needed; 3=also include results of mixture fitting procedure
 #'     (includes matrix of log-likelihoods used to fit mixture); 4=
 #'     output additional things required by flash (flash.data)]
@@ -324,7 +325,7 @@ ash.workhorse = function(betahat,sebetahat,
 
   n = length(betahat)
 
-  if (outputlevel > 0) {
+  if ((outputlevel>0 & is.null(df)) | outputlevel>2 ) {
     PosteriorMean = rep(0,length = n)
     PosteriorSD = rep(0,length = n)
     PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
@@ -377,13 +378,13 @@ ash.workhorse = function(betahat,sebetahat,
       pi.fit$g$a = pi.fit$g$a + nonzeromode.fit$nonzeromode
       pi.fit$g$b = pi.fit$g$b + nonzeromode.fit$nonzeromode
     }
-    if(outputlevel>0){PosteriorMean = PosteriorMean + nonzeromode.fit$nonzeromode}
+    if((outputlevel>0 & is.null(df)) | outputlevel>2 ){PosteriorMean = PosteriorMean + nonzeromode.fit$nonzeromode}
   }
 
   if(model=="ET"){
     betahat=betahat*sebetahat.orig
     sebetahat = sebetahat.orig
-    if(outputlevel>0){
+    if((outputlevel>0 & is.null(df)) | outputlevel>2 ){
       PosteriorMean = PosteriorMean * sebetahat
       PosteriorSD= PosteriorSD * sebetahat
     }
@@ -394,7 +395,9 @@ ash.workhorse = function(betahat,sebetahat,
   ##5. Returning the result
 
   result = list(fitted.g=pi.fit$g,call=match.call())
-  if (outputlevel>0) {result=c(result,list(PosteriorMean = PosteriorMean,PosteriorSD = PosteriorSD,loglik = loglik, logLR=logLR))}
+  if ((outputlevel>0 & is.null(df)) | outputlevel>2 ) {result=c(result,list(PosteriorMean = PosteriorMean,PosteriorSD = PosteriorSD))}
+  if (outputlevel>0){result=c(result,list(loglik = loglik, logLR=logLR))}
+  
   if (outputlevel>1) {result=c(result,list(PositiveProb = PositiveProb, NegativeProb = NegativeProb,
                 ZeroProb = ZeroProb,lfsr = lfsr,lfdr = lfdr, qvalue = qvalue, svalue=svalue,
                  excludeindex = excludeindex,model = model, optmethod =optmethod))}
