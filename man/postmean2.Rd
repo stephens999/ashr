@@ -4,19 +4,15 @@
 \alias{postmean2}
 \title{postmean2}
 \usage{
-postmean2(m, betahat, sebetahat, v)
+postmean2(m, data)
 }
 \arguments{
 \item{m}{mixture distribution with k components}
 
-\item{betahat}{an n vector of observations}
-
-\item{sebetahat}{an n vector of standard errors}
-
-\item{v}{degree of freedom of error distribution}
+\item{data}{details depend on the model}
 }
 \description{
-output posterior mean-squared value for beta for prior
-    mixture m,given observations betahat, sebetahat, df v
+output posterior mean-squared value given prior
+    mixture m and data
 }
 

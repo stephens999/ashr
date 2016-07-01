@@ -4,18 +4,14 @@
 \alias{compcdf_post}
 \title{compcdf_post}
 \usage{
-compcdf_post(m, c, betahat, sebetahat, v)
+compcdf_post(m, c, data)
 }
 \arguments{
 \item{m}{mixture distribution with k components}
 
 \item{c}{a scalar}
 
-\item{betahat}{an n vector of observations}
-
-\item{sebetahat}{an n vector of standard errors}
-
-\item{v}{degree of freedom of error distribution}
+\item{data}{details depend on model}
 }
 \value{
 a k by n matrix
@@ -30,6 +26,6 @@ beta = rnorm(100,0,1)
 betahat= beta+rnorm(100,0,1)
 sebetahat=rep(1,100)
 ash.beta = ash(betahat,1,mixcompdist="normal")
-compcdf_post(ash.beta$fitted.g,0,betahat,sebetahat,NULL)
+compcdf_post(ash.beta$fitted.g,0,data=list(x=betahat,s=sebetahat,df=NULL))
 }
 

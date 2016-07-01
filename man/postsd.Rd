@@ -4,19 +4,14 @@
 \alias{postsd}
 \title{postsd}
 \usage{
-postsd(m, betahat, sebetahat, v)
+postsd(m, data)
 }
 \arguments{
 \item{m}{mixture distribution with k components}
 
-\item{betahat}{an n vector of observations}
-
-\item{sebetahat}{an n vector of standard errors}
-
-\item{v}{degree of freedom of error distribution}
+\item{data}{details depend on the model}
 }
 \description{
-output posterior sd for beta for prior mixture m,given
-    observations betahat, sebetahat, df v
+output posterior sd given prior mixture m and data
 }
 

@@ -4,25 +4,17 @@
 \alias{compdens_conv}
 \title{compdens_conv}
 \usage{
-compdens_conv(m, x, s, v, FUN = "+")
+compdens_conv(m, data)
 }
 \arguments{
-\item{m}{mixture distribution}
+\item{m}{mixture distribution with k components}
 
-\item{x}{an n vector}
-
-\item{s}{an n vector or integer}
-
-\item{v}{degree of freedom of error distribution}
-
-\item{FUN}{default is "+"}
+\item{data}{details depend on the model}
 }
 \value{
 a k by n matrix of densities
 }
 \description{
-compute the density of the components of the mixture m
-    when convoluted with a normal with standard deviation s or a
-    scaled (se) student.t with df v, the density is evaluated at x
+compute the density of data for each component of mixture when convolved with error distribution
 }
 

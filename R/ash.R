@@ -324,12 +324,13 @@ ash.workhorse = function(betahat,sebetahat,
   ##4. Computing the posterior
 
   n = length(betahat)
-
+  complete_data = list(x=betahat[completeobs],s=sebetahat[completeobs],v=df)
+  
   if ((outputlevel>0 & is.null(df)) | outputlevel>2 ) {
     PosteriorMean = rep(0,length = n)
     PosteriorSD = rep(0,length = n)
-    PosteriorMean[completeobs] = postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
-    PosteriorSD[completeobs] = postsd(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
+    PosteriorMean[completeobs] = postmean(pi.fit$g,complete_data)
+    PosteriorSD[completeobs] = postsd(pi.fit$g,complete_data)
     #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
     PosteriorMean[!completeobs] = calc_mixmean(pi.fit$g)
     PosteriorSD[!completeobs] = calc_mixsd(pi.fit$g)
@@ -337,9 +338,9 @@ ash.workhorse = function(betahat,sebetahat,
   if (outputlevel > 1) {
     ZeroProb = rep(0,length = n)
     NegativeProb = rep(0,length = n)
-    ZeroProb[completeobs] = colSums(comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)[comp_sd(pi.fit$g) ==
-                                                                                                            0,,drop = FALSE])
-    NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, betahat[completeobs],sebetahat[completeobs],df) - ZeroProb[completeobs]
+    ZeroProb[completeobs] = 
+      colSums(comppostprob(pi.fit$g,complete_data)[comp_sd(pi.fit$g) ==0,,drop = FALSE])
+    NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, complete_data) - ZeroProb[completeobs]
     #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
     ZeroProb[!completeobs] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g) == 0])
     NegativeProb[!completeobs] = mixcdf(pi.fit$g,0)
@@ -357,9 +358,9 @@ ash.workhorse = function(betahat,sebetahat,
     comp_postmean = matrix(0,nrow = kk, ncol = n)
     comp_postmean2 =  matrix(0,nrow = kk, ncol = n)
 
-    comp_postprob[,completeobs] = comppostprob(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
-    comp_postmean[,completeobs] = comp_postmean(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
-    comp_postmean2[,completeobs] = comp_postmean2(pi.fit$g,betahat[completeobs],sebetahat[completeobs],df)
+    comp_postprob[,completeobs] = comppostprob(pi.fit$g,complete_data)
+    comp_postmean[,completeobs] = comp_postmean(pi.fit$g,complete_data)
+    comp_postmean2[,completeobs] = comp_postmean2(pi.fit$g,complete_data)
 
     #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
     comp_postprob[,!completeobs] = mixprop(pi.fit$g)
@@ -389,9 +390,11 @@ ash.workhorse = function(betahat,sebetahat,
       PosteriorSD= PosteriorSD * sebetahat
     }
   }
-
-  loglik = calc_loglik(pi.fit$g, betahat[completeobs], sebetahat[completeobs],df, model)
-  logLR = loglik - calc_null_loglik(betahat[completeobs],sebetahat[completeobs],df,model)
+  
+  complete_data = list(x=betahat, s=sebetahat, v=df)
+    
+  loglik = calc_loglik(pi.fit$g, complete_data, model)
+  logLR = loglik - calc_null_loglik(complete_data,model)
   ##5. Returning the result
 
   result = list(fitted.g=pi.fit$g,call=match.call())
@@ -511,8 +514,8 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
   controlinput$tol = min(0.1/n,1.e-7) # set convergence criteria to be more stringent for larger samples
 
   if(controlinput$trace==TRUE){tic()}
-
-  matrix_llik = t(log_compdens_conv(g,betahat,sebetahat,df)) #an n by k matrix
+  data = list(x=betahat,s=sebetahat,v=df)
+  matrix_llik = t(log_compdens_conv(g,data)) #an n by k matrix
   matrix_llik = matrix_llik - apply(matrix_llik,1, max) #avoid numerical issues by subtracting max of each row
   matrix_lik = exp(matrix_llik)
 

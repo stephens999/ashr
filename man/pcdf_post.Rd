@@ -4,7 +4,7 @@
 \alias{pcdf_post}
 \title{pcdf_post}
 \usage{
-pcdf_post(m, c, betahat, sebetahat, v)
+pcdf_post(m, c, data)
 }
 \arguments{
 \item{m}{mixture distribution with k components}

@@ -4,16 +4,12 @@
 \alias{comppostprob}
 \title{comppostprob}
 \usage{
-comppostprob(m, x, s, v)
+comppostprob(m, data)
 }
 \arguments{
-\item{m}{mixture distribution}
+\item{m}{mixture distribution with k components}
 
-\item{x}{an n vector}
-
-\item{s}{an n vector or integer}
-
-\item{v}{degree of freedom of error distribution}
+\item{data}{details depend on the model}
 }
 \description{
 compute the posterior prob that each observation came

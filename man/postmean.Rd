@@ -4,16 +4,12 @@
 \alias{postmean}
 \title{postmean}
 \usage{
-postmean(m, betahat, sebetahat, v)
+postmean(m, data)
 }
 \arguments{
 \item{m}{mixture distribution with k components}
 
-\item{betahat}{an n vector of observations}
-
-\item{sebetahat}{an n vector of standard errors}
-
-\item{v}{degree of freedom of error distribution}
+\item{data}{details depend on the model}
 }
 \description{
 postmean

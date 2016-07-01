@@ -4,18 +4,12 @@
 \alias{loglik_conv.default}
 \title{loglik_conv.default}
 \usage{
-\method{loglik_conv}{default}(m, betahat, betahatsd, v, FUN = "+")
+\method{loglik_conv}{default}(m, data)
 }
 \arguments{
 \item{m}{mixture distribution with k components}
 
-\item{betahat}{an n vector of observations}
-
-\item{betahatsd}{an n vector of standard errors}
-
-\item{v}{degree of freedom of error distribution}
-
-\item{FUN}{default is "+"}
+\item{data}{data whose details depend on model}
 }
 \description{
 The default version of \code{\link{loglik_conv}}.

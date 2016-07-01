@@ -141,10 +141,7 @@ get_pi0 = function(a){
 #'     ash object containing that
 #'
 #' @param g the fitted g, or an ash object containing g
-#' @param betahat the data
-#' @param betahatsd the observed standard errors
-#' @param df appropriate degrees of freedom for (t) distribution of
-#'     betahat/sebetahat
+#' @param data details depend on model (in normal case is a list(x,s,df))
 #' @param model indicates whether you want the likelihood under the EE
 #'     or ET model
 #' @param alpha a scalar performing transformation on betahat and
@@ -158,24 +155,23 @@ get_pi0 = function(a){
 #'
 #' @export
 #'
-calc_loglik = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
-  if(missing(df)){
-    stop("error: must supply df for calc_loglik; supply df=NULL for normal likelihood")
-  }
+calc_loglik = function(g,data,model=c("EE","ET"),alpha=0){
+  betahat = data$x
+  betahatsd = data$s
+  df = data$v
 
   if(missing(alpha)){
     model = match.arg(model)
     if(class(g)=="ash" && g$model != model){
       warning("Model used to fit ash does not match model used to compute loglik! Probably you have made a mistake!")
     }
-    if(model=="ET"){ alpha=1
-    } else {alpha=0}
+    if(model=="ET"){ alpha=1} else {alpha=0}
   }
 
   if(class(g)=="ash"){g = g$fitted.g} #extract g object from ash object if ash object passed
 
-
-  return(loglik_conv(g,betahat/(betahatsd^alpha),betahatsd^(1-alpha),df)-alpha*sum(log(betahatsd)))
+  data = list(x=betahat/(betahatsd^alpha),s=betahatsd^(1-alpha),v=df)
+  return(loglik_conv(g,data)-alpha*sum(log(betahatsd)))
 }
 
 
@@ -201,7 +197,10 @@ calc_loglik = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
 #' @export
 #'
 #'
-calc_null_loglik = function(betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
+calc_null_loglik = function(data,model=c("EE","ET"),alpha=0){
+  betahat = data$x
+  betahatsd = data$s
+  df=data$v
   if(is.null(df)){return(sum(-log(betahatsd) + stats::dnorm(betahat/betahatsd,log=TRUE)))}
   else{return(sum(-log(betahatsd) + stats::dt(betahat/betahatsd,df,log=TRUE)))}
   #g=unimix(1,0,0)
@@ -232,8 +231,8 @@ calc_null_loglik = function(betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
 #' @details See example in CompareBetahatvsZscoreAnalysis.rmd
 #'
 #' @export
-calc_logLR = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
-  return(calc_loglik(g,betahat,betahatsd,df,model,alpha) - calc_null_loglik(betahat,betahatsd,df,model,alpha))
+calc_logLR = function(g,data,model=c("EE","ET"),alpha=0){
+  return(calc_loglik(g,data,model,alpha) - calc_null_loglik(data,model,alpha))
 }
 
 #' @title Compute vector of loglikelihood for data from ash fit
@@ -260,10 +259,11 @@ calc_logLR = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
 #'
 #' @export
 #'
-calc_vloglik = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
-  if(missing(df)){
-    stop("error: must supply df for calc_loglik; supply df=NULL for normal likelihood")
-  }
+calc_vloglik = function(g,data,model=c("EE","ET"),alpha=0){
+  betahat = data$x
+  betahatsd = data$s
+  df=data$v
+  
 
   if(missing(alpha)){
     model = match.arg(model)
@@ -276,10 +276,8 @@ calc_vloglik = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
 
   if(class(g)=="ash"){g = g$fitted.g} #extract g object from ash object if ash object passed
 
-
-  return(log(
-    dens_conv(g,betahat/(betahatsd^alpha),betahatsd^(1-alpha),df)-
-      alpha*sum(log(betahatsd))))
+  data = list(x=betahat/(betahatsd^alpha),s=betahatsd^(1-alpha),v=df)
+  return(log(dens_conv(g,data)- alpha*sum(log(betahatsd))))
 }
 
 
@@ -307,11 +305,13 @@ calc_vloglik = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
 #' @export
 #'
 #'
-calc_null_vloglik = function(betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
+calc_null_vloglik = function(data,model=c("EE","ET"),alpha=0){
+  betahat = data$x
+  betahatsd = data$s
+  df=data$v
   if(is.null(df)){return(-log(betahatsd) + stats::dnorm(betahat/betahatsd,log=TRUE))}
   else{return(-log(betahatsd) + stats::dt(betahat/betahatsd,df,log=TRUE))}
-  #g=unimix(1,0,0)
-  #return(calc_loglik(g,betahat,betahatsd,df,model,alpha))
+
 }
 
 #' @title Compute vector of loglikelihood ratio for data from ash fit
@@ -338,8 +338,8 @@ calc_null_vloglik = function(betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
 #' @details See example in CompareBetahatvsZscoreAnalysis.rmd
 #'
 #' @export
-calc_vlogLR = function(g,betahat,betahatsd,df,model=c("EE","ET"),alpha=0){
-  return(calc_vloglik(g,betahat,betahatsd,df,model,alpha) - calc_null_vloglik(betahat,betahatsd,df,model,alpha))
+calc_vlogLR = function(g,data,model=c("EE","ET"),alpha=0){
+  return(calc_vloglik(g,data,model,alpha) - calc_null_vloglik(data,model,alpha))
 }
 
 

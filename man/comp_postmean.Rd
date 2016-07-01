@@ -4,19 +4,15 @@
 \alias{comp_postmean}
 \title{comp_postmean}
 \usage{
-comp_postmean(m, betahat, sebetahat, v)
+comp_postmean(m, data)
 }
 \arguments{
 \item{m}{mixture distribution with k components}
 
-\item{betahat}{an n vector of observations}
-
-\item{sebetahat}{an n vector of standard errors}
-
-\item{v}{degree of freedom of error distribution}
+\item{data}{details depend on the model}
 }
 \description{
 output posterior mean for beta for each component of
-    prior mixture m,given observations betahat, sebetahat, df v
+    prior mixture m,given data
 }
 

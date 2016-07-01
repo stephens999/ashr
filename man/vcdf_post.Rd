@@ -4,18 +4,14 @@
 \alias{vcdf_post}
 \title{vcdf_post}
 \usage{
-vcdf_post(m, c, betahat, sebetahat, v)
+vcdf_post(m, c, data)
 }
 \arguments{
 \item{m}{mixture distribution with k components}
 
 \item{c}{a numeric vector}
 
-\item{betahat}{an n vector of observations}
-
-\item{sebetahat}{an n vector of standard errors}
-
-\item{v}{degree of freedom of error distribution}
+\item{data}{depends on context}
 }
 \value{
 an n vector containing the cdf for beta_i at c
@@ -28,6 +24,6 @@ beta = rnorm(100,0,1)
 betahat= beta+rnorm(100,0,1)
 sebetahat=rep(1,100)
 ash.beta = ash(betahat,1,mixcompdist="normal")
-c = vcdf_post(ash.beta$fitted.g,seq(-5,5,length=1000),betahat,sebetahat,NULL)
+c = vcdf_post(ash.beta$fitted.g,seq(-5,5,length=1000),data = list(x=betahat,s=sebetahat,df=NULL))
 }
 

@@ -4,27 +4,24 @@
 \alias{comp_postsd}
 \title{comp_postsd}
 \usage{
-comp_postsd(m, betahat, sebetahat, v)
+comp_postsd(m, data)
 }
 \arguments{
 \item{m}{mixture distribution with k components}
 
-\item{betahat}{an n vector of observations}
-
-\item{sebetahat}{an n vector of standard errors}
-
-\item{v}{degree of freedom of error distribution}
+\item{data}{details depend on the model}
 }
 \description{
 output posterior sd for beta for each component of
-    prior mixture m,given observations betahat, sebetahat, df v
+    prior mixture m,given data
 }
 \examples{
 beta = rnorm(100,0,1)
 betahat= beta+rnorm(100,0,1)
 ash.beta = ash(betahat,1,mixcompdist="normal")
-comp_postmean(ash.beta$fitted.g,betahat,rep(1,100),NULL)
-comp_postsd(ash.beta$fitted.g,betahat,rep(1,100),NULL)
-comppostprob(ash.beta$fitted.g,betahat,rep(1,100),NULL)
+data=list(x=betahat,s=rep(1,100),df=NULL)
+comp_postmean(ash.beta$fitted.g,data)
+comp_postsd(ash.beta$fitted.g,data)
+comppostprob(ash.beta$fitted.g,data)
 }
 

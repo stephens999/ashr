@@ -4,18 +4,14 @@
 \alias{cdf_post}
 \title{cdf_post}
 \usage{
-cdf_post(m, c, betahat, sebetahat, v)
+cdf_post(m, c, data)
 }
 \arguments{
 \item{m}{mixture distribution with k components}
 
 \item{c}{a scalar}
 
-\item{betahat}{an n vector of observations}
-
-\item{sebetahat}{an n vector of standard errors}
-
-\item{v}{degree of freedom of error distribution}
+\item{data}{details depend on model}
 }
 \value{
 an n vector containing the cdf for beta_i at c

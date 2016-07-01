@@ -4,18 +4,12 @@
 \alias{log_compdens_conv}
 \title{log_compdens_conv}
 \usage{
-log_compdens_conv(m, x, s, v, FUN = "+")
+log_compdens_conv(m, data)
 }
 \arguments{
-\item{m}{mixture distribution}
+\item{m}{mixture distribution with k components}
 
-\item{x}{an n vector}
-
-\item{s}{an n vector or integer}
-
-\item{v}{degree of freedom of error distribution}
-
-\item{FUN}{default is "+"}
+\item{data}{details depend on the model}
 }
 \value{
 a k by n matrix of log densities

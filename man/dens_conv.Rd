@@ -4,18 +4,12 @@
 \alias{dens_conv}
 \title{dens_conv}
 \usage{
-dens_conv(m, x, s, v, FUN = "+")
+dens_conv(m, data)
 }
 \arguments{
-\item{m}{mixture distribution}
+\item{m}{mixture distribution with k components}
 
-\item{x}{an n vector}
-
-\item{s}{an n vector or integer}
-
-\item{v}{degree of freedom of error distribution}
-
-\item{FUN}{default is "+"}
+\item{data}{details depend on the model}
 }
 \description{
 compute density of mixture m convoluted with normal of

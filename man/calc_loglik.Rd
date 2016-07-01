@@ -4,17 +4,12 @@
 \alias{calc_loglik}
 \title{Compute loglikelihood for data from ash fit}
 \usage{
-calc_loglik(g, betahat, betahatsd, df, model = c("EE", "ET"), alpha = 0)
+calc_loglik(g, data, model = c("EE", "ET"), alpha = 0)
 }
 \arguments{
 \item{g}{the fitted g, or an ash object containing g}
 
-\item{betahat}{the data}
-
-\item{betahatsd}{the observed standard errors}
-
-\item{df}{appropriate degrees of freedom for (t) distribution of
-betahat/sebetahat}
+\item{data}{details depend on model (in normal case is a list(x,s,df))}
 
 \item{model}{indicates whether you want the likelihood under the EE
 or ET model}

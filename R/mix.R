@@ -202,17 +202,13 @@ loglik.default = function(m,x){
 
 
 #' @title loglik_conv
-#' @description find log likelihood of data in betahat, when the
-#'     mixture m is convolved with a normal with sd betahatsd
+#' @description find log likelihood of data using convolution of mixture with error distribution
 #'
 #' @param m mixture distribution with k components
-#' @param betahat an n vector of observations
-#' @param betahatsd an n vector of standard errors
-#' @param v degree of freedom of error distribution
-#' @param FUN default is "+"
+#' @param data details depend on the model
 #' @export
 #'
-loglik_conv = function(m,betahat,betahatsd,v,FUN="+"){
+loglik_conv = function(m,data){
   UseMethod("loglik_conv")
 }
 #' @title loglik_conv.default
@@ -220,32 +216,23 @@ loglik_conv = function(m,betahat,betahatsd,v,FUN="+"){
 #' @description The default version of \code{\link{loglik_conv}}.
 #'
 #' @param m mixture distribution with k components
-#' @param betahat an n vector of observations
-#' @param betahatsd an n vector of standard errors
-#' @param v degree of freedom of error distribution
-#' @param FUN default is "+"
+#' @param data data whose details depend on model
 #' @export
 #'
-loglik_conv.default = function(m,betahat,betahatsd,v,FUN="+"){
-  sum(log(dens_conv(m,betahat,betahatsd,v,FUN)))
+loglik_conv.default = function(m,data){
+  sum(log(dens_conv(m,data)))
 }
 
 
 
 #' @title compdens_conv
-#' @description compute the density of the components of the mixture m
-#'     when convoluted with a normal with standard deviation s or a
-#'     scaled (se) student.t with df v, the density is evaluated at x
-#' @param m mixture distribution
-#' @param x an n vector
-#' @param s an n vector or integer
-#' @param v degree of freedom of error distribution
-#' @param FUN default is "+"
+#' @description compute the density of data for each component of mixture when convolved with error distribution 
+#' @inheritParams loglik_conv
 #' @return a k by n matrix of densities
-compdens_conv = function(m,x,s,v,FUN="+"){
+compdens_conv = function(m,data){
   UseMethod("compdens_conv")
 }
-compdens_conv.default = function(m,x,s,v,FUN="+"){
+compdens_conv.default = function(m,data){
   stop(paste("Invalid class", class(m), "for first argument in",  match.call()))
 }
 
@@ -254,17 +241,14 @@ compdens_conv.default = function(m,x,s,v,FUN="+"){
 #'     mixture m when convoluted with a normal with standard deviation
 #'     s or a scaled (se) student.t with df v, the density is
 #'     evaluated at x
-#' @param m mixture distribution
-#' @param x an n vector
-#' @param s an n vector or integer
-#' @param v degree of freedom of error distribution
-#' @param FUN default is "+"
+#' @inheritParams loglik_conv
+#' 
 #' @return a k by n matrix of log densities
-log_compdens_conv = function(m,x,s,v,FUN="+"){
+log_compdens_conv = function(m,data){
   UseMethod("log_compdens_conv")
 }
-log_compdens_conv.default = function(m,x,s,v,FUN="+"){
-  log(compdens_conv(m,x,s,v,FUN))
+log_compdens_conv.default = function(m,data){
+  log(compdens_conv(m,data))
 }
 
 
@@ -272,16 +256,12 @@ log_compdens_conv.default = function(m,x,s,v,FUN="+"){
 #' @title dens_conv
 #' @description compute density of mixture m convoluted with normal of
 #'     sd (s) or student t with df v at locations x
-#' @param m mixture distribution
-#' @param x an n vector
-#' @param s an n vector or integer
-#' @param v degree of freedom of error distribution
-#' @param FUN default is "+"
-dens_conv = function(m,x,s,v,FUN="+"){
+#' @inheritParams loglik_conv
+dens_conv = function(m,data){
   UseMethod("dens_conv")
 }
-dens_conv.default = function(m,x,s,v,FUN="+"){
-  colSums(m$pi * compdens_conv(m,x,s,v,FUN))
+dens_conv.default = function(m,data){
+  colSums(m$pi * compdens_conv(m,data))
 }
 
 
@@ -291,35 +271,20 @@ dens_conv.default = function(m,x,s,v,FUN="+"){
 #'     probabilities computed by weighting the component densities by
 #'     pi and then normalizing
 #'
-#' @param m mixture distribution
-#' @param x an n vector
-#' @param s an n vector or integer
-#' @param v degree of freedom of error distribution
+#' @inheritParams loglik_conv
 #' @export
-comppostprob=function(m,x,s,v){
+comppostprob=function(m,data){
  UseMethod("comppostprob")
 }
 
-#' The old default version of \code{\link{comppostprob}}.
-#'
-#' @inheritParams comppostprob
-#'
-#' @export
-#'
-old.comppostprob.default = function(m,x,s,v){
-  tmp= (t(m$pi * compdens_conv(m,x,s,v))/dens_conv(m,x,s,v))
-  ismissing = (is.na(x) | is.na(s))
-  tmp[ismissing,]=m$pi
-  t(tmp)
-}
 
 #' @export
-comppostprob.default = function(m,x,s,v){
-  lpost = log_compdens_conv(m,x,s,v) + log(m$pi) # lpost is k by n of log posterior prob (unnormalized)
+comppostprob.default = function(m,data){
+  lpost = log_compdens_conv(m,data) + log(m$pi) # lpost is k by n of log posterior prob (unnormalized)
   lpmax = apply(lpost,2,max) #dmax is of length n
   tmp = exp(t(lpost)-lpmax) #subtracting the max of the logs is just done for numerical stability
   tmp = tmp/rowSums(tmp)
-  ismissing = (is.na(x) | is.na(s))
+  ismissing = (is.na(data$x) | is.na(data$s))
   tmp[ismissing,]=m$pi
   t(tmp)
 }
@@ -330,22 +295,20 @@ comppostprob.default = function(m,x,s,v){
 #'     assumption is betahat | beta ~ t_v(beta,sebetahat)
 #' @param m mixture distribution with k components
 #' @param c a scalar
-#' @param betahat an n vector of observations
-#' @param sebetahat an n vector of standard errors
-#' @param v degree of freedom of error distribution
+#' @param data details depend on model
 #' @return a k by n matrix
 #' @examples
 #' beta = rnorm(100,0,1)
 #' betahat= beta+rnorm(100,0,1)
 #' sebetahat=rep(1,100)
 #' ash.beta = ash(betahat,1,mixcompdist="normal")
-#' compcdf_post(ash.beta$fitted.g,0,betahat,sebetahat,NULL)
+#' compcdf_post(ash.beta$fitted.g,0,data=list(x=betahat,s=sebetahat,df=NULL))
 #' @export
-compcdf_post=function(m,c,betahat,sebetahat,v){
+compcdf_post=function(m,c,data){
   UseMethod("compcdf_post")
 }
 #' @export
-compcdf_post.default=function(m,c,betahat,sebetahat,v){
+compcdf_post.default=function(m,c,data){
   stop("method compcdf_post not written for this class")
 }
 
@@ -355,9 +318,7 @@ compcdf_post.default=function(m,c,betahat,sebetahat,v){
 #'     assumption is betahat | beta ~ t_v(beta,sebetahat)
 #' @param m mixture distribution with k components
 #' @param c a scalar
-#' @param betahat an n vector of observations
-#' @param sebetahat an n vector of standard errors
-#' @param v degree of freedom of error distribution
+#' @param data details depend on model
 #' @return an n vector containing the cdf for beta_i at c
 #' @examples
 #' beta = rnorm(100,0,1)
@@ -367,30 +328,28 @@ compcdf_post.default=function(m,c,betahat,sebetahat,v){
 #' cdf0 = cdf_post(ash.beta$fitted.g,0,betahat,sebetahat,NULL)
 #' graphics::plot(cdf0,1-ash.beta$PositiveProb)
 #' @export
-cdf_post = function(m,c,betahat,sebetahat,v){
+cdf_post = function(m,c,data){
   UseMethod("cdf_post")
 }
 #' @export
-cdf_post.default=function(m,c,betahat,sebetahat,v){
-  colSums(comppostprob(m,betahat,sebetahat,v)*compcdf_post(m,c,betahat,sebetahat,v))
+cdf_post.default=function(m,c,data){
+  colSums(comppostprob(m,data)*compcdf_post(m,c,data))
 }
 #' @title vcdf_post
 #' @description vectorized version of \code{\link{cdf_post}}
 #' @param m mixture distribution with k components
 #' @param c a numeric vector
-#' @param betahat an n vector of observations
-#' @param sebetahat an n vector of standard errors
-#' @param v degree of freedom of error distribution
+#' @param data depends on context
 #' @return an n vector containing the cdf for beta_i at c
 #' @examples
 #' beta = rnorm(100,0,1)
 #' betahat= beta+rnorm(100,0,1)
 #' sebetahat=rep(1,100)
 #' ash.beta = ash(betahat,1,mixcompdist="normal")
-#' c = vcdf_post(ash.beta$fitted.g,seq(-5,5,length=1000),betahat,sebetahat,NULL)
+#' c = vcdf_post(ash.beta$fitted.g,seq(-5,5,length=1000),data = list(x=betahat,s=sebetahat,df=NULL))
 #' @export
-vcdf_post = function(m,c,betahat,sebetahat,v){
-  mapply(cdf_post,c,MoreArgs=list(m=m,betahat=betahat,sebetahat=sebetahat,v=v))
+vcdf_post = function(m,c,data){
+  mapply(cdf_post,c,MoreArgs=list(m=m,data=data))
 }
 #' @title pcdf_post
 #' @description ``parallel" vector version of \code{\link{cdf_post}} where c is a vector, of same length as betahat and sebetahat
@@ -407,79 +366,67 @@ vcdf_post = function(m,c,betahat,sebetahat,v){
 #' ash.beta = ash(betahat,1,mixcompdist="normal")
 #' c = pcdf_post(ash.beta$fitted.g,beta,betahat,sebetahat,NULL)
 #' @export
-pcdf_post = function(m,c,betahat,sebetahat,v){
-  mapply(cdf_post,c,betahat,sebetahat,MoreArgs=list(m=m,v=v))
+pcdf_post = function(m,c,data){
+#  mapply(cdf_post,c,data$x,MoreArgs=list(m=m,v=data$v))
+  stop("not written for general case yet")
 }
 
 #output posterior mean for beta for prior mixture m,
-#given observations betahat, sebetahat, df v
+#given data
 #' postmean
 #'
-#' @param m mixture distribution with k components
-#' @param betahat an n vector of observations
-#' @param sebetahat an n vector of standard errors
-#' @param v degree of freedom of error distribution
+#' @inheritParams loglik_conv
 #' @export
-postmean = function(m, betahat,sebetahat,v){
+postmean = function(m,data){
   UseMethod("postmean")
 }
 
 #' @export
-postmean.default = function(m,betahat,sebetahat,v){
-  colSums(comppostprob(m,betahat,sebetahat,v) * comp_postmean(m,betahat,sebetahat,v))
+postmean.default = function(m,data){
+  colSums(comppostprob(m,data) * comp_postmean(m,data))
 }
 
 
 
 #' @title postmean2
-#' @description output posterior mean-squared value for beta for prior
-#'     mixture m,given observations betahat, sebetahat, df v
-#' @param m mixture distribution with k components
-#' @param betahat an n vector of observations
-#' @param sebetahat an n vector of standard errors
-#' @param v degree of freedom of error distribution
+#' @description output posterior mean-squared value given prior
+#'     mixture m and data
+#' @inheritParams loglik_conv
 #' @export
-postmean2 = function(m, betahat,sebetahat,v){
+postmean2 = function(m, data){
   UseMethod("postmean2")
 }
 #' @export
-postmean2.default = function(m,betahat,sebetahat,v){
-  colSums(comppostprob(m,betahat,sebetahat,v) * comp_postmean2(m,betahat,sebetahat,v))
+postmean2.default = function(m,data){
+  colSums(comppostprob(m,data) * comp_postmean2(m,data))
 }
 
 
 #' @title postsd
-#' @description output posterior sd for beta for prior mixture m,given
-#'     observations betahat, sebetahat, df v
-#' @param m mixture distribution with k components
-#' @param betahat an n vector of observations
-#' @param sebetahat an n vector of standard errors
-#' @param v degree of freedom of error distribution
+#' @description output posterior sd given prior mixture m and data
+#' @inheritParams loglik_conv
 #' @export
-postsd = function(m,betahat,sebetahat,v){
+postsd = function(m,data){
   UseMethod("postsd")
 }
 
 #' @export
-postsd.default = function(m,betahat,sebetahat,v){
-  sqrt(postmean2(m,betahat,sebetahat,v)-postmean(m,betahat,sebetahat,v)^2)
+postsd.default = function(m,data){
+  sqrt(postmean2(m,data)-postmean(m,data)^2)
 }
 
 
 
 #' @title comp_postmean2
-#' @description output posterior mean-squared value for beta for prior
-#'     mixture m,given observations betahat, sebetahat, df v
-#' @param m mixture distribution with k components
-#' @param betahat an n vector of observations
-#' @param sebetahat an n vector of standard errors
-#' @param v degree of freedom of error distribution
+#' @description output posterior mean-squared value given prior
+#'     mixture m and data
+#' @inheritParams loglik_conv
 #' @export
-comp_postmean2 = function(m,betahat,sebetahat,v){
+comp_postmean2 = function(m,data){
   UseMethod("comp_postmean2")
 }
 #' @export
-comp_postmean2.default = function(m,betahat,sebetahat,v){
+comp_postmean2.default = function(m,data){
   stop("method comp_postmean2 not written for this class")
   #comp_postsd(m,betahat,sebetahat,v)^2 + comp_postmean(m,betahat,sebetahat,v)^2
 }
@@ -488,17 +435,14 @@ comp_postmean2.default = function(m,betahat,sebetahat,v){
 
 #' @title comp_postmean
 #' @description output posterior mean for beta for each component of
-#'     prior mixture m,given observations betahat, sebetahat, df v
-#' @param m mixture distribution with k components
-#' @param betahat an n vector of observations
-#' @param sebetahat an n vector of standard errors
-#' @param v degree of freedom of error distribution
+#'     prior mixture m,given data
+#' @inheritParams loglik_conv
 #' @export
-comp_postmean = function(m, betahat,sebetahat,v){
+comp_postmean = function(m,data){
   UseMethod("comp_postmean")
 }
 #' @export
-comp_postmean.default = function(m,betahat,sebetahat,v){
+comp_postmean.default = function(m,data){
   stop("method comp_postmean not written for this class")
 }
 
@@ -506,24 +450,22 @@ comp_postmean.default = function(m,betahat,sebetahat,v){
 
 #' @title comp_postsd
 #' @description output posterior sd for beta for each component of
-#'     prior mixture m,given observations betahat, sebetahat, df v
-#' @param m mixture distribution with k components
-#' @param betahat an n vector of observations
-#' @param sebetahat an n vector of standard errors
-#' @param v degree of freedom of error distribution
+#'     prior mixture m,given data
+#' @inheritParams loglik_conv
 #' @examples
 #' beta = rnorm(100,0,1)
 #' betahat= beta+rnorm(100,0,1)
 #' ash.beta = ash(betahat,1,mixcompdist="normal")
-#' comp_postmean(ash.beta$fitted.g,betahat,rep(1,100),NULL)
-#' comp_postsd(ash.beta$fitted.g,betahat,rep(1,100),NULL)
-#' comppostprob(ash.beta$fitted.g,betahat,rep(1,100),NULL)
+#' data=list(x=betahat,s=rep(1,100),df=NULL)
+#' comp_postmean(ash.beta$fitted.g,data)
+#' comp_postsd(ash.beta$fitted.g,data)
+#' comppostprob(ash.beta$fitted.g,data)
 #' @export
-comp_postsd = function(m, betahat,sebetahat,v){
+comp_postsd = function(m,data){
   UseMethod("comp_postsd")
 }
 #' @export
-comp_postsd.default = function(m,betahat,sebetahat,v){
+comp_postsd.default = function(m,data){
   stop("method comp_postsd not written for this class")
 }
 
@@ -552,921 +494,15 @@ plot_dens.default = function(m,npoints=100,...){
   graphics::plot(x,dens(m,x),type="l",xlab="density",ylab="x",...)
 }
 
-plot_post_cdf = function(m,betahat,sebetahat,v,npoints=100,...){
+plot_post_cdf = function(m,data,npoints=100,...){
   UseMethod("plot_post_cdf")
 }
-plot_post_cdf.default = function(m,betahat,sebetahat,v,npoints=100,...){
+plot_post_cdf.default = function(m,data,npoints=100,...){
   x = seq(min_lim(m),max_lim(m),length=npoints)
-  x_cdf = vapply(x,cdf_post,FUN.VALUE=betahat,m=m,betahat=betahat,sebetahat=sebetahat,v=v)
+  x_cdf = vapply(x,cdf_post,FUN.VALUE=betahat,m=m,data=data)
   graphics::plot(x,x_cdf,type="l",xlab="x",ylab="cdf",...)
  # for(i in 2:nrow(x_cdf)){
  #   lines(x,x_cdf[i,],col=i)
  # }
 }
 
-############################### METHODS FOR normalmix class ###########################
-
-#' @title Constructor for normalmix class
-#'
-#' @description Creates an object of class normalmix (finite mixture
-#'     of univariate normals)
-#'
-#' @details None
-#'
-#' @param pi vector of mixture proportions
-#' @param mean vector of means
-#' @param sd vector of standard deviations
-#'
-#' @return an object of class normalmix
-#'
-#' @export
-#'
-#' @examples normalmix(c(0.5,0.5),c(0,0),c(1,2))
-#'
-normalmix = function(pi,mean,sd){
-  structure(data.frame(pi,mean,sd),class="normalmix")
-}
-
-
-#' @title comp_sd.normalmix
-#' @description returns sds of the normal mixture
-#' @param m a normal mixture distribution with k components
-#' @return a vector of length k
-#' @export
-comp_sd.normalmix = function(m){
-  m$sd
-}
-
-#' @title comp_mean.normalmix
-#' @description returns mean of the normal mixture
-#' @param m a normal mixture distribution with k components
-#' @return a vector of length k
-#' @export
-comp_mean.normalmix = function(m){
-  m$mean
-}
-
-#' @export
-compdens.normalmix = function(m,y,log=FALSE){
-  k=ncomp(m)
-  n=length(y)
-  d = matrix(rep(y,rep(k,n)),nrow=k)
-  return(matrix(stats::dnorm(d, m$mean, m$sd, log),nrow=k))
-}
-
-
-#' @title compdens_conv.normalmix
-#' @description returns density of convolution of each component of a
-#'     normal mixture with N(0,s^2) or s*t(v) at x. Note that
-#'     convolution of two normals is normal, so it works that way
-#' @param m mixture distribution with k components
-#' @param x an n-vector at which density is to be evaluated
-#' @param s an n vector of standard errors
-#' @param v degree of freedom of error distribution
-#' @param FUN default is "+"
-#' @return a k by n matrix
-compdens_conv.normalmix = function(m,x,s,v,FUN="+"){
-  if(!is.null(v)){
-  	stop("method compdens_conv of normal mixture not written for df!=NULL")
-  }
-  if(length(s)==1){s=rep(s,length(x))}
-  sdmat = sqrt(outer(s^2,m$sd^2,FUN)) #n by k matrix of standard deviations of convolutions
-  return(t(stats::dnorm(outer(x,m$mean,FUN="-")/sdmat)/sdmat))
-}
-
-#' @title log_compdens_conv.normalmix
-#' @description returns log-density of convolution of each component
-#'     of a normal mixture with N(0,s^2) or s*t(v) at x. Note that
-#'     convolution of two normals is normal, so it works that way
-#' @param m mixture distribution with k components
-#' @param x an n-vector at which density is to be evaluated
-#' @param s an n vector of standard errors
-#' @param v degree of freedom of error distribution
-#' @param FUN default is "+"
-#' @return a k by n matrix
-log_compdens_conv.normalmix = function(m,x,s,v,FUN="+"){
-  if(!is.null(v)){
-    stop("method compdens_conv of normal mixture not written for df!=NULL")
-  }
-  if(length(s)==1){s=rep(s,length(x))}
-  sdmat = sqrt(outer(s^2,m$sd^2,FUN)) #n by k matrix of standard deviations of convolutions
-  return(t(stats::dnorm(outer(x,m$mean,FUN="-")/sdmat,log=TRUE) - log(sdmat)))
-}
-
-
-
-#' @export
-comp_cdf.normalmix = function(m,y,lower.tail=TRUE){
-  vapply(y,stats::pnorm,m$mean,m$mean,m$sd,lower.tail)
-}
-
-
-
-
-#' @export
-compcdf_post.normalmix=function(m,c,betahat,sebetahat,v){
-  if(!is.null(v)){
-  	stop("Error: normal mixture for student-t likelihood is not yet implemented")
-  }
-  k = length(m$pi)
-  n=length(betahat)
-  #compute posterior standard deviation (s1) and posterior mean (m1)
-  s1 = sqrt(outer(sebetahat^2,m$sd^2,FUN="*")/outer(sebetahat^2,m$sd^2,FUN="+"))
-  ismissing = (is.na(betahat) | is.na(sebetahat))
-  s1[ismissing,]=m$sd
-
-  m1 = t(comp_postmean(m,betahat,sebetahat,v))
-  t(stats::pnorm(c,mean=m1,sd=s1))
-}
-
-
-#' @export
-comp_postmean.normalmix = function(m,betahat,sebetahat,v){
-  if(!is.null(v)){
-  	stop("method comp_postmean of normal mixture not written for df!=NULL")
-  }
-  tmp=(outer(sebetahat^2,m$mean, FUN="*") + outer(betahat,m$sd^2, FUN="*"))/outer(sebetahat^2,m$sd^2,FUN="+")
-  ismissing = (is.na(betahat) | is.na(sebetahat))
-  tmp[ismissing,]=m$mean #return prior mean when missing data
-  t(tmp)
-}
-
-
-#' @export
-comp_postsd.normalmix = function(m,betahat,sebetahat,v){
-  if(!is.null(v)){
-  	stop("method comp_postsd of normal mixture not written for df!=NULL")
-  }
-  t(sqrt(outer(sebetahat^2,m$sd^2,FUN="*")/outer(sebetahat^2,m$sd^2,FUN="+")))
-}
-
-#' @export
-comp_postmean2.normalmix = function(m,betahat,sebetahat,v){
-  comp_postsd(m,betahat,sebetahat,v)^2 + comp_postmean(m,betahat,sebetahat,v)^2
-}
-
-#' @title loglik_conv_mixlik
-#'
-#' @description find log likelihood of data, when the mixture m is convolved with l-comp normal mixture in betahat with mixture sd betahatsd, mixture proportion pilik.
-#'
-#' @param m mixture distribution
-#' @param betahat an n vector
-#' @param betahatsd an n-by-l matrix
-#' @param v degree of freedom of error distribution
-#' @param pilik an l vector
-#' @param FUN default is "+"
-#' @export
-#'
-loglik_conv_mixlik = function(m,betahat,betahatsd,v,pilik,FUN="+"){
-  UseMethod("loglik_conv_mixlik")
-}
-#' @title loglik_conv.default
-#'
-#' @description The default version of \code{\link{loglik_conv}}.
-#'
-#' @param m mixture distribution
-#' @param betahat an n vector
-#' @param betahatsd an n-by-l matrix
-#' @param v degree of freedom of error distribution
-#' @param pilik an l vector
-#' @param FUN default is "+"
-#' @export
-#'
-loglik_conv_mixlik.default = function(m,betahat,betahatsd,v,pilik,FUN="+"){
-  sum(log(dens_conv_mixlik(m,betahat,betahatsd,v,pilik,FUN)))
-}
-
-#compute the density of the components of the mixture m
-#when convoluted with l-components normal mixture with standard deviation s
-#or C (scale vector) multiplies scaled (se) student.t l-components mixture with df v
-#with mixture proportion pilik
-#the density is evaluated at x
-#x is an n-vector
-#s and pilik are n by l matrices
-#v and c are l-vectors
-#m is a mixture with k components
-#output is a (k*l) by n matrix of densities
-
-#' @title compdens_conv_mixlik
-#' @description compute the density of the components of the mixture m
-#'     when convoluted with l-components normal mixture with standard
-#'     deviation s or C (scale vector) multiplies scaled (se)
-#'     student.t l-components mixture with df v with mixture
-#'     proportion pilik the density is evaluated at x
-#'
-#' @param m a mixture with k components
-#' @param x an n vector
-#' @param s normal mixture of sd(s), n-by-l matrix
-#' @param v degree of freedom of error distribution
-#' @param pilik mixture proportion , n-by-l matrix
-#' @param FUN default is "+"
-#' @return a (k*l) by n matrix of densities
-#' @export
-#'
-#todo: C is missing for function input
-compdens_conv_mixlik = function(m,x,s,v,pilik,FUN="+"){
-  UseMethod("compdens_conv_mixlik")
-}
-compdens_conv_mixlik.default = function(m,x,s,v,pilik,FUN="+"){
-  dens=NULL
-  for (i in 1:dim(pilik)[2]){
-    dens=rbind(dens,pilik[,i]*compdens_conv(m,x,s[,i],v[i],FUN))
-  }
-  return(dens)
-}
-
-
-#' @title dens_conv_mixlik
-#' @description compute density of mixture m convoluted with
-#'     l-components normal mixture of sd (s) or student t mixture with
-#'     df v with mixture proportion pilik at locations x
-#'
-#' @param m mixture distribution
-#' @param x an n vector
-#' @param s normal mixture of sd(s), n-by-l matrix
-#' @param v degree of freedom of error distribution
-#' @param pilik mixture proportion , n-by-l matrix
-#' @param FUN default is "+"
-#' @export
-#'
-dens_conv_mixlik = function(m,x,s,v,pilik,FUN="+"){
-  UseMethod("dens_conv_mixlik")
-}
-dens_conv_mixlik.default = function(m,x,s,v,pilik,FUN="+"){
-  l=dim(pilik)[2]
-  colSums(rep(m$pi,l) * compdens_conv_mixlik(m,x,s,v,pilik,FUN))
-}
-
-
-#' @title comppostprob_mixlik
-#' @description compute the posterior prob that each observation came
-#'     from each component of the mixture m,output a k by n vector of
-#'     probabilities computed by weighting the component densities by
-#'     pi and then normalizing,when likelihood is an l-components
-#'     normal mixture or student t mixture with mixture proportion
-#'     pilik
-#'
-#' @param m mixture distribution
-#' @param x an n vector
-#' @param s normal mixture of sd(s), n-by-l matrix
-#' @param v degree of freedom of error distribution
-#' @param pilik mixture proportion , n-by-l matrix
-#' @export
-comppostprob_mixlik=function(m,x,s,v,pilik){
-  UseMethod("comppostprob_mixlik")
-}
-#' @export
-comppostprob_mixlik.default = function(m,x,s,v,pilik){
-  l=dim(pilik)[2]
-  k=length(m$pi)
-  tmp= (t(rep(m$pi,l) * compdens_conv_mixlik(m,x,s,v,pilik))/dens_conv_mixlik(m,x,s,v,pilik))
-  ismissing = (is.na(x) | apply(is.na(s),1,sum))
-  tmp[ismissing,]=rep(m$pi,l)/l
-  group=rep(1:k,l)
-  return(rowsum(t(tmp),group))
-}
-
-
-#' @title comppostprob_mixlik2
-#' @description compute the posterior prob that each observation came
-#'     from each component of the mixture m and the likelihood
-#'     mixture, output a (k*l) by n vector of probabilities computed
-#'     by weighting the component densities by pi and then
-#'     normalizing, when likelihood is an l-components normal mixture
-#'     or student t mixture with mixture proportion pilik.
-#'
-#' @param m mixture distribution
-#' @param x an n vector
-#' @param s normal mixture of sd(s), n-by-l matrix
-#' @param v degree of freedom of error distribution
-#' @param pilik mixture proportion , n-by-l matrix
-#' @export
-comppostprob_mixlik2=function(m,x,s,v,pilik){
-  UseMethod("comppostprob_mixlik2")
-}
-#' @export
-comppostprob_mixlik2.default = function(m,x,s,v,pilik){
-  l=dim(pilik)[2]
-  k=length(m$pi)
-  tmp= (t(rep(m$pi,l) * compdens_conv_mixlik(m,x,s,v,pilik))/dens_conv_mixlik(m,x,s,v,pilik))
-  ismissing = (is.na(x) | apply(is.na(s),1,sum))
-  tmp[ismissing,]=rep(m$pi,l)/l
-  return(t(tmp))
-}
-
-
-
-#' @title compcdf_post_mixlik
-#' @description evaluate cdf of posterior distribution of beta at c
-#' @param m prior on beta, a mixture
-#' @param c location of evaluation
-#' @param betahat the data
-#' @param sebetahat the observed standard errors
-#' @param v degree of freedom of error distribution
-#' @param pilik mixture proportion
-#' @return it returns a (k*l) by n matrix
-#' @export
-compcdf_post_mixlik=function(m,c,betahat,sebetahat,v,pilik){
-  UseMethod("compcdf_post_mixlik")
-}
-#' @export
-compcdf_post_mixlik.default=function(m,c,betahat,sebetahat,v,pilik){
-  cdf=NULL
-  for (i in 1:dim(pilik)[2]){
-    cdf=rbind(cdf,pilik[,i]*compcdf_post(m,c,betahat,sebetahat[,i],v[i]))
-  }
-  cdf
-}
-
-cdf_post_mixlik = function(m,c,betahat,sebetahat,v,pilik){
-  UseMethod("cdf_post_mixlik")
-}
-cdf_post_mixlik.default=function(m,c,betahat,sebetahat,v,pilik){
-  colSums(comppostprob_mixlik2(m,betahat,sebetahat,v,pilik)*
-            compcdf_post_mixlik(m,c,betahat,sebetahat,v,pilik))
-}
-
-
-#' @title postmean_mixlik
-#' @description output posterior mean for beta for prior mixture m
-#' @param m mixture distribution
-#' @param betahat the data
-#' @param sebetahat the observed standard errors
-#' @param v degree of freedom of error distribution
-#' @param pilik mixture proportion
-#' @export
-#'
-postmean_mixlik = function(m, betahat,sebetahat,v,pilik){
-  UseMethod("postmean_mixlik")
-}
-postmean_mixlik.default = function(m,betahat,sebetahat,v,pilik){
-  colSums(comppostprob_mixlik2(m,betahat,sebetahat,v,pilik) * comp_postmean_mixlik(m,betahat,sebetahat,v,pilik))
-}
-
-
-#' @title postmean2_mixlik
-#' @description output posterior mean-squared value for beta for prior mixture m,given observations betahat, sebetahat, df v, from l-components mixture likelihood with mixture proportion pilik
-#' @param m mixture distribution
-#' @param betahat the data
-#' @param sebetahat the observed standard errors
-#' @param v degree of freedom of error distribution
-#' @param pilik mixture proportion
-#' @export
-postmean2_mixlik = function(m, betahat,sebetahat,v,pilik){
-  UseMethod("postmean2_mixlik")
-}
-#' @export
-postmean2_mixlik.default = function(m,betahat,sebetahat,v,pilik){
-  colSums(comppostprob_mixlik2(m,betahat,sebetahat,v,pilik) * comp_postmean2_mixlik(m,betahat,sebetahat,v,pilik))
-}
-
-#' @title postsd_mixlik
-#' @description output posterior sd for beta for prior mixture m
-#' @param m mixture distribution
-#' @param betahat the data
-#' @param sebetahat the observed standard errors
-#' @param v degree of freedom of error distribution
-#' @param pilik mixture proportion
-#' @export
-#'
-postsd_mixlik = function(m,betahat,sebetahat,v,pilik){
-  UseMethod("postsd_mixlik")
-}
-postsd_mixlik.default = function(m,betahat,sebetahat,v,pilik){
-  sqrt(postmean2_mixlik(m,betahat,sebetahat,v,pilik)-postmean_mixlik(m,betahat,sebetahat,v,pilik)^2)
-}
-
-
-#' @title comp_postmean2_mixlik
-#' @description output posterior mean-squared value for beta
-#' @param m mixture distribution
-#' @param betahat the data
-#' @param sebetahat the observed standard errors
-#' @param v degree of freedom of error distribution
-#' @param pilik mixture proportion
-#' @export
-comp_postmean2_mixlik = function(m,betahat,sebetahat,v,pilik){
-  UseMethod("comp_postmean2_mixlik")
-}
-#' @export
-comp_postmean2_mixlik.default = function(m,betahat,sebetahat,v,pilik){
-  comp_postsd_mixlik(m,betahat,sebetahat,v,pilik)^2 +
-    comp_postmean_mixlik(m,betahat,sebetahat,v,pilik)^2
-}
-
-
-#' @title comp_postmean_mixlik
-#' @description output posterior mean for beta for each component of
-#'     prior mixture m,given observations betahat, sebetahat, df v
-#'     from l-components mixture likelihood with mixture proportion
-#'     pilik
-#' @param m mixture distribution
-#' @param betahat the data
-#' @param sebetahat the observed standard errors
-#' @param v degree of freedom of error distribution
-#' @param pilik mixture proportion
-#' @export
-#'
-comp_postmean_mixlik=function(m,betahat,sebetahat,v,pilik){
-  UseMethod("comp_postmean_mixlik")
-}
-comp_postmean_mixlik.default=function(m,betahat,sebetahat,v,pilik){
-  mean=NULL
-  for (i in 1:dim(pilik)[2]){
-    mean=rbind(mean,comp_postmean(m,betahat,sebetahat[,i],v[i]))
-  }
-  return(mean)
-}
-
-
-#' @title comp_postsd_mixlik
-#'
-#' @description output posterior sd for beta for each component of
-#'     prior mixture m,given observations betahat, sebetahat, df v
-#'     from l-components mixture likelihood with mixture proportion
-#'     pilik
-#' @param m mixture distribution
-#' @param betahat the data
-#' @param sebetahat the observed standard errors
-#' @param v degree of freedom of error distribution
-#' @param pilik mixture proportion
-#' @export
-#'
-comp_postsd_mixlik=function(m,betahat,sebetahat,v,pilik){
-  UseMethod("comp_postsd_mixlik")
-}
-comp_postsd_mixlik.default=function(m,betahat,sebetahat,v,pilik){
-  sd=NULL
-  for (i in 1:dim(pilik)[2]){
-    sd=rbind(sd,comp_postsd(m,betahat,sebetahat[,i],v[i]))
-  }
-  return(sd)
-}
-
-
-############################### METHODS FOR unimix class ###########################
-
-#' @title Constructor for unimix class
-#'
-#' @description Creates an object of class unimix (finite mixture of
-#'     univariate uniforms)
-#'
-#' @details None
-#'
-#' @param pi vector of mixture proportions
-#' @param a vector of left hand ends of uniforms
-#' @param b vector of right hand ends of uniforms
-#'
-#' @return an object of class unimix
-#'
-#' @export
-#'
-#' @examples unimix(c(0.5,0.5),c(0,0),c(1,2))
-unimix = function(pi,a,b){
-  structure(data.frame(pi,a,b),class="unimix")
-}
-
-#' @export
-comp_cdf.unimix = function(m,y,lower.tail=TRUE){
-  vapply(y,stats::punif,m$a,min=m$a,max=m$b,lower.tail)
-}
-
-comp_sd.unimix = function(m){
-  (m$b-m$a)/sqrt(12)
-}
-
-#' @export
-comp_mean.unimix = function(m){
-  (m$a+m$b)/2
-}
-
-
-
-compdens.unimix = function(m,y,log=FALSE){
-  k=ncomp(m)
-  n=length(y)
-  d = matrix(rep(y,rep(k,n)),nrow=k)
-  return(matrix(stats::dunif(d, m$a, m$b, log),nrow=k))
-}
-
-#density of convolution of each component of a unif mixture with s*t_nu() at x
-# x an n-vector
-#return a k by n matrix
-compdens_conv.unimix = function(m,x,s,v, FUN="+"){
-  if(FUN!="+") stop("Error; compdens_conv not implemented for uniform with FUN!=+")
-  if(is.null(v)){
-    compdens= t(stats::pnorm(outer(x,m$a,FUN="-")/s)-stats::pnorm(outer(x,m$b,FUN="-")/s))/(m$b-m$a)
-    compdens[m$a==m$b,]=t(stats::dnorm(outer(x,m$a,FUN="-")/s)/s)[m$a==m$b,]
-  }
-  else{
-    compdens= t(stats::pt(outer(x,m$a,FUN="-")/s,df=v)-stats::pt(outer(x,m$b,FUN="-")/s,df=v))/(m$b-m$a)
-    compdens[m$a==m$b,]=t(stats::dt(outer(x,m$a,FUN="-")/s,df=v)/s)[m$a==m$b,]
-  }
-  return(compdens)
-}
-
-#log density of convolution of each component of a unif mixture with s*t_nu() at x
-# x an n-vector
-#return a k by n matrix
-log_compdens_conv.unimix = function(m,x,s,v, FUN="+"){
-  if(FUN!="+") stop("Error; log_compdens_conv not implemented for uniform with FUN!=+")
-  b = pmax(m$b,m$a) #ensure a<b
-  a = pmin(m$b,m$a)
-  if(is.null(v)){
-    lpa = stats::pnorm(outer(x,a,FUN="-")/s,log=TRUE)
-    lpb = stats::pnorm(outer(x,b,FUN="-")/s,log=TRUE)
-
-    lcompdens= t( lpa + log(1-exp(lpb-lpa)) ) - log(b-a)
-    lcompdens[a==b,]=t(stats::dnorm(outer(x,a,FUN="-")/s,log=TRUE) - log(s))[a==b,]
-  }
-  else{
-    lpa = stats::pt(outer(x,a,FUN="-")/s,df=v,log=TRUE)
-    lpb = stats::pt(outer(x,b,FUN="-")/s,df=v,log=TRUE)
-    lcompdens= t( lpa + log(1-exp(lpb-lpa)) ) -log(b-a)
-    lcompdens[a==b,]=
-      t(stats::dt(outer(x,a,FUN="-")/s,df=v,log=TRUE) - log(s))[a==b,]
-  }
-  return(lcompdens)
-}
-
-
-#' @export
-compcdf_post.unimix=function(m,c,betahat,sebetahat,v){
-  k = length(m$pi)
-  n=length(betahat)
-  tmp = matrix(1,nrow=k,ncol=n)
-  tmp[m$a > c,] = 0
-  subset = m$a<=c & m$b>c # subset of components (1..k) with nontrivial cdf
-  if(sum(subset)>0){
-  	if(is.null(v)){
-      pna = stats::pnorm(outer(betahat,m$a[subset],FUN="-")/sebetahat)
-      pnc = stats::pnorm(outer(betahat,rep(c,sum(subset)),FUN="-")/sebetahat)
-      pnb = stats::pnorm(outer(betahat,m$b[subset],FUN="-")/sebetahat)
-    }else{
-      pna = stats::pt(outer(betahat,m$a[subset],FUN="-")/sebetahat, df=v)
-      pnc = stats::pt(outer(betahat,rep(c,sum(subset)),FUN="-")/sebetahat, df=v)
-      pnb = stats::pt(outer(betahat,m$b[subset],FUN="-")/sebetahat, df=v)
-    }
-    tmp[subset,] = t((pnc-pna)/(pnb-pna))
-  }
-  subset = (m$a == m$b) #subset of components with trivial cdf
-  tmp[subset,]= rep(m$a[subset] <= c,n)
-  #Occasionally we would encounter issue such that in some entries pna[i,j]=pnb[i,j]=pnc[i,j]=0 or pna=pnb=pnc=1
-  #Those are the observations with significant betahat(small sebetahat), resulting in pnorm() return 1 or 0
-  #due to the thin tail property of normal distribution.(or t-distribution, although less likely to occur)
-  #Then R would be dividing 0 by 0, resulting  in NA values
-  #In practice, those observations would have 0 probability of belonging to those "problematic" components
-  #Thus any sensible value in [0,1] would not matter much, as they are highly unlikely to come from those
-  #components in posterior distribution.
-  #Here we simply assign the "naive" value as as (c-a)/(b-a)
-  #As the component pdf is rather smaller over the region.
-  tmpnaive=matrix(rep((c-m$a)/(m$b-m$a),length(betahat)),nrow=k,ncol=n)
-  tmp[is.nan(tmp)]= tmpnaive[is.nan(tmp)]
-  tmp
-}
-
-#' @title my_etruncnorm
-#' @description Compute expectation of truncated normal.
-#'
-#' @param a Left limit of distribution.
-#' @param b Right limit of distribution.
-#' @param mean The mean of the untruncated normal.
-#' @param sd The standard deviation of the untruncated normal.
-#' @export
-my_etruncnorm= function(a,b,mean=0,sd=1){
-  alpha = (a-mean)/sd
-  beta =  (b-mean)/sd
- #Flip the onese where both are positive, as the computations are more stable
-  #when both negative
-  flip = (alpha>0 & beta>0)
-  flip[is.na(flip)]=FALSE #deal with NAs
-  alpha[flip]= -alpha[flip]
-  beta[flip]=-beta[flip]
-
-  #Fix a bug of quoting the truncnorm package
-  #E(X|a<X<b)=a when a==b as a natural result
-  #while etruncnorm would simply return NaN,causing PosteriorMean also NaN
-  tmp1=etruncnorm(alpha,beta,0,1)
-  isequal=(alpha==beta)
-  tmp1[isequal]=alpha[isequal]
-
-  tmp= (-1)^flip * (mean+sd*tmp1)
-
-  max_alphabeta = ifelse(alpha<beta, beta,alpha)
-  max_ab = ifelse(alpha<beta,b,a)
-  toobig = max_alphabeta<(-30)
-  toobig[is.na(toobig)]=FALSE
-  tmp[toobig] = max_ab[toobig]
-  tmp
-}
-
-#' More about the truncated normal
-#' @inheritParams my_etruncnorm
-#' @export
-my_e2truncnorm= function(a,b,mean=0,sd=1){
-  alpha = (a-mean)/sd
-  beta =  (b-mean)/sd
-  #Flip the onese where both are positive, as the computations are more stable
-  #when both negative
-  flip = (alpha>0 & beta>0)
-  flip[is.na(flip)]=FALSE #deal with NAs
-  alpha[flip]= -alpha[flip]
-  beta[flip]=-beta[flip]
-
-  #Fix a bug of quoting the truncnorm package
-  #E(X|a<X<b)=a when a==b as a natural result
-  #while etruncnorm would simply return NaN,causing PosteriorMean also NaN
-  tmp1=etruncnorm(alpha,beta,0,1)
-  isequal=(alpha==beta)
-  tmp1[isequal]=alpha[isequal]
-  tmp= (-1)^flip * (mean+sd*tmp1)
-  # for the variance
-  # error report in vtruncnorm
-  # vtruncnorm(10,-10,0,1)
-  # vtruncnorm(-10,10,0,1)
-  # vtruncnorm(3,-3,0,1)
-  # vtruncnorm(-3,3,0,1)
-  # I am not sure smaller one should be put in the first or not
-  # vtruncnorm(-7,-8,0,1)
-  # vtruncnorm(-8,-7,0,1)
-  # vtruncnorm(7,8,0,1)
-  # vtruncnorm(8,7,0,1)
-  # vtruncnorm(-8,-9,0,1)
-  # vtruncnorm(-9,-10,0,1)
-  # maybe we should try ourselves according to some result
-  # https://people.sc.fsu.edu/~jburkardt/presentations/truncated_normal.pdf
-  # tmpvar = vtruncnorm(alpha,beta,0,1)
-  tmpvar = my_vtruncnorm(ifelse(alpha<beta,alpha,beta),ifelse(alpha<beta,beta,alpha),0,1)
-  # for the second moment
-  tmp2 = tmp^2 + tmpvar*sd^2
-  isequal=(a==b)
-  tmp2[isequal]=(a[isequal])^2
-
-  # if the truncate value is too big
-  max_alphabeta = ifelse(alpha<beta, beta,alpha)
-  max_ab = ifelse(alpha<beta,b,a)
-  # I think here, 8 or 7 is enough for this case. try the following:
-  toobig = max_alphabeta<(-20)
-  toobig[is.na(toobig)]=FALSE
-  tmp2[toobig] = (max_ab[toobig])^2
-  tmp2
-}
-#pnorm also have some problems......
-#stats::pnorm(7);stats::pnorm(8)
-#stats::pnorm(-7);stats::pnorm(-8)
-# but it is fine since we flip the sign if a and b are all positive in function my_e2truncnorm
-#' This version is better than trunvnorm package
-#'
-#' @inheritParams my_etruncnorm
-#' @export
-#'
-my_vtruncnorm = function(a,b,mean = 0, sd = 1){
-  a = ifelse(a== -Inf, -1e5,a)
-  b = ifelse(b== Inf, 1e5, b)
-  alpha = (a-mean)/sd
-  beta =  (b-mean)/sd
-  frac1 = (beta*stats::dnorm(beta,0,1) - alpha*stats::dnorm(alpha,0,1)) / (stats::pnorm(beta,0,1)-stats::pnorm(alpha,0,1) )
-  frac2 = (stats::dnorm(beta,0,1) - stats::dnorm(alpha,0,1)) / (stats::pnorm(beta,0,1)-stats::pnorm(alpha,0,1) )
-  truncnormvar = sd^2 * (1 - frac1 - frac2^2)
-  return(truncnormvar)
-}
-
-#note that with uniform prior, posterior is truncated normal, so
-#this is computed using formula for mean of truncated normal
-#' @export
-comp_postmean.unimix = function(m,betahat,sebetahat,v){
-#   k= ncomp(m)
-#   n=length(betahat)
-#   a = matrix(m$a,nrow=n,ncol=k,byrow=TRUE)
-#   b = matrix(m$b,nrow=n,ncol=k,byrow=TRUE)
-#   matrix(etruncnorm(a,b,betahat,sebetahat),nrow=k,byrow=TRUE)
-  #note: etruncnorm is more stable for a and b negative than positive
-  #so maybe use this, and standardize to make the whole more stable.
-
-  alpha = outer(-betahat, m$a,FUN="+")/sebetahat
-  beta = outer(-betahat, m$b, FUN="+")/sebetahat
-  if(is.null(v)){
-    tmp = betahat + sebetahat*my_etruncnorm(alpha,beta,0,1)
-  }else{
-  	tmp = betahat + sebetahat*my_etrunct(alpha,beta,v)
-  }
-  ismissing = is.na(betahat) | is.na(sebetahat)
-  tmp[ismissing,]= (m$a+m$b)/2
-  t(tmp)
-}
-
-# as for posterior mean, but compute posterior mean squared value
-#' @export
-comp_postmean2.unimix = function(m,betahat,sebetahat,v){
-  alpha = outer(-betahat, m$a,FUN="+")/sebetahat
-  beta = outer(-betahat, m$b, FUN="+")/sebetahat
-  if(is.null(v)){
-    tmp = betahat^2 + 2*betahat*sebetahat*my_etruncnorm(alpha,beta,0,1) + sebetahat^2*my_e2truncnorm(alpha,beta,0,1)
-  }else{
-    tmp = betahat^2 + 2*betahat*sebetahat*my_etrunct(alpha,beta,v) + sebetahat^2*my_e2trunct(alpha,beta,v)
-  }
-  ismissing = is.na(betahat) | is.na(sebetahat)
-  tmp[ismissing,]= (m$b^2+m$a*m$b+m$a^2)/3
-  t(tmp)
-}
-
-#not yet implemented!
-#just returns 0s for now
-comp_postsd.unimix = function(m,betahat,sebetahat,v){
-  k= ncomp(m)
-  n=length(betahat)
-  return(matrix(NA,nrow=k,ncol=n))
-#  return(sqrt(comp_postmean2(m,betahat,sebetahat,v)-comp_postmean(m,betahat,sebetahat,v)^2))
-}
-
-#' @title my_etrunct
-#' @description Compute expectation of truncated t, the result is from
-#'     the paper
-#'     "Moments of truncated Student-t distribution by Hea-Jung Kim"
-#'
-#' @param a left limit of distribution
-#' @param b right limit of distribution
-#' @param v degree of freedom of error distribution
-#' @export
-my_etrunct= function(a,b,v){
-  mult=ifelse(a>0 & b>0,-1,1) # calculations more stable for negative
-  #a and b, but in this case need to multiply result by -1
-  aa = ifelse(a>0 & b>0, -b, a)
-  bb = ifelse(a>0 & b>0, -a, b)
-
-  A = v+aa^2
- 	B = v+bb^2
-  F_a = stats::pt(aa,df=v)
-  F_b = stats::pt(bb,df=v)
-  lG=lgamma((v-1)/2)+(v/2)*log(v)-log(2*(F_b-F_a))-lgamma(v/2)-lgamma(1/2)
- 	G=exp(lG)
- 	ABpart=(A^(-(v-1)/2)-B^(-(v-1)/2))
-  tmp = ifelse(G==Inf & ABpart==0, my_etruncnorm(aa,bb),G*ABpart) #deal with extreme cases using normal
-  tmp = ifelse(aa==bb,aa,tmp) #deal with case a=b
-  return(mult*tmp)
-}
-# this is my_e2trunct is wrong function
-# my_e2trunct= function(a,b,v){
-#   A = v+a^2
-#   B = v+b^2
-#   F_a = stats::pt(a,df=v)
-#   F_b = stats::pt(b,df=v)
-#   lG=lgamma((v-1)/2)+(v/2)*log(v)-log(2*(F_b-F_a))-lgamma(v/2)-lgamma(1/2)
-#   G=exp(lG)
-#   ABpart = (a*A^(-(v-1)/2)-b*B^(-(v-1)/2))
-#   # for the second moment
-#   EY2 = v/(v-2) + G * ABpart
-#   #EY2 = ifelse(G==Inf & ABpart==0, my_e2truncnorm(a,b),EY2) #deal with extreme cases using normal
-#   EY2 = ifelse(G==Inf & abs(ABpart)<1e-20, my_e2truncnorm(a,b),EY2)
-#   # maybe we also need to deal with extreme case using normal, so I add a truncate normal later
-#   return(ifelse(a==b,a^2,EY2)) #deal with extreme case a=b
-# }
-
-# we propose a new my_e2trunct function depending on library("hypergeo")
-# D_const is a function that used in my_e2trunct, but not been used any more
-# D_const = function(A,B,v){
-#   f_1 = (A)/(beta(1/2,v/2) * sqrt(v+A^2))
-#   f_2 = hypergeo(1/2,1-v/2,3/2,A^2/(v+A^2))
-#   part_1 = f_1 * f_2
-#   f_1 = (B)/(beta(1/2,v/2) * sqrt(v+B^2))
-#   f_2 = hypergeo(1/2,1-v/2,3/2,B^2/(v+B^2))
-#   part_2 = f_1 * f_2
-#   output = part_1 - part_2
-#   return(output)
-# }
-# this function can be use as any moment calculation, but here we just use it as second moment.
-#' @title my_etrunct
-#' @description Compute second moment of the truncated t. The result is from the paper "Moments of truncated t and F distributions" by Saralees Nadarajah and Samuel Kotz.
-#' @param n is moment, the default is 2 which means second moment
-#' @param a left limit of distribution
-#' @param b right limit of distribution
-#' @param v degree of freedom of error distribution
-#' @export
-my_e2trunct = function(a,b,v,n=2){
-  if(v<=2){warning("my_e2trunct known to be unstable for degrees of freedom v<=2; proceed with caution")}
-  aa = ifelse(a>0 & b>0, -b, a)   # calculations more stable for negative
-  bb = ifelse(a>0 & b>0, -a, b)  #a and b, because involve cdf(a)-cdf(b)
-  a=aa; b=bb; # so switch them where necessary
-
-  # deal with infinity case
-  a = ifelse(a< (-1e6),-1e6,a)
-  b = ifelse(b> (1e6), 1e6, b)
-
-  # deal with extreme case, use normal
-  # this is just for second moment
-  if(v >= 1e5){
-    return(my_e2truncnorm(a,b))
-  }
-  B = a
-  A = b
-  # D = D_const(A,B,v)
-  D = stats::pt(A,df = v) - stats::pt(B,df = v)
-  f_1 = 1/((n+1)*sqrt(v)*beta(v/2,1/2)*D)
-  f_2 = A^(n+1) * hypergeo::hypergeo((1+v)/2,(1+n)/2,(3+n)/2,-A^2/v) - B^(n+1) * hypergeo::hypergeo((1+v)/2,(1+n)/2,(3+n)/2,-B^2/v)
-  output = f_1 * f_2
-
-  # deal with same limits case
-  output= ifelse(a==b,a^n,output)
-  #output = ifelse(Im(output)==0,Re(output),output)
-  return(Re(output))
-}
-
-############################### METHODS FOR igmix class ###########################
-
-#' @title Constructor for igmix class
-#'
-#' @description Creates an object of class igmix (finite mixture of
-#'     univariate inverse-gammas)
-#'
-#' @details None
-#'
-#' @param pi vector of mixture proportions
-#' @param alpha vector of shape parameters
-#' @param beta vector of rate parameters
-#'
-#' @return an object of class igmix
-#'
-#' @export
-#'
-#' @examples igmix(c(0.5,0.5),c(1,1),c(1,2))
-#'
-igmix = function(pi,alpha,beta){
-  structure(data.frame(pi,alpha,beta),class="igmix")
-}
-
-comp_sd.igmix = function(m){
-  m$beta/(m$alpha-1)/sqrt(m$alpha-2)
-}
-
-#' @export
-comp_mean.igmix = function(m){
-  m$beta/(m$alpha-1)
-}
-
-compdens.igmix = function(m,y,log=FALSE){
-  k=ncomp(m)
-  n=length(y)
-  d = matrix(rep(y,rep(k,n)),nrow=k)
-  return(matrix(dgamma(1/d, shape=m$alpha, rate=outer(m$beta,1/y^2),log),nrow=k))
-}
-
-#density of product of each component of a inverse-gamma mixture with Gamma(v/2,v/2) at s
-# s an n-vector at which density is to be evaluated
-#return a k by n matrix
-compdens_conv.igmix = function(m,x,s,v,FUN="+"){
-  k=ncomp(m)
-  n=length(s)
-  dens = t(exp(v/2*log(v/2)-lgamma(v/2)
-               +(v/2-1)*outer(log(s^2),rep(1,k))
-               +outer(rep(1,n),m$alpha*log(m$beta)-lgamma(m$alpha)+lgamma(m$alpha+v/2))
-               -outer(rep(1,n),m$alpha+v/2)*log(outer(v/2*s^2,m$beta,FUN="+"))))
-  return(dens)
-
-}
-
-#' @export
-comp_cdf.igmix = function(m,y,lower.tail=TRUE){
-  vapply(y,pigamma,m$alpha,m$alpha,m$beta,lower.tail)
-}
-
-
-#' @export
-compcdf_post.igmix=function(m,c,betahat,sebetahat,v){
-  #compute posterior shape (alpha1) and rate (beta1)
-  alpha1 = m$alpha+v/2
-  beta1 = outer(m$beta,v/2*sebetahat^2,FUN="+")
-  ismissing = is.na(sebetahat)
-  beta1[,ismissing]=m$beta
-  return(t(pigamma(c,alpha1,beta1)))
-}
-
-
-#' @export
-comp_postmean.igmix = function(m,betahat,sebetahat,v){
-  k = length(m$pi)
-  n=length(sebetahat)
-  tmp=outer(v/2*sebetahat^2,m$beta,FUN="+")/outer(rep(1,n),m$alpha+v/2-1)
-  ismissing = is.na(sebetahat)
-  tmp[ismissing,]=m$beta/(m$alpha-1) #return prior mean when missing data
-  t(tmp)
-}
-
-
-#' @export
-comp_postsd.igmix = function(m,betahat,sebetahat,v){
-  k = length(m$pi)
-  n=length(sebetahat)
-  alpha1 = outer(rep(1,n),m$alpha+v/2-1)
-  beta1 = outer(v/2*sebetahat^2,m$beta,FUN="+")
-  return(t(beta1/(alpha1-1)/sqrt(alpha1-2)))
-}
-
-#' @export
-compdens.igmix = function(m,y,log=FALSE){
-  k=ncomp(m)
-  n=length(y)
-  d = matrix(rep(y,rep(k,n)),nrow=k)
-  ig_dens=matrix(densigamma(d, m$alpha, m$beta),nrow=k)
-  if(log==TRUE){ig_dens=log(ig_dens)}
-  return(ig_dens)
-}
