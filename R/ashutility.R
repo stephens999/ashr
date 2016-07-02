@@ -136,42 +136,14 @@ get_pi0 = function(a){
 
 #' @title Compute loglikelihood for data from ash fit
 #'
-#' @description Return the log-likelihood of the data betahat, with
-#'     standard errors betahatsd, for a given g() prior on beta, or an
-#'     ash object containing that
+#' @description Return the log-likelihood of the data for a given g() prior 
 #'
 #' @param g the fitted g, or an ash object containing g
-#' @param data details depend on model (in normal case is a list(x,s,df))
-#' @param model indicates whether you want the likelihood under the EE
-#'     or ET model
-#' @param alpha a scalar performing transformation on betahat and
-#'     sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~
-#'     g()},and eqn{betahat_j / s_j^alpha ~
-#'     N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When
-#'     \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have
-#'     the ET model. \eqn{alpha} should be in between 0 and 1,
-#'     inclusively. Default is alpha=0.
-#' @details See example in CompareBetahatvsZscoreAnalysis.rmd
+#' @param data a data object, see set_data
 #'
 #' @export
-#'
-calc_loglik = function(g,data,model=c("EE","ET"),alpha=0){
-  betahat = data$x
-  betahatsd = data$s
-  df = data$v
-
-  if(missing(alpha)){
-    model = match.arg(model)
-    if(class(g)=="ash" && g$model != model){
-      warning("Model used to fit ash does not match model used to compute loglik! Probably you have made a mistake!")
-    }
-    if(model=="ET"){ alpha=1} else {alpha=0}
-  }
-
-  if(class(g)=="ash"){g = g$fitted.g} #extract g object from ash object if ash object passed
-
-  data = list(x=betahat/(betahatsd^alpha),s=betahatsd^(1-alpha),v=df)
-  return(loglik_conv(g,data)-alpha*sum(log(betahatsd)))
+calc_loglik = function(g,data){
+  sum(calc_vloglik(g,data))
 }
 
 
@@ -180,59 +152,21 @@ calc_loglik = function(g,data,model=c("EE","ET"),alpha=0){
 #' @description Return the log-likelihood of the data betahat, with
 #'     standard errors betahatsd, under the null that beta==0
 #'
-#' @param betahat the data
-#' @param betahatsd the observed standard errors
-#' @param df appropriate degrees of freedom for (t) distribution of
-#'     betahat/sebetahat
-#' @param model indicates whether you want the likelihood under the EE
-#'     or ET model
-#' @param alpha a scalar performing transformation on betahat and
-#'     sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~
-#'     g()},and eqn{betahat_j / s_j^alpha ~
-#'     N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When
-#'     \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have
-#'     the ET model. \eqn{alpha} should be in between 0 and 1,
-#'     inclusively. Default is alpha=0.
+#' @param data a data object; see set_data
 #'
 #' @export
-#'
-#'
-calc_null_loglik = function(data,model=c("EE","ET"),alpha=0){
-  betahat = data$x
-  betahatsd = data$s
-  df=data$v
-  if(is.null(df)){return(sum(-log(betahatsd) + stats::dnorm(betahat/betahatsd,log=TRUE)))}
-  else{return(sum(-log(betahatsd) + stats::dt(betahat/betahatsd,df,log=TRUE)))}
-  #g=unimix(1,0,0)
-  #return(calc_loglik(g,betahat,betahatsd,df,model,alpha))
+calc_null_loglik = function(data){
+  sum(calc_null_vloglik(data))
 }
 
 #' @title Compute loglikelihood ratio for data from ash fit
 #'
-#' @description Return the log-likelihood ratio of the data betahat,
-#'     with standard errors betahatsd, for a given g() prior on beta,
-#'     or an ash object containing that, vs the null that g() is point
-#'     mass on 0
+#' @description Return the log-likelihood ratio of the data for a given g() prior 
 #'
-#' @param g the fitted g, or an ash object containing g
-#' @param betahat the data
-#' @param betahatsd the observed standard errors
-#' @param df appropriate degrees of freedom for (t) distribution of
-#'     betahat/sebetahat
-#' @param model indicates whether you want the likelihood under the EE
-#'     or ET model
-#' @param alpha a scalar performing transformation on betahat and
-#'     sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~
-#'     g()},and eqn{betahat_j / s_j^alpha ~
-#'     N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When
-#'     \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have
-#'     the ET model. \eqn{alpha} should be in between 0 and 1,
-#'     inclusively. Default is alpha=0.
-#' @details See example in CompareBetahatvsZscoreAnalysis.rmd
-#'
+#' @inheritParams calc_loglik
 #' @export
-calc_logLR = function(g,data,model=c("EE","ET"),alpha=0){
-  return(calc_loglik(g,data,model,alpha) - calc_null_loglik(data,model,alpha))
+calc_logLR = function(g,data){
+  return(calc_loglik(g,data) - calc_null_loglik(data))
 }
 
 #' @title Compute vector of loglikelihood for data from ash fit
@@ -241,77 +175,35 @@ calc_logLR = function(g,data,model=c("EE","ET"),alpha=0){
 #'     betahat, with standard errors betahatsd, for a given g() prior
 #'     on beta, or an ash object containing that
 #'
-#' @param g the fitted g, or an ash object containing g
-#' @param betahat the data
-#' @param betahatsd the observed standard errors
-#' @param df appropriate degrees of freedom for (t) distribution of
-#'     betahat/sebetahat
-#' @param model indicates whether you want the likelihood under the EE
-#'     or ET model
-#' @param alpha a scalar performing transformation on betahat and
-#'     sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~
-#'     g()},and eqn{betahat_j / s_j^alpha ~
-#'     N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When
-#'     \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have
-#'     the ET model. \eqn{alpha} should be in between 0 and 1,
-#'     inclusively. Default is alpha=0.
-#' @details See example in CompareBetahatvsZscoreAnalysis.rmd
+#' @inheritParams calc_loglik
 #'
 #' @export
 #'
-calc_vloglik = function(g,data,model=c("EE","ET"),alpha=0){
-  betahat = data$x
-  betahatsd = data$s
-  df=data$v
-  
-
-  if(missing(alpha)){
-    model = match.arg(model)
-    if(class(g)=="ash" && g$model != model){
-      warning("Model used to fit ash does not match model used to compute loglik! Probably you have made a mistake!")
+calc_vloglik = function(g,data){
+  if(class(g)=="ash"){
+    if(g$alpha != data$alpha){
+      warning("Model (alpha value) used to fit ash does not match alpha in data! Probably you have made a mistake!")
     }
-    if(model=="ET"){ alpha=1
-    } else {alpha=0}
+    if(class(g)=="ash"){g = g$fitted.g} #extract g object from ash object if ash object passed
   }
-
-  if(class(g)=="ash"){g = g$fitted.g} #extract g object from ash object if ash object passed
-
-  data = list(x=betahat/(betahatsd^alpha),s=betahatsd^(1-alpha),v=df)
-  return(log(dens_conv(g,data)- alpha*sum(log(betahatsd))))
+  return(log(dens_conv(g,data))- data$alpha*(log(data$s_orig)))
 }
 
 
 #' @title Compute vector of loglikelihood for data under null that all
 #'     beta are 0
 #'
-#' @description Return the vector of log-likelihoods of the data
-#'     betahat, with standard errors betahatsd, under the null that
-#'     beta==0
+#' @description Return the vector of log-likelihoods of the data points under the null
 #'
-#' @param betahat the data
-#' @param betahatsd the observed standard errors
-#' @param df appropriate degrees of freedom for (t) distribution of
-#'     betahat/sebetahat
-#' @param model indicates whether you want the likelihood under the EE
-#'     or ET model
-#' @param alpha a scalar performing transformation on betahat and
-#'     sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~
-#'     g()},and eqn{betahat_j / s_j^alpha ~
-#'     N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When
-#'     \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have
-#'     the ET model. \eqn{alpha} should be in between 0 and 1,
-#'     inclusively. Default is alpha=0.
+#' @inheritParams calc_null_loglik
 #'
 #' @export
-#'
-#'
-calc_null_vloglik = function(data,model=c("EE","ET"),alpha=0){
-  betahat = data$x
-  betahatsd = data$s
-  df=data$v
-  if(is.null(df)){return(-log(betahatsd) + stats::dnorm(betahat/betahatsd,log=TRUE))}
-  else{return(-log(betahatsd) + stats::dt(betahat/betahatsd,df,log=TRUE))}
-
+calc_null_vloglik = function(data){
+  if(is.null(data$v)){
+    return(stats::dnorm(data$x,sd = data$s,log=TRUE)-data$alpha*log(data$s_orig))
+  } else{
+    return(dtgen(data$x, sd=data$s,df=data$v,log=TRUE)-data$alpha*log(data$s_orig))
+  }
 }
 
 #' @title Compute vector of loglikelihood ratio for data from ash fit
@@ -321,25 +213,11 @@ calc_null_vloglik = function(data,model=c("EE","ET"),alpha=0){
 #'     on beta, or an ash object containing that, vs the null that g()
 #'     is point mass on 0
 #'
-#' @param g the fitted g, or an ash object containing g
-#' @param betahat the data
-#' @param betahatsd the observed standard errors
-#' @param df appropriate degrees of freedom for (t) distribution of
-#'     betahat/sebetahat
-#' @param model indicates whether you want the likelihood under the EE
-#'     or ET model
-#' @param alpha a scalar performing transformation on betahat and
-#'     sebetahat, such that the model is \eqn{\beta_j / s_j^alpha ~
-#'     g()},and eqn{betahat_j / s_j^alpha ~
-#'     N(0,(sebetahat^(1-alpha))^2) or student t distribution}. When
-#'     \eqn{alpha=0} we have the EE model, when \eqn{alpha=1}, we have
-#'     the ET model. \eqn{alpha} should be in between 0 and 1,
-#'     inclusively. Default is alpha=0.
-#' @details See example in CompareBetahatvsZscoreAnalysis.rmd
+#' @inheritParams calc_loglik
 #'
 #' @export
-calc_vlogLR = function(g,data,model=c("EE","ET"),alpha=0){
-  return(calc_vloglik(g,data,model,alpha) - calc_null_vloglik(data,model,alpha))
+calc_vlogLR = function(g,data){
+  return(calc_vloglik(g,data) - calc_null_vloglik(data))
 }
 
 
@@ -773,7 +651,7 @@ ashm=function(betahat,sebetahat,
 }
 
 
-#' @title Multi-Mode Adaptive Shrinkage function
+#' @title Non-zero-mode Adaptive Shrinkage function
 #'
 #' @description This is a wrapper function that takes a grid value of
 #'     \eqn{mu} and then consider the model \eqn{betahat_j - mu ~
@@ -807,7 +685,7 @@ ashm=function(betahat,sebetahat,
 #'     computation using number of CPU cores on the current host.
 #' @param ... Further arguments to be passed to \code{\link{ash}}.
 #'
-#' @return ashm returns a list of objects \item{beta.ash}{the best
+#' @return ashn returns a list of objects \item{beta.ash}{the best
 #'     fitted ash object} \item{BestMode}{the best fitted mode, note
 #'     that all models are fitted with betahat subtracting the
 #'     corresponding mode} \item{loglikvector}{the vector of

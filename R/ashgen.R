@@ -28,5 +28,6 @@ ptgen = function(q, df, ncp, mean=0, sd=1, lower.tail=TRUE, log.p=FALSE){
 #' @return The density.
 #' @export
 dtgen = function(x, df, ncp, mean=0, sd=1, log=FALSE){
-  return(dt((x-mean)/sd, df=df, ncp=ncp, log=log)/sd)
+  d = dt((x-mean)/sd, df=df, ncp=ncp, log=log)
+  if(log){return(d-log(sd))} else{return(d/sd)}
 }

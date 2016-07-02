@@ -248,13 +248,13 @@ ash.workhorse = function(betahat,sebetahat,
   optmethod   = match.arg(optmethod)
   model       = match.arg(model)
   prior       = match.arg(prior)
-  if(model == "ET"){stop("ET model not yet properly dealt with in this branch; need
-                         to think about impact of introducing data to likelihood computations")}
+ 
+  if(model == "EE"){alpha=0} else if(model == "ET"){alpha=1}
   
   # Set optimization method, and defaults for optimization control
   optmethod = set_optmethod(optmethod,VB,cxx)  
   check_args(mixcompdist,df,prior,optmethod,gridmult,sebetahat,betahat)
-  data = set_data(betahat, sebetahat, df, model)
+  data = set_data(betahat, sebetahat, df, alpha)
   control = set_control(control, length(data$x))
   
   ##2. Generating mixture distribution
@@ -329,10 +329,8 @@ ash.workhorse = function(betahat,sebetahat,
     #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
     PosteriorMean[exclude] = calc_mixmean(pi.fit$g)
     PosteriorSD[exclude] = calc_mixsd(pi.fit$g)
-    if(model=="ET"){
-      PosteriorMean = PosteriorMean * sebetahat
-      PosteriorSD= PosteriorSD * sebetahat
-    }
+    PosteriorMean = PosteriorMean * (sebetahat^alpha)
+    PosteriorSD= PosteriorSD * (sebetahat^alpha)
   }
   if (outputlevel > 1) {
     ZeroProb = rep(0,length = n)
@@ -381,8 +379,8 @@ ash.workhorse = function(betahat,sebetahat,
     if((outputlevel>0 & is.null(df)) | outputlevel>2 ){PosteriorMean = PosteriorMean + nonzeromode.fit$nonzeromode}
   }
 
-  loglik = calc_loglik(pi.fit$g, data, model)
-  logLR = loglik - calc_null_loglik(data,model)
+  loglik = calc_loglik(pi.fit$g, data)
+  logLR = loglik - calc_null_loglik(data)
   ##5. Returning the result
 
   result = list(fitted.g=pi.fit$g,call=match.call())
@@ -391,7 +389,7 @@ ash.workhorse = function(betahat,sebetahat,
   
   if (outputlevel>1) {result=c(result,list(PositiveProb = PositiveProb, NegativeProb = NegativeProb,
                 ZeroProb = ZeroProb,lfsr = lfsr,lfdr = lfdr, qvalue = qvalue, svalue=svalue,
-                 excludeindex = which(exclude),model = model, optmethod =optmethod))}
+                 excludeindex = which(exclude), alpha=alpha, optmethod =optmethod))}
   if (outputlevel > 1.5){result = c(result,list(data= list(betahat = betahat, sebetahat = sebetahat,df=df)))}
   if (outputlevel >2) {result=c(result,list(fit=pi.fit))}
   if (outputlevel >3) {result = c(result, flash.data=list(flash.data))}
@@ -686,24 +684,4 @@ VB.update = function(matrix_lik,pipost,prior){
   classprob = classprob/rowSums(classprob) # n by k matrix
   B = sum(classprob*log(avgpipost*matrix_lik),na.rm=TRUE) - diriKL(prior,pipost) #negative free energy
   return(list(classprob=classprob,B=B))
-}
-
-#Helper Function for nonzeromodeEM, from MATLAB Package
-tic <- function(gcFirst = TRUE, type=c("elapsed", "user.self", "sys.self"))
-{
-  type <- match.arg(type)
-  assign(".type", type, envir=baseenv())
-  if(gcFirst) gc(FALSE)
-  tic <- proc.time()[type]
-  assign(".tic", tic, envir=baseenv())
-  invisible(tic)
-}
-
-toc <- function()
-{
-  type <- get(".type", envir=baseenv())
-  toc <- proc.time()[type]
-  tic <- get(".tic", envir=baseenv())
-  print(toc - tic)
-  invisible(toc)
 }

@@ -11,8 +11,8 @@ test_that("normalmix functions behave as expected", {
 
 
 test_that("exp(log_compdens_conv) gives same results as compdens_conv", {
-  g = unimix(c(0.5,0.5),c(1,2),c(0,0))
-  gn = normalmix(c(0.5,0.5),c(0,0),c(0.1,1))
+  g = unimix(c(0.1,0.45,0.45),c(0,1,2),c(0,0,0))
+  gn = normalmix(c(0.1,0.45,0.45),c(0,0,0),c(0,0.1,1))
 #  gig = igmix(c(0.5,0.5),c(1,2),c(3,4))
   x=c(-10,2)
   s = c(1,2)
@@ -20,6 +20,10 @@ test_that("exp(log_compdens_conv) gives same results as compdens_conv", {
   data2 = set_data(x,s,df=rep(2,2))
   expect_equal(compdens_conv(g, data), exp(log_compdens_conv(g,data)))
   expect_equal(compdens_conv(g, data2), exp(log_compdens_conv(g,data2)))
+  expect_equal(compdens_conv(gn, data), exp(log_compdens_conv(gn,data)))
+  
+  data = set_data(x,s,df=NULL,alpha = 1)
+  expect_equal(compdens_conv(g, data), exp(log_compdens_conv(g,data)))
   expect_equal(compdens_conv(gn, data), exp(log_compdens_conv(gn,data)))
 #  expect_equal(compdens_conv(gig, data2), exp(log_compdens_conv(gig,data2)))
 })

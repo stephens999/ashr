@@ -75,17 +75,31 @@ check_args = function(mixcompdist,df,prior,optmethod,gridmult,sebetahat,betahat)
 
 
 
-# set up data from inputs
-set_data = function(betahat, sebetahat, df, model="EE"){
+#' Takes raw data and sets up data object for use by ash
+#' 
+#' @details The data object stores both the data, and details of the model to be used for the data.
+#' For example, in the generalized version of ash the cdf and pdf of the likelihood are
+#' stored here.
+#' 
+#' @param betahat vector of betahats
+#' @param sebetahat vector of standard errors
+#' @param df degree of freedom to assume (for t likelihood)
+#' @param alpha specifies value of alpha to use (model is for betahat/sebetahat^alpha | sebetahat)
+#' 
+#' @return data object (list) 
+#' @export
+set_data = function(betahat, sebetahat, df, alpha=0){
   # Dealing with precise input of betahat, currently we exclude them from the EM algorithm
   if(length(sebetahat)==1L){sebetahat = rep(sebetahat, length(betahat))}
   exclude = (sebetahat==0 | sebetahat == Inf | is.na(betahat) | is.na(sebetahat))
   
   data=list()
-  data$x = betahat[!exclude]
-  data$s = sebetahat[!exclude]
+  data$x = betahat[!exclude]/(sebetahat[!exclude]^alpha)
+  data$s = sebetahat[!exclude]^(1-alpha)
   data$v = df
   data$exclude = exclude
+  data$alpha=alpha
+  data$s_orig = sebetahat[!exclude]
   
   if(is.null(df)){
     data$cdfFUN = pnorm
@@ -97,10 +111,5 @@ set_data = function(betahat, sebetahat, df, model="EE"){
     data$FUNargs = list(mean = 0, sd = 1, df=df)
   }
   
-  
-  if (model == "ET") {  # for ET model, standardize
-    data$x = betahat/sebetahat
-    data$s = rep(1, length(betahat))
-  }
   return(data)
 }

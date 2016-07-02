@@ -77,7 +77,7 @@ log_compdens_conv.unimix = function(m,data){
   lpb = do.call(data$cdfFUN, c(list(outer(data$x,b,FUN="-")/data$s), data$FUNargs,log=TRUE))
    
   lcompdens = t(lpa + log(1-exp(lpb-lpa))) - log(b-a)
-  lcompdens[a==b,] = t(log(do.call(data$pdfFUN, c(list(outer(data$x,b,FUN="-")),data$FUNargs))))[a==b,]
+  lcompdens[a==b,] = t(log(do.call(data$pdfFUN, c(list(outer(data$x,b,FUN="-")/data$s),data$FUNargs)))-log(data$s))[a==b,]
   return(lcompdens)
 }
 

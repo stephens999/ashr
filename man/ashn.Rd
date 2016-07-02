@@ -2,7 +2,7 @@
 % Please edit documentation in R/ashutility.R
 \name{ashn}
 \alias{ashn}
-\title{Multi-Mode Adaptive Shrinkage function}
+\title{Non-zero-mode Adaptive Shrinkage function}
 \usage{
 ashn(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal",
   "+uniform", "-uniform"), df = NULL, mu = 20, ncores = FALSE, ...)
@@ -34,7 +34,7 @@ computation using number of CPU cores on the current host.}
 \item{...}{Further arguments to be passed to \code{\link{ash}}.}
 }
 \value{
-ashm returns a list of objects \item{beta.ash}{the best
+ashn returns a list of objects \item{beta.ash}{the best
     fitted ash object} \item{BestMode}{the best fitted mode, note
     that all models are fitted with betahat subtracting the
     corresponding mode} \item{loglikvector}{the vector of
