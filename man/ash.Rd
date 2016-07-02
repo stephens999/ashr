@@ -40,7 +40,6 @@ ash returns an object of \code{\link[base]{class}} "ash", a list with some or al
 \item{lfdr}{A vector of estimated local false discovery rate}
 \item{qvalue}{A vector of q values}
 \item{call}{a call in which all of the specified arguments are specified by their full names}
-\item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
 \item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T stats (ET) has been used}
 \item{optmethod}{the optimization method used}
 \item{data}{a list consisting the input betahat and sebetahat (only included if outputlevel>2)}

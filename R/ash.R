@@ -1,7 +1,3 @@
-# avoid "no visible binding for global variable" note in CRAN check
-# These variables are actually defined in process_args
-if(getRversion() >= "2.15.1") utils::globalVariables(c("completeobs","controlinput","sebetahat.orig","excludeindex"))
-
 #' @useDynLib ashr
 #' @import truncnorm SQUAREM doParallel pscl Rcpp foreach parallel
 #
@@ -47,7 +43,6 @@ if(getRversion() >= "2.15.1") utils::globalVariables(c("completeobs","controlinp
 #' \item{lfdr}{A vector of estimated local false discovery rate}
 #' \item{qvalue}{A vector of q values}
 #' \item{call}{a call in which all of the specified arguments are specified by their full names}
-#' \item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
 #' \item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T stats (ET) has been used}
 #' \item{optmethod}{the optimization method used}
 #' \item{data}{a list consisting the input betahat and sebetahat (only included if outputlevel>2)}
@@ -176,7 +171,6 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' \item{qvalue}{A vector of q values}
 #' \item{svalue}{A vector of s values}
 #' \item{call}{a call in which all of the specified arguments are specified by their full names}
-#' \item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
 #' \item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T stats (ET) has been used}
 #' \item{optmethod}{the optimization method used}
 #' \item{data}{a list consisting the input betahat and sebetahat (only included if outputlevel>2)}
@@ -228,7 +222,7 @@ ash.workhorse = function(betahat,sebetahat,
                          optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
                          df=NULL,randomstart=FALSE,
                          nullweight=10,nonzeromode=FALSE,
-                         pointmass = NULL,
+                         pointmass = TRUE,
                          prior=c("nullbiased","uniform","unit"),
                          mixsd=NULL, gridmult=sqrt(2),
                          outputlevel=2,
@@ -239,22 +233,30 @@ ash.workhorse = function(betahat,sebetahat,
                          model=c("EE","ET"),
                          control=list()
 ){
-
+  if(!missing(pointmass) & !missing(method))
+    stop("Specify either method or pointmass, not both")
+  if(!missing(prior) & !missing(method))
+    stop("Specify either method or prior, not both")
+  if(!missing(method)){
+    method = match.arg(method)
+    if (method == "shrink"){pointmass =FALSE; prior="uniform"}
+    if (method == "fdr"){pointmass =TRUE; prior= "nullbiased"}
+  }
+  
   ##1.Handling Input Parameters
-
-  method      = match.arg(method)
   mixcompdist = match.arg(mixcompdist)
   optmethod   = match.arg(optmethod)
   model       = match.arg(model)
-
-
-  # Capture all arguments into a list
-  oldargs = mget(names(formals()), sys.frame(sys.nframe()))
-  newargs = process_args(oldargs)
-
-  # Assign each argument in returned list to a variable used by the code next
-  for (i in 1:length(newargs)) assign(names(newargs)[i], newargs[[i]])
-
+  prior       = match.arg(prior)
+  if(model == "ET"){stop("ET model not yet properly dealt with in this branch; need
+                         to think about impact of introducing data to likelihood computations")}
+  
+  # Set optimization method, and defaults for optimization control
+  optmethod = set_optmethod(optmethod,VB,cxx)  
+  check_args(mixcompdist,df,prior,optmethod,gridmult,sebetahat,betahat)
+  data = set_data(betahat, sebetahat, df, model)
+  control = set_control(control, length(data$x))
+  
   ##2. Generating mixture distribution
 
   if(fixg & missing(g)){stop("if fixg=TRUE then you must specify g!")}
@@ -268,28 +270,23 @@ ash.workhorse = function(betahat,sebetahat,
   } else {
     if(is.null(mixsd)){
       if(nonzeromode){
+        stop("not dealt with nonzeromode yet in this branch")
         mixsd = autoselect.mixsd(betahat[completeobs]-mean(betahat[completeobs]),sebetahat[completeobs],gridmult)
         if(pointmass){ mixsd = c(0,mixsd) }
-        nonzeromode.fit=nonzeromodeEM(betahat[completeobs], sebetahat[completeobs], mixsd=mixsd, mixcompdist=mixcompdist,df=df,control= controlinput)
+        nonzeromode.fit=nonzeromodeEM(betahat[completeobs], sebetahat[completeobs], mixsd=mixsd, mixcompdist=mixcompdist,df=df,control= control)
         betahat[completeobs]= betahat[completeobs] - nonzeromode.fit$nonzeromode
       }
-      else if(nonzeromode & !is.null(df)){
-        # stop("Error: Nonzero mean only implemented for df=NULL")
-      }
-      mixsd = autoselect.mixsd(betahat[completeobs],sebetahat[completeobs],gridmult)
+      mixsd = autoselect.mixsd(data,gridmult)
     }
     if(pointmass){
       mixsd = c(0,mixsd)
     }
-
-
     null.comp = which.min(mixsd) #which component is the "null"
 
     k = length(mixsd)
     prior = setprior(prior,k,nullweight,null.comp)
-    pi = initpi(k,n,null.comp,randomstart)
-
-
+    pi = initpi(k,length(data$x),null.comp,randomstart)
+    
     if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform"))) stop("Error: invalid type of mixcompdist")
     if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),mixsd)
     if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)
@@ -315,8 +312,7 @@ ash.workhorse = function(betahat,sebetahat,
 
   ##3. Fitting the mixture
   if(!fixg){
-    pi.fit=estimate_mixprop(betahat[completeobs],sebetahat[completeobs],g,prior,null.comp=null.comp,
-               optmethod=optmethod,df=df,control=controlinput)
+    pi.fit=estimate_mixprop(data,g,prior,optmethod=optmethod,control=control)
   } else {
     pi.fit = list(g=g)
   }
@@ -324,26 +320,29 @@ ash.workhorse = function(betahat,sebetahat,
   ##4. Computing the posterior
 
   n = length(betahat)
-  complete_data = list(x=betahat[completeobs],s=sebetahat[completeobs],v=df)
-  
+  exclude = data$exclude
   if ((outputlevel>0 & is.null(df)) | outputlevel>2 ) {
     PosteriorMean = rep(0,length = n)
     PosteriorSD = rep(0,length = n)
-    PosteriorMean[completeobs] = postmean(pi.fit$g,complete_data)
-    PosteriorSD[completeobs] = postsd(pi.fit$g,complete_data)
+    PosteriorMean[!exclude] = postmean(pi.fit$g,data)
+    PosteriorSD[!exclude] = postsd(pi.fit$g,data)
     #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
-    PosteriorMean[!completeobs] = calc_mixmean(pi.fit$g)
-    PosteriorSD[!completeobs] = calc_mixsd(pi.fit$g)
+    PosteriorMean[exclude] = calc_mixmean(pi.fit$g)
+    PosteriorSD[exclude] = calc_mixsd(pi.fit$g)
+    if(model=="ET"){
+      PosteriorMean = PosteriorMean * sebetahat
+      PosteriorSD= PosteriorSD * sebetahat
+    }
   }
   if (outputlevel > 1) {
     ZeroProb = rep(0,length = n)
     NegativeProb = rep(0,length = n)
-    ZeroProb[completeobs] = 
-      colSums(comppostprob(pi.fit$g,complete_data)[comp_sd(pi.fit$g) ==0,,drop = FALSE])
-    NegativeProb[completeobs] = cdf_post(pi.fit$g, 0, complete_data) - ZeroProb[completeobs]
+    ZeroProb[!exclude] = 
+      colSums(comppostprob(pi.fit$g,data)[comp_sd(pi.fit$g) ==0,,drop = FALSE])
+    NegativeProb[!exclude] = cdf_post(pi.fit$g, 0, data) - ZeroProb[!exclude]
     #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
-    ZeroProb[!completeobs] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g) == 0])
-    NegativeProb[!completeobs] = mixcdf(pi.fit$g,0)
+    ZeroProb[exclude] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g) == 0])
+    NegativeProb[exclude] = mixcdf(pi.fit$g,0)
     lfsr = compute_lfsr(NegativeProb,ZeroProb)
     PositiveProb = 1 - NegativeProb - ZeroProb
     PositiveProb = ifelse(PositiveProb<0,0,PositiveProb) #deal with numerical issues that lead to numbers <0
@@ -358,14 +357,14 @@ ash.workhorse = function(betahat,sebetahat,
     comp_postmean = matrix(0,nrow = kk, ncol = n)
     comp_postmean2 =  matrix(0,nrow = kk, ncol = n)
 
-    comp_postprob[,completeobs] = comppostprob(pi.fit$g,complete_data)
-    comp_postmean[,completeobs] = comp_postmean(pi.fit$g,complete_data)
-    comp_postmean2[,completeobs] = comp_postmean2(pi.fit$g,complete_data)
+    comp_postprob[,!exclude] = comppostprob(pi.fit$g,data)
+    comp_postmean[,!exclude] = comp_postmean(pi.fit$g,data)
+    comp_postmean2[,!exclude] = comp_postmean2(pi.fit$g,data)
 
     #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
-    comp_postprob[,!completeobs] = mixprop(pi.fit$g)
-    comp_postmean[,!completeobs] = comp_mean(pi.fit$g)
-    comp_postmean2[,!completeobs] = comp_mean2(pi.fit$g)
+    comp_postprob[,exclude] = mixprop(pi.fit$g)
+    comp_postmean[,exclude] = comp_mean(pi.fit$g)
+    comp_postmean2[,exclude] = comp_mean2(pi.fit$g)
 
     flash.data = list(comp_postprob = comp_postprob,comp_postmean = comp_postmean,comp_postmean2 = comp_postmean2)
   }
@@ -382,19 +381,8 @@ ash.workhorse = function(betahat,sebetahat,
     if((outputlevel>0 & is.null(df)) | outputlevel>2 ){PosteriorMean = PosteriorMean + nonzeromode.fit$nonzeromode}
   }
 
-  if(model=="ET"){
-    betahat=betahat*sebetahat.orig
-    sebetahat = sebetahat.orig
-    if((outputlevel>0 & is.null(df)) | outputlevel>2 ){
-      PosteriorMean = PosteriorMean * sebetahat
-      PosteriorSD= PosteriorSD * sebetahat
-    }
-  }
-  
-  complete_data = list(x=betahat, s=sebetahat, v=df)
-    
-  loglik = calc_loglik(pi.fit$g, complete_data, model)
-  logLR = loglik - calc_null_loglik(complete_data,model)
+  loglik = calc_loglik(pi.fit$g, data, model)
+  logLR = loglik - calc_null_loglik(data,model)
   ##5. Returning the result
 
   result = list(fitted.g=pi.fit$g,call=match.call())
@@ -403,7 +391,7 @@ ash.workhorse = function(betahat,sebetahat,
   
   if (outputlevel>1) {result=c(result,list(PositiveProb = PositiveProb, NegativeProb = NegativeProb,
                 ZeroProb = ZeroProb,lfsr = lfsr,lfdr = lfdr, qvalue = qvalue, svalue=svalue,
-                 excludeindex = excludeindex,model = model, optmethod =optmethod))}
+                 excludeindex = which(exclude),model = model, optmethod =optmethod))}
   if (outputlevel > 1.5){result = c(result,list(data= list(betahat = betahat, sebetahat = sebetahat,df=df)))}
   if (outputlevel >2) {result=c(result,list(fit=pi.fit))}
   if (outputlevel >3) {result = c(result, flash.data=list(flash.data))}
@@ -472,19 +460,14 @@ gradient = function(matrix_lik){
 
 #' Estimate mixture proportions of sigmaa by EM algorithm
 #'
-#' @param betahat (n vector of observations)
-#' @param sebetahat (n vector of standard errors/deviations of
-#'     observations)
+#' @param data list to be passed to log_compdens_conv; details depend on model
 #' @param g the prior distribution for beta (usually estimated from
 #'     the data
 #' @param prior string, or numeric vector indicating Dirichlet prior
 #'     on mixture proportions (defaults to "uniform", or (1,1...,1);
 #'     also can be "nullbiased" (nullweight,1,...,1) to put more
 #'     weight on first component)
-#' @param null.comp the position of the null component
 #' @param optmethod name of function to use to do optimization
-#' @param df appropriate degrees of freedom for (t) distribution of
-#'     betahat/sebetahat, default is NULL(Gaussian)
 #' @param control A list of control parameters for the SQUAREM
 #'     algorithm, default value is set to be control.default=list(K =
 #'     1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4,
@@ -498,7 +481,7 @@ gradient = function(matrix_lik){
 #of mixture proportions of sigmaa by variational Bayes method
 #(use Dirichlet prior and approximate Dirichlet posterior)
 #if cxx TRUE use cpp version of R function mixEM
-estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSquarem","mixIP"),null.comp=1,df=NULL,control=list()){
+estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSquarem","mixIP"),control=list()){
   control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE)
   optmethod=match.arg(optmethod)
   namc=names(control)
@@ -510,11 +493,10 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
   if(optmethod=="mixVBEM"){pi_init=NULL}  #for some reason pi_init doesn't work with mixVBEM
 
   k=ncomp(g)
-  n = length(betahat)
+  n = length(data$x)
   controlinput$tol = min(0.1/n,1.e-7) # set convergence criteria to be more stringent for larger samples
 
   if(controlinput$trace==TRUE){tic()}
-  data = list(x=betahat,s=sebetahat,v=df)
   matrix_llik = t(log_compdens_conv(g,data)) #an n by k matrix
   matrix_llik = matrix_llik - apply(matrix_llik,1, max) #avoid numerical issues by subtracting max of each row
   matrix_lik = exp(matrix_llik)
@@ -545,12 +527,10 @@ estimate_mixprop = function(betahat,sebetahat,g,prior,optmethod=c("mixEM","mixVB
   niter = fit$niter
 
   loglik.final =  penloglik(pi,matrix_lik,1) #compute penloglik without penalty
-  null.loglik = sum(log(matrix_lik[,null.comp]))
   g$pi=pi
   if(controlinput$trace==TRUE){toc()}
 
-  return(list(loglik=loglik.final,null.loglik=null.loglik,
-              matrix_lik=matrix_lik,converged=converged,g=g,niter=niter))
+  return(list(loglik=loglik.final,matrix_lik=matrix_lik,converged=converged,g=g,niter=niter))
 }
 
 
@@ -666,7 +646,10 @@ qval.from.lfdr = function(lfdr){
 # try to select a default range for the sigmaa values
 # that should be used, based on the values of betahat and sebetahat
 # mult is the multiplier by which the sds differ across the grid
-autoselect.mixsd = function(betahat,sebetahat,mult){
+autoselect.mixsd = function(data,mult){
+  betahat = data$x
+  sebetahat = data$s
+  
   sebetahat=sebetahat[sebetahat!=0] #To avoid exact measure causing (usually by mistake)
   sigmaamin = min(sebetahat)/10 #so that the minimum is small compared with measurement precision
   if(all(betahat^2<=sebetahat^2)){

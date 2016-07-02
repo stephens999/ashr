@@ -8,7 +8,7 @@ ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
   mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform"),
   optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"), df = NULL,
   randomstart = FALSE, nullweight = 10, nonzeromode = FALSE,
-  pointmass = NULL, prior = c("nullbiased", "uniform", "unit"),
+  pointmass = TRUE, prior = c("nullbiased", "uniform", "unit"),
   mixsd = NULL, gridmult = sqrt(2), outputlevel = 2, g = NULL,
   fixg = FALSE, cxx = NULL, VB = NULL, model = c("EE", "ET"),
   control = list())
@@ -115,7 +115,6 @@ ash returns an object of \code{\link[base]{class}} "ash", a list with some or al
 \item{qvalue}{A vector of q values}
 \item{svalue}{A vector of s values}
 \item{call}{a call in which all of the specified arguments are specified by their full names}
-\item{excludeindex}{the vector of index of observations with 0 standard error; if none, then returns NULL}
 \item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T stats (ET) has been used}
 \item{optmethod}{the optimization method used}
 \item{data}{a list consisting the input betahat and sebetahat (only included if outputlevel>2)}

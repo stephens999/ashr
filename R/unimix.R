@@ -45,9 +45,13 @@ compdens.unimix = function(m,y,log=FALSE){
   return(matrix(stats::dunif(d, m$a, m$b, log),nrow=k))
 }
 
-#density of convolution of each component of a unif mixture with s*t_nu() at x
-# x an n-vector
-#return a k by n matrix
+#' density of convolution of each component of a unif mixture 
+#' @param m a mixture of class unimix
+#' @param data a list with elements (x, cdfFUN, pdfFUN,FUNargs)
+#'
+#' @return a k by n matrix
+#'
+#' @export
 compdens_conv.unimix = function(m,data){
    if(is.null(data$v)){
     compdens= t(stats::pnorm(outer(data$x,m$a,FUN="-")/data$s)-
@@ -62,26 +66,18 @@ compdens_conv.unimix = function(m,data){
   return(compdens)
 }
 
-#log density of convolution of each component of a unif mixture with s*t_nu() at x
-# x an n-vector
-#return a k by n matrix
+#' log density of convolution of each component of a unif mixture 
+#' @inheritParams compdens_conv.unimix
+#' @return a k by n matrix of densities
 log_compdens_conv.unimix = function(m,data){
   b = pmax(m$b,m$a) #ensure a<b
   a = pmin(m$b,m$a)
-  if(is.null(data$v)){
-    lpa = stats::pnorm(outer(data$x,a,FUN="-")/data$s,log=TRUE)
-    lpb = stats::pnorm(outer(data$x,b,FUN="-")/data$s,log=TRUE)
-    
-    lcompdens= t( lpa + log(1-exp(lpb-lpa)) ) - log(b-a)
-    lcompdens[a==b,]=t(stats::dnorm(outer(data$x,a,FUN="-")/data$s,log=TRUE) - log(data$s))[a==b,]
-  }
-  else{
-    lpa = stats::pt(outer(data$x,a,FUN="-")/data$s,df=data$v,log=TRUE)
-    lpb = stats::pt(outer(data$x,b,FUN="-")/data$s,df=data$v,log=TRUE)
-    lcompdens= t( lpa + log(1-exp(lpb-lpa)) ) -log(b-a)
-    lcompdens[a==b,]=
-      t(stats::dt(outer(data$x,a,FUN="-")/data$s,df=data$v,log=TRUE) - log(data$s))[a==b,]
-  }
+  
+  lpa = do.call(data$cdfFUN, c(list(outer(data$x,a,FUN="-")/data$s), data$FUNargs,log=TRUE))
+  lpb = do.call(data$cdfFUN, c(list(outer(data$x,b,FUN="-")/data$s), data$FUNargs,log=TRUE))
+   
+  lcompdens = t(lpa + log(1-exp(lpb-lpa))) - log(b-a)
+  lcompdens[a==b,] = t(log(do.call(data$pdfFUN, c(list(outer(data$x,b,FUN="-")),data$FUNargs))))[a==b,]
   return(lcompdens)
 }
 

@@ -4,15 +4,11 @@
 \alias{estimate_mixprop}
 \title{Estimate mixture proportions of sigmaa by EM algorithm}
 \usage{
-estimate_mixprop(betahat, sebetahat, g, prior, optmethod = c("mixEM",
-  "mixVBEM", "cxxMixSquarem", "mixIP"), null.comp = 1, df = NULL,
-  control = list())
+estimate_mixprop(data, g, prior, optmethod = c("mixEM", "mixVBEM",
+  "cxxMixSquarem", "mixIP"), control = list())
 }
 \arguments{
-\item{betahat}{(n vector of observations)}
-
-\item{sebetahat}{(n vector of standard errors/deviations of
-observations)}
+\item{data}{list to be passed to log_compdens_conv; details depend on model}
 
 \item{g}{the prior distribution for beta (usually estimated from
 the data}
@@ -23,11 +19,6 @@ also can be "nullbiased" (nullweight,1,...,1) to put more
 weight on first component)}
 
 \item{optmethod}{name of function to use to do optimization}
-
-\item{null.comp}{the position of the null component}
-
-\item{df}{appropriate degrees of freedom for (t) distribution of
-betahat/sebetahat, default is NULL(Gaussian)}
 
 \item{control}{A list of control parameters for the SQUAREM
 algorithm, default value is set to be control.default=list(K =

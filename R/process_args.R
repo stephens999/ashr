@@ -1,25 +1,7 @@
-# avoid "no visible binding for global variable" note in CRAN check
-# These variables are actually defined in process_args
-if(getRversion() >= "2.15.1") utils::globalVariables(c("VB","cxx","method","model","mixcompdist","gridmult","control"))
-
-#' Process input arguments for ash.workhorse
-#'
-#' @param oldargs captured argument list
-#' @return list containing the processed arguments
-#' @importFrom utils modifyList
-#' @export process_args
-process_args = function (oldargs) {
-  # Assign each captured argument in the list to a variable
-  for (i in 1L:length(oldargs)) assign(names(oldargs)[i], oldargs[[i]])
-  
-  # Start processing arguments
-  
-  if (length(sebetahat) == 1L) sebetahat = rep(sebetahat, length(betahat))
-  if (length(sebetahat) != length(betahat))
-    stop("Error: sebetahat must have length 1, or same length as betahat")
-  
-  # Set optimization method (optmethod)
-  
+#sets optimization method
+#deals with old flags VB and cxx
+#also checks if necessary tools installed for optmethod specified
+set_optmethod = function(optmethod,VB,cxx){
   # if user tries to set both optmethod and VB/cxx that's an error
   if ( !is.null(optmethod) && (!is.null(VB) || !is.null(cxx)) )
     stop("VB and cxx options are deprecated and incompatible with optmethod; use optmethod instead")
@@ -51,64 +33,28 @@ process_args = function (oldargs) {
   
   if (optmethod == "mixIP") assertthat::assert_that(requireNamespace("REBayes", quietly = TRUE))
   if (optmethod == "cxxMixSquarem") assertthat::assert_that(requireNamespace("Rcpp", quietly = TRUE))
-  
-  # method provides a convenient interface to set a particular combinations of parameters for prior an
-  # If method is supplied, use it to set up specific values for these parameters; provide warning if values
-  # are also specified by user
-  # If method is supplied use the user-supplied values (or defaults if user does not specify them)
-  if (method == "shrink") {
-    
-    # Almost equivalent to is.missing(prior)
-    if (identical(sort(prior), sort(c("nullbiased","uniform","unit")))) {
-      prior = "uniform"
-    } else {
-      warning("Specification of prior overrides default for method shrink")
-    }
-    
-    if (is.null(pointmass)) {
-      pointmass = FALSE
-    } else if (pointmass != FALSE) {
-      warning("Specification of pointmass overrides default for method shrink")
-    }
-    
-  }
-  
-  if (method == "fdr") {
-    
-    # Almost equivalent to is.missing(prior)
-    if (identical(sort(prior), sort(c("nullbiased","uniform","unit")))) {
-      prior = "nullbiased"
-    } else {
-      warning("Specification of prior overrides default for method fdr")
-    }
-    
-    if (is.null(pointmass)) {
-      pointmass = TRUE
-    } else if (pointmass != TRUE) {
-      warning("Specification of pointmass overrides default for method fdr")
-    }
-    
-  }
-  
-  # Dealing with precise input of betahat, currently we exclude them from the EM algorithm
-  betahat.input = betahat
-  sebetahat.input = sebetahat
-  excludeindex = c(1:length(sebetahat.input))[sebetahat.input==0]
-  if(length(excludeindex) == 0) excludeindex = NULL
-  betahat = betahat.input[sebetahat.input != 0]
-  sebetahat = sebetahat.input[sebetahat.input != 0]
-  
-  # Set observations with infinite standard errors to missing
-  # later these missing observations will be ignored in EM, and posterior will be same as prior.
-  sebetahat[sebetahat == Inf] = NA
-  betahat[sebetahat == Inf] = NA
-  
-  if (model == "ET") {  # for ET model, standardize
-    betahat = betahat/sebetahat
-    sebetahat.orig = sebetahat  # store so that can be reinstated later
-    sebetahat = rep(1, length(betahat))
-  }
-  
+  return(optmethod)
+}
+
+
+# handles defaults for optimization routines
+set_control = function(control,nobs){
+  # Handling control variables
+  control.default = list(K = 1, method = 3, square = TRUE,
+                         step.min0 = 1, step.max0 = 1, mstep = 4,
+                         kr = 1, objfn.inc = 1, tol = 1.e-07, maxiter = 5000,
+                         trace = FALSE)
+  if (nobs > 50000) control.default$trace = TRUE
+  namc = names(control)
+  if (!all(namc %in% names(control.default)))
+    stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
+  control = modifyList(control.default, control)
+  if (control$maxiter == 0)
+    stop("option control$maxiter=0 deprecated; used fixg=TRUE instead")
+  return(control)
+}
+
+check_args = function(mixcompdist,df,prior,optmethod,gridmult,sebetahat,betahat){
   if (mixcompdist == "normal" & !is.null(df))
     stop("Error: Normal mixture for student-t likelihood is not yet implemented")
   
@@ -120,32 +66,41 @@ process_args = function (oldargs) {
   
   if (gridmult <= 1) stop("gridmult must be > 1")
   
+  if ((length(sebetahat) != length(betahat)) & (length(sebetahat) != 1))
+    stop("Error: sebetahat must have length 1, or same length as betahat")
+  
   completeobs = (!is.na(betahat) & !is.na(sebetahat))
-  n = sum(completeobs)
+  if (sum(completeobs) == 0) stop("Error: all input values are missing")
+}
+
+
+
+# set up data from inputs
+set_data = function(betahat, sebetahat, df, model="EE"){
+  # Dealing with precise input of betahat, currently we exclude them from the EM algorithm
+  if(length(sebetahat)==1L){sebetahat = rep(sebetahat, length(betahat))}
+  exclude = (sebetahat==0 | sebetahat == Inf | is.na(betahat) | is.na(sebetahat))
   
-  # Handling control variables
-  control.default = list(K = 1, method = 3, square = TRUE,
-                         step.min0 = 1, step.max0 = 1, mstep = 4,
-                         kr = 1, objfn.inc = 1, tol = 1.e-07, maxiter = 5000,
-                         trace = FALSE)
-  if (n > 50000) control.default$trace = TRUE
-  namc = names(control)
-  if (!all(namc %in% names(control.default)))
-    stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
-  controlinput = modifyList(control.default, control)
-  if (controlinput$maxiter == 0)
-    stop("option control$maxiter=0 deprecated; used fixg=TRUE instead")
+  data=list()
+  data$x = betahat[!exclude]
+  data$s = sebetahat[!exclude]
+  data$v = df
+  data$exclude = exclude
   
-  if (n == 0) stop("Error: all input values are missing")
+  if(is.null(df)){
+    data$cdfFUN = pnorm
+    data$pdfFUN = dnorm
+    data$FUNargs = list(mean = 0, sd = 1)
+  } else {
+    data$cdfFUN = ptgen
+    data$pdfFUN = dtgen
+    data$FUNargs = list(mean = 0, sd = 1, df=df)
+  }
   
-  # Collect everything into a new list
-  newargs_names = setdiff(ls(), c("oldargs", "i", "call"))
-  newargs = list()
-  # assigning NULL to list component will remove that component; so use lapply
-  safe_assign = function(x) if (is.null(get(x))) return(NULL) else return(get(x))
-  newargs = lapply(newargs_names, safe_assign)
-  names(newargs) = newargs_names
   
-  return(newargs)
-  
+  if (model == "ET") {  # for ET model, standardize
+    data$x = betahat/sebetahat
+    data$s = rep(1, length(betahat))
+  }
+  return(data)
 }
