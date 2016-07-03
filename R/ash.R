@@ -155,8 +155,8 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #'     kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User
 #'     may supply changes to this list of parameter, say,
 #'     control=list(maxiter=10000,trace=TRUE)
-
-#'
+#' @param lik contains details of the likelihood used; for general ash
+#' 
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
 #' \item{fitted.g}{fitted mixture, either a normalmix or unimix}
 #' \item{loglik}{log P(D|mle(pi))}
@@ -231,7 +231,8 @@ ash.workhorse = function(betahat,sebetahat,
                          cxx=NULL,
                          VB=NULL,
                          model=c("EE","ET"),
-                         control=list()
+                         control=list(),
+                         lik=NULL
 ){
   if(!missing(pointmass) & !missing(method))
     stop("Specify either method or pointmass, not both")
@@ -255,10 +256,10 @@ ash.workhorse = function(betahat,sebetahat,
   # Set optimization method, and defaults for optimization control
   optmethod = set_optmethod(optmethod,VB,cxx)  
   check_args(mixcompdist,df,prior,optmethod,gridmult,sebetahat,betahat)
-  if(is.null(df)){
-    lik = normal_lik()
-  } else {
-    lik = t_lik(df)
+  if(is.null(lik)){ #set likelihood based on defaults if missing
+    if(is.null(df)){
+      lik = normal_lik()
+    } else {lik = t_lik(df)}
   }
   data = set_data(betahat, sebetahat, df, lik, alpha)
   
