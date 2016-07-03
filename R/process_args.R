@@ -104,10 +104,14 @@ set_data = function(betahat, sebetahat, df, alpha=0){
   if(is.null(df)){
     data$cdfFUN = pnorm
     data$pdfFUN = dnorm
+    data$etruncFUN = my_etruncnorm
+    data$e2truncFUN = my_e2truncnorm
     data$FUNargs = list(mean = 0, sd = 1)
   } else {
     data$cdfFUN = ptgen
     data$pdfFUN = dtgen
+    data$etruncFUN = my_etrunct
+    data$e2truncFUN = my_e2trunct
     data$FUNargs = list(mean = 0, sd = 1, df=df)
   }
   

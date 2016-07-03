@@ -1,6 +1,6 @@
 test_that("normalmix functions behave as expected", {
   gn = normalmix(c(0.5,0.5),c(0,0),c(0.1,1))
-  data = list(x=c(1,2,3),s=c(1,10,100))
+  data = set_data(c(1,2,3),c(1,10,100),NULL)
   expect_equal(log(compdens_conv(gn,data)),log_compdens_conv(gn,data))
   #comp_postmean(gn,data)
   #comppostprob(gn,data)
@@ -11,7 +11,7 @@ test_that("normalmix functions behave as expected", {
 
 
 test_that("exp(log_compdens_conv) gives same results as compdens_conv", {
-  g = unimix(c(0.1,0.45,0.45),c(0,1,2),c(0,0,0))
+  g = unimix(c(0.1,0.45,0.45),c(0,0,0),c(0,1,2))
   gn = normalmix(c(0.1,0.45,0.45),c(0,0,0),c(0,0.1,1))
 #  gig = igmix(c(0.5,0.5),c(1,2),c(3,4))
   x=c(-10,2)
