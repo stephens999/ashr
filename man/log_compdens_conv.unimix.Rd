@@ -9,7 +9,7 @@
 \arguments{
 \item{m}{a mixture of class unimix}
 
-\item{data}{a list with elements (x, cdfFUN, pdfFUN,FUNargs)}
+\item{data}{see set_data()}
 }
 \value{
 a k by n matrix of densities

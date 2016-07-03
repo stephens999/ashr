@@ -243,6 +243,7 @@ ash.workhorse = function(betahat,sebetahat,
     if (method == "fdr"){pointmass =TRUE; prior= "nullbiased"}
   }
   
+  
   ##1.Handling Input Parameters
   mixcompdist = match.arg(mixcompdist)
   optmethod   = match.arg(optmethod)
@@ -254,7 +255,13 @@ ash.workhorse = function(betahat,sebetahat,
   # Set optimization method, and defaults for optimization control
   optmethod = set_optmethod(optmethod,VB,cxx)  
   check_args(mixcompdist,df,prior,optmethod,gridmult,sebetahat,betahat)
-  data = set_data(betahat, sebetahat, df, alpha)
+  if(is.null(df)){
+    lik = normal_lik()
+  } else {
+    lik = t_lik(df)
+  }
+  data = set_data(betahat, sebetahat, df, lik, alpha)
+  
   control = set_control(control, length(data$x))
   
   ##2. Generating mixture distribution
