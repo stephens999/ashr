@@ -4,18 +4,18 @@
 \alias{set_data}
 \title{Takes raw data and sets up data object for use by ash}
 \usage{
-set_data(betahat, sebetahat, df, lik = NULL, alpha = 0)
+set_data(betahat, sebetahat, lik = NULL, alpha = 0)
 }
 \arguments{
 \item{betahat}{vector of betahats}
 
 \item{sebetahat}{vector of standard errors}
 
-\item{df}{degree of freedom to assume (for t likelihood)}
-
 \item{lik}{a likelihood (see eg normal_lik())}
 
 \item{alpha}{specifies value of alpha to use (model is for betahat/sebetahat^alpha | sebetahat)}
+
+\item{df}{degree of freedom to assume (for t likelihood)}
 }
 \value{
 data object (list)

@@ -261,7 +261,7 @@ ash.workhorse = function(betahat,sebetahat,
       lik = normal_lik()
     } else {lik = t_lik(df)}
   }
-  data = set_data(betahat, sebetahat, df, lik, alpha)
+  data = set_data(betahat, sebetahat, lik, alpha)
   
   control = set_control(control, length(data$x))
   

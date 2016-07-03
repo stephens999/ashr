@@ -110,7 +110,7 @@ compcdf_post.unimix=function(m,c,data){
 comp_postmean.unimix = function(m,data){
   x=data$x
   s=data$s
-  v=data$v
+
   lik = data$lik
   
   alpha = outer(-x, m$a,FUN="+")/s
@@ -128,7 +128,7 @@ comp_postmean.unimix = function(m,data){
 comp_postmean2.unimix = function(m,data){
   x=data$x
   s=data$s
-  v=data$v
+
   lik = data$lik
   alpha = outer(-x, m$a,FUN="+")/s
   beta = outer(-x, m$b, FUN="+")/s

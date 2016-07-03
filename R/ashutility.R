@@ -199,11 +199,8 @@ calc_vloglik = function(g,data){
 #'
 #' @export
 calc_null_vloglik = function(data){
-  if(is.null(data$v)){
-    return(stats::dnorm(data$x,sd = data$s,log=TRUE)-data$alpha*log(data$s_orig))
-  } else{
-    return(dtgen(data$x, sd=data$s,df=data$v,log=TRUE)-data$alpha*log(data$s_orig))
-  }
+    return(do.call(data$lik$lpdfFUN, list(x=data$x/data$s)) - log(data$s)
+           -data$alpha*log(data$s_orig))
 }
 
 #' @title Compute vector of loglikelihood ratio for data from ash fit

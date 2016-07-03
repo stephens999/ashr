@@ -11,7 +11,7 @@ ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
   pointmass = TRUE, prior = c("nullbiased", "uniform", "unit"),
   mixsd = NULL, gridmult = sqrt(2), outputlevel = 2, g = NULL,
   fixg = FALSE, cxx = NULL, VB = NULL, model = c("EE", "ET"),
-  control = list())
+  control = list(), lik = NULL)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -99,6 +99,8 @@ algorithm. Default value is set to be control.default=list(K =
 kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User
 may supply changes to this list of parameter, say,
 control=list(maxiter=10000,trace=TRUE)}
+
+\item{lik}{contains details of the likelihood used; for general ash}
 }
 \value{
 ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr

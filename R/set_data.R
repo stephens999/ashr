@@ -18,7 +18,7 @@
 #' 
 #' @return data object (list) 
 #' @export
-set_data = function(betahat, sebetahat, df, lik=NULL, alpha=0){
+set_data = function(betahat, sebetahat, lik=NULL, alpha=0){
   # Dealing with precise input of betahat, currently we exclude them from the EM algorithm
   if(length(sebetahat)==1L){sebetahat = rep(sebetahat, length(betahat))}
   exclude = (sebetahat==0 | sebetahat == Inf | is.na(betahat) | is.na(sebetahat))
@@ -26,14 +26,12 @@ set_data = function(betahat, sebetahat, df, lik=NULL, alpha=0){
   data=list()
   data$x = betahat[!exclude]/(sebetahat[!exclude]^alpha)
   data$s = sebetahat[!exclude]^(1-alpha)
-  data$v = df
+  
   data$exclude = exclude
   data$alpha=alpha
   data$s_orig = sebetahat[!exclude]
-  if(is.null(lik)){if(is.null(df)){lik = normal_lik()} else {lik = t_lik(df)}}
+  if(is.null(lik)){lik = normal_lik()}
   data$lik = lik
-  
- 
-  
+
   return(data)
 }
