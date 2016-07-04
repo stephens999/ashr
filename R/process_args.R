@@ -54,6 +54,12 @@ set_control = function(control,nobs){
   return(control)
 }
 
+check_lik = function(lik){
+  if(is.null(lik$lcdfFUN)){stop("Likelihood must have lcdfFUN")}
+  if(is.null(lik$lpdfFUN)){stop("Likelihood must have lpdfFUN")}
+}
+
+
 check_args = function(mixcompdist,df,prior,optmethod,gridmult,sebetahat,betahat){
   if (mixcompdist == "normal" & !is.null(df))
     stop("Error: Normal mixture for student-t likelihood is not yet implemented")

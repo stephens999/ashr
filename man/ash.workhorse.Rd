@@ -147,6 +147,14 @@ graphics::plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 CIMatrix=ashci(beta.ash,betahat,sebetahat,level=0.95)
 print(CIMatrix)
 
+#Running ash with different error models
+beta.ash1 = ash(betahat, sebetahat, lik = norm_lik())
+beta.ash2 = ash(betahat, sebetahat, lik = t_lik(df=4))
+
+e = rnorm(100)+log(rf(100,df1=10,df2=10)) # simulated data with log(F) error
+e.ash = ash(e,1,lik=logf_lik(df1=10,df2=10)) 
+
+
 #Testing the non-zero mode feature
 betahat=betahat+5
 beta.ash = ash(betahat, sebetahat)

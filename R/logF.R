@@ -1,4 +1,4 @@
-# File contains functions related to logF distribution (cdf, pdf,truncated moments)
+# File contains functions related to logF distribution (cdf,pdf,moments of truncated logF)
 
 #' @title The log-F distribution
 #' @description Distribution function for the log-F distribution with \code{df1} and \code{df2}

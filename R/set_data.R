@@ -30,6 +30,7 @@ set_data = function(betahat, sebetahat, lik=NULL, alpha=0){
   data$exclude = exclude
   data$alpha=alpha
   data$s_orig = sebetahat[!exclude]
+  
   if(is.null(lik)){lik = normal_lik()}
   data$lik = lik
 
