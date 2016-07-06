@@ -199,7 +199,7 @@ calc_vloglik = function(g,data){
 #'
 #' @export
 calc_null_vloglik = function(data){
-    return(do.call(data$lik$lpdfFUN, list(x=data$x/data$s)) - log(data$s)
+    return(apply_functions_to_elements_of_vector(data$lik$lpdfFUN,data$x/data$s) - log(data$s)
            -data$alpha*log(data$s_orig))
 }
 

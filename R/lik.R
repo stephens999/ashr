@@ -13,6 +13,8 @@ normal_lik= function(){
        )
 }
 
+
+
 #' @title Likelihood object for t error distribution
 #' @description Creates a likelihood object for ash for use with t error distribution
 #' @param df degree of freedom parameter of t distribution
@@ -22,6 +24,17 @@ normal_lik= function(){
 #'    ash(z,1,lik=t_lik(df=4))
 #' @export
 t_lik = function(df){
+  if(length(df)>1){
+    return(
+      list(lcdfFUN = lapply(df,function(df){function(x){pt(x,df=df,log=TRUE)}}),
+           lpdfFUN = lapply(df,function(df){function(x){dt(x,df=df,log=TRUE)}}),
+           etruncFUN = lapply(df,function(df){function(a,b){my_etrunct(a,b,df=df)}}),
+           e2truncFUN = lapply(df,function(df){function(a,b){my_e2trunct(a,b,df=df)}})
+      )
+      
+    )
+  }
+    
   list(lcdfFUN = function(x){pt(x,df=df,log=TRUE)},
       lpdfFUN = function(x){dt(x,df=df,log=TRUE)},
       etruncFUN = function(a,b){my_etrunct(a,b,df=df)},

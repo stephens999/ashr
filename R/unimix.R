@@ -64,11 +64,12 @@ log_compdens_conv.unimix = function(m,data){
   a = pmin(m$b,m$a)
   lik = data$lik
   
-  lpa = do.call(lik$lcdfFUN, c(list(outer(data$x,a,FUN="-")/data$s)))
-  lpb = do.call(lik$lcdfFUN, c(list(outer(data$x,b,FUN="-")/data$s)))
+  lpa = apply_functions_to_rows_of_matrix(lik$lcdfFUN, outer(data$x,a,FUN="-")/data$s)
+  lpb = apply_functions_to_rows_of_matrix(lik$lcdfFUN, outer(data$x,b,FUN="-")/data$s)
    
   lcompdens = t(lpa + log(1-exp(lpb-lpa))) - log(b-a)
-  lcompdens[a==b,] = t(do.call(lik$lpdfFUN, c(list(outer(data$x,b,FUN="-")/data$s)))
+  lcompdens[a==b,] = t(
+    apply_functions_to_rows_of_matrix(lik$lpdfFUN, outer(data$x,b,FUN="-")/data$s)
                        -log(data$s))[a==b,]
   return(lcompdens)
 }
@@ -83,9 +84,9 @@ compcdf_post.unimix=function(m,c,data){
   tmp[m$a > c,] = 0
   subset = m$a<=c & m$b>c # subset of components (1..k) with nontrivial cdf
   if(sum(subset)>0){
-    pna = exp(do.call(lik$lcdfFUN, c(list(outer(data$x,m$a[subset],FUN="-")/data$s))))
-    pnc = exp(do.call(lik$lcdfFUN, c(list(outer(data$x,rep(c,sum(subset)),FUN="-")/data$s))))
-    pnb = exp(do.call(lik$lcdfFUN, c(list(outer(data$x,m$b[subset],FUN="-")/data$s))))
+    pna = exp(apply_functions_to_rows_of_matrix(lik$lcdfFUN, outer(data$x,m$a[subset],FUN="-")/data$s))
+    pnc = exp(apply_functions_to_rows_of_matrix(lik$lcdfFUN, outer(data$x,rep(c,sum(subset)),FUN="-")/data$s))
+    pnb = exp(apply_functions_to_rows_of_matrix(lik$lcdfFUN, outer(data$x,m$b[subset],FUN="-")/data$s))
     tmp[subset,] = t((pnc-pna)/(pnb-pna))
   }
   subset = (m$a == m$b) #subset of components with trivial cdf
@@ -116,7 +117,7 @@ comp_postmean.unimix = function(m,data){
   alpha = outer(-x, m$a,FUN="+")/s
   beta = outer(-x, m$b, FUN="+")/s
  
-  tmp = x + s*do.call(lik$etruncFUN, c(list(alpha),list(beta)))
+  tmp = x + s*apply_functions_to_rows_of_two_matrices(lik$etruncFUN,alpha,beta)
  
   ismissing = is.na(x) | is.na(s)
   tmp[ismissing,]= (m$a+m$b)/2
@@ -133,8 +134,8 @@ comp_postmean2.unimix = function(m,data){
   alpha = outer(-x, m$a,FUN="+")/s
   beta = outer(-x, m$b, FUN="+")/s
   tmp = x^2 +
-    2*x*s* do.call(lik$etruncFUN, c(list(alpha),list(beta))) +
-    s^2* do.call(lik$e2truncFUN, c(list(alpha),list(beta))) 
+    2*x*s* apply_functions_to_rows_of_two_matrices(lik$etruncFUN,alpha,beta) +
+    s^2* apply_functions_to_rows_of_two_matrices(lik$e2truncFUN,alpha,beta) 
  
   ismissing = is.na(x) | is.na(s)
   tmp[ismissing,]= (m$b^2+m$a*m$b+m$a^2)/3
