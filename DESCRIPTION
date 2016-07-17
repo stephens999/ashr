@@ -17,7 +17,8 @@ Imports:
     pscl,
     Rcpp (>= 0.10.5),
     hypergeo,
-    foreach
+    foreach,
+    etrunct
 LinkingTo: Rcpp
 Suggests:
     REBayes,
