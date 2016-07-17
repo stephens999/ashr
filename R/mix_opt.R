@@ -26,6 +26,7 @@
 #' @export
 mixIP = function(matrix_lik, prior, pi_init = NULL, control = list()){
   if(!requireNamespace("REBayes",quietly=TRUE)){stop("mixIP requires installation of package REBayes")}
+  control = set_control_mixIP(control)
   n = nrow(matrix_lik)
   k = ncol(matrix_lik)
   #A = matrix_lik
@@ -35,7 +36,7 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list()){
   w = w[w!=0]
   #w = rep(1,n+k)
   res = REBayes::KWDual(A, rep(1,k), normalize(w), control=control)
-  return(list(pihat = normalize(res$f), niter = NULL, converged=(res$status=="OPTIMAL")))
+  return(list(pihat = normalize(res$f), niter = NULL, converged=(res$status=="OPTIMAL"), control=control))
 }
 
 #' @title Estimate mixture proportions of a mixture model by EM algorithm
@@ -61,19 +62,14 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list()){
 #' 
 #' 
 mixEM = function(matrix_lik,prior,pi_init=NULL,control=list()){
-  control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE)
-  namc=names(control)
-  if (!all(namc %in% names(control.default))) 
-    stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
-  controlinput=modifyList(control.default, control)
-  
+  control = set_control_squarem(control,nrow(matrix_lik))
   k=dim(matrix_lik)[2]
   if(is.null(pi_init)){
     pi_init = rep(1/k,k)# Use as starting point for pi
   } 
-  res = squarem(par=pi_init,fixptfn=fixpoint, objfn=negpenloglik,matrix_lik=matrix_lik, prior=prior, control=controlinput)
+  res = squarem(par=pi_init,fixptfn=fixpoint, objfn=negpenloglik,matrix_lik=matrix_lik, prior=prior, control=control)
   return(list(pihat = normalize(pmax(0,res$par)), B=res$value.objfn, 
-              niter = res$iter, converged=res$convergence))
+              niter = res$iter, converged=res$convergence, control=control))
 }
 
 # helper functions used by mixEM
@@ -172,17 +168,34 @@ penloglik = function(pi, matrix_lik, prior){
 #' @export
 #' 
 mixVBEM = function(matrix_lik, prior, pi_init = NULL,control=list()){
-  control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE)
-  namc=names(control)
-  if (!all(namc %in% names(control.default))) 
-    stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
-  controlinput=modifyList(control.default, control)
-  
+  control = set_control_squarem(control)
   k=ncol(matrix_lik)
   if(is.null(pi_init)){  pi_init = rep(1,k)  }# Use as starting point for pi 
   res = squarem(par=pi_init,fixptfn=VBfixpoint, objfn=VBnegpenloglik,matrix_lik=matrix_lik, prior=prior, control=controlinput)
   
   return(list(pihat = res$par/sum(res$par), B=res$value.objfn, niter = res$iter, converged=res$convergence,post=res$par))
+}
+
+# sets up a default for squarem, and modifies it with other provided values
+set_control_mixIP=function(control){
+  control.default=list(rtol=1e-6)
+  namc=names(control)
+  if (!all(namc %in% names(control.default))) 
+    stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
+  control=modifyList(control.default, control)
+  return(control)
+}
+
+# sets up a default for squarem, and modifies it with other provided values
+set_control_squarem=function(control,nobs){
+  control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE)
+  if (nobs > 50000) control.default$trace = TRUE
+  control.default$tol = min(0.1/nobs,1.e-7) # set default convergence criteria to be more stringent for larger samples
+  namc=names(control)
+  if (!all(namc %in% names(control.default))) 
+    stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
+  control=modifyList(control.default, control)
+  return(control)
 }
 
 

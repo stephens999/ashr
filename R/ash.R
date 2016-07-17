@@ -273,8 +273,6 @@ ash.workhorse = function(betahat,sebetahat,
   lik = add_etruncFUN(lik) #if missing, add a function to compute mean of truncated distribution
   data = set_data(betahat, sebetahat, lik, alpha)
   
-  control = set_control(control, length(data$x))
-  
   ##2. Generating mixture distribution
 
   if(fixg & missing(g)){stop("if fixg=TRUE then you must specify g!")}
@@ -464,6 +462,7 @@ compute_lfsra = function(PositiveProb, NegativeProb,ZeroProb){
   ifelse(PositiveProb<NegativeProb,2*PositiveProb+ZeroProb,2*NegativeProb+ZeroProb)
 }
 
+nobs = function(data){return(length(data$x))}
 
 
 #The kth element of this vector is the derivative
@@ -497,22 +496,14 @@ gradient = function(matrix_lik){
 #of mixture proportions of sigmaa by variational Bayes method
 #(use Dirichlet prior and approximate Dirichlet posterior)
 #if cxx TRUE use cpp version of R function mixEM
-estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSquarem","mixIP"),control=list()){
-  control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE)
+estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSquarem","mixIP"),control){
   optmethod=match.arg(optmethod)
-  namc=names(control)
-  if (!all(namc %in% names(control.default)))
-    stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
-  controlinput=modifyList(control.default, control)
 
   pi_init = g$pi
   if(optmethod=="mixVBEM"){pi_init=NULL}  #for some reason pi_init doesn't work with mixVBEM
-
   k=ncomp(g)
-  n = length(data$x)
-  controlinput$tol = min(0.1/n,1.e-7) # set convergence criteria to be more stringent for larger samples
-
-  if(controlinput$trace==TRUE){tic()}
+  
+  if(isTRUE(control$trace)){tic()}
   matrix_llik = t(log_compdens_conv(g,data)) #an n by k matrix
   matrix_llik = matrix_llik - apply(matrix_llik,1, max) #avoid numerical issues by subtracting max of each row
   matrix_lik = exp(matrix_llik)
@@ -520,36 +511,31 @@ estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSq
   # the last of these conditions checks whether the gradient at the null is negative wrt pi0
   # to avoid running the optimization when the global null (pi0=1) is the optimal.
   if(optmethod=="mixVBEM" || max(prior[-1])>1 || min(gradient(matrix_lik)+prior[1]-1,na.rm=TRUE)<0){
-    fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=controlinput))
+    fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=control))
   } else {
-    fit = list(converged=TRUE,pihat=c(1,rep(0,k-1)))
+    fit = list(converged=TRUE,pihat=c(1,rep(0,k-1)),optmethod="gradient_check")
   }
 
   ## check if IP method returns negative mixing proportions. If so, run EM.
   if (optmethod == "mixIP" & (min(fit$pihat) < -10 ^ -12)) {
       message("Interior point method returned negative mixing proportions.\n Switching to EM optimization.")
       optmethod <- "mixEM"
+      control = list() #use defaults for mixEM in this
       fit = do.call(optmethod, args = list(matrix_lik = matrix_lik,
                                            prior = prior, pi_init = pi_init,
-                                           control = controlinput))
+                                           control = control))
   }
 
   if(!fit$converged){
       warning("Optimization failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
   }
 
-  pi = fit$pihat
-  converged = fit$converged
-  niter = fit$niter
-
   loglik.final =  penloglik(pi,matrix_lik,1) #compute penloglik without penalty
-  g$pi=pi
-  if(controlinput$trace==TRUE){toc()}
+  g$pi=fit$pihat
+  if(isTRUE(control$trace)){toc()}
 
-  return(list(loglik=loglik.final,matrix_lik=matrix_lik,converged=converged,g=g,niter=niter))
+  return(list(loglik=loglik.final,matrix_lik=matrix_lik,g=g,optreturn=fit,optmethod=optmethod))
 }
-
-
 
 
 #' @title Compute Posterior

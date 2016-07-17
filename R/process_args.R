@@ -37,23 +37,6 @@ set_optmethod = function(optmethod,VB,cxx){
 }
 
 
-# handles defaults for optimization routines
-set_control = function(control,nobs){
-  # Handling control variables
-  control.default = list(K = 1, method = 3, square = TRUE,
-                         step.min0 = 1, step.max0 = 1, mstep = 4,
-                         kr = 1, objfn.inc = 1, tol = 1.e-07, maxiter = 5000,
-                         trace = FALSE)
-  if (nobs > 50000) control.default$trace = TRUE
-  namc = names(control)
-  if (!all(namc %in% names(control.default)))
-    stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
-  control = modifyList(control.default, control)
-  if (control$maxiter == 0)
-    stop("option control$maxiter=0 deprecated; used fixg=TRUE instead")
-  return(control)
-}
-
 check_lik = function(lik){
   if(is.null(lik$lcdfFUN)){stop("Likelihood must have lcdfFUN")}
   if(is.null(lik$lpdfFUN)){stop("Likelihood must have lpdfFUN")}
