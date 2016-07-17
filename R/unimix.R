@@ -64,11 +64,11 @@ log_compdens_conv.unimix = function(m,data){
   a = pmin(m$b,m$a)
   lik = data$lik
   
-  lpa = do.call(lik$lcdfFUN, c(list(outer(data$x,a,FUN="-")/data$s)))
-  lpb = do.call(lik$lcdfFUN, c(list(outer(data$x,b,FUN="-")/data$s)))
+  lpa = do.call(lik$lcdfFUN, list(outer(data$x,a,FUN="-")/data$s))
+  lpb = do.call(lik$lcdfFUN, list(outer(data$x,b,FUN="-")/data$s))
    
   lcompdens = t(lpa + log(1-exp(lpb-lpa))) - log(b-a)
-  lcompdens[a==b,] = t(do.call(lik$lpdfFUN, c(list(outer(data$x,b,FUN="-")/data$s)))
+  lcompdens[a==b,] = t(do.call(lik$lpdfFUN, list(outer(data$x,b,FUN="-")/data$s))
                        -log(data$s))[a==b,]
   return(lcompdens)
 }
@@ -83,9 +83,9 @@ compcdf_post.unimix=function(m,c,data){
   tmp[m$a > c,] = 0
   subset = m$a<=c & m$b>c # subset of components (1..k) with nontrivial cdf
   if(sum(subset)>0){
-    pna = exp(do.call(lik$lcdfFUN, c(list(outer(data$x,m$a[subset],FUN="-")/data$s))))
-    pnc = exp(do.call(lik$lcdfFUN, c(list(outer(data$x,rep(c,sum(subset)),FUN="-")/data$s))))
-    pnb = exp(do.call(lik$lcdfFUN, c(list(outer(data$x,m$b[subset],FUN="-")/data$s))))
+    pna = exp(do.call(lik$lcdfFUN, list(outer(data$x,m$a[subset],FUN="-")/data$s)))
+    pnc = exp(do.call(lik$lcdfFUN, list(outer(data$x,rep(c,sum(subset)),FUN="-")/data$s)))
+    pnb = exp(do.call(lik$lcdfFUN, list(outer(data$x,m$b[subset],FUN="-")/data$s)))
     tmp[subset,] = t((pnc-pna)/(pnb-pna))
   }
   subset = (m$a == m$b) #subset of components with trivial cdf
