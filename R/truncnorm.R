@@ -17,7 +17,7 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   beta[flip]=-beta[flip]
   
   #Fix a bug of quoting the truncnorm package
-  #E(X|a<X<b)=a when a==b as a natural result
+  #E(X|a<X<b)=a when a==b is a natural result
   #while etruncnorm would simply return NaN,causing PosteriorMean also NaN
   tmp1=etruncnorm(alpha,beta,0,1)
   isequal=(alpha==beta)

@@ -21,7 +21,8 @@
 set_data = function(betahat, sebetahat, lik=NULL, alpha=0){
   # Dealing with precise input of betahat, currently we exclude them from the EM algorithm
   if(length(sebetahat)==1L){sebetahat = rep(sebetahat, length(betahat))}
-  exclude = (sebetahat==0 | sebetahat == Inf | is.na(betahat) | is.na(sebetahat))
+  exclude = get_exclusions(betahat,sebetahat)
+  #exclude = rep(FALSE,length(betahat))
   
   data=list()
   data$x = betahat[!exclude]/(sebetahat[!exclude]^alpha)
@@ -35,4 +36,8 @@ set_data = function(betahat, sebetahat, lik=NULL, alpha=0){
   data$lik = lik
 
   return(data)
+}
+
+get_exclusions=function(betahat,sebetahat){
+  return((sebetahat==0 | sebetahat == Inf | is.na(betahat) | is.na(sebetahat)))
 }

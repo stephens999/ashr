@@ -651,8 +651,10 @@ qval.from.lfdr = function(lfdr){
 autoselect.mixsd = function(data,mult){
   betahat = data$x
   sebetahat = data$s
+  exclude = get_exclusions(betahat, sebetahat) | (sebetahat==0) 
+  betahat = betahat[!exclude]
+  sebetahat = sebetahat[!exclude]
   
-  sebetahat=sebetahat[sebetahat!=0] #To avoid exact measure causing (usually by mistake)
   sigmaamin = min(sebetahat)/10 #so that the minimum is small compared with measurement precision
   if(all(betahat^2<=sebetahat^2)){
     sigmaamax = 8*sigmaamin #to deal with the occassional odd case where this could happen; 8 is arbitrary
