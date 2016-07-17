@@ -37,8 +37,8 @@ t_lik = function(df){
     
   list(lcdfFUN = function(x){pt(x,df=df,log=TRUE)},
       lpdfFUN = function(x){dt(x,df=df,log=TRUE)},
-      etruncFUN = function(a,b){my_etrunct(a,b,df=df)},
-      e2truncFUN = function(a,b){my_e2trunct(a,b,df=df)}
+      etruncFUN = function(a,b){etrunct::e_trunct(a,b,df=df,r=1)},
+      e2truncFUN = function(a,b){etrunct::e_trunct(a,b,df=df,r=2)}
       )
 }
 

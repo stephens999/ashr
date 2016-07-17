@@ -1,17 +1,6 @@
-test_that("my_e2trunct matches simulations", {
-  x = rt(1000000,df=4)
-  expect_equal(mean(x[abs(x)<1]^2),my_e2trunct(-1,1,4),tolerance=0.01)
-})
-
 test_that("my_e2truncnorm matches simulations", {
   x = rnorm(1000000)
   expect_equal(mean(x[abs(x)<1]^2),my_e2truncnorm(-1,1),tolerance=0.01)
-})
-
-test_that("my_etrunct matches simulations", {
-  x = rt(1000000,df=4)
-  expect_equal(mean(x[x>0 & x<2]),my_etrunct(0,2,4),tolerance=0.01)
-  expect_equal(mean(x[x>1 & x<5]),my_etrunct(1,5,4),tolerance=0.01)
 })
 
 test_that("comp_postmean2 is 0 for null", {

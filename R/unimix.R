@@ -116,7 +116,7 @@ comp_postmean.unimix = function(m,data){
   
   alpha = outer(-x, m$a,FUN="+")/s
   beta = outer(-x, m$b, FUN="+")/s
- 
+
   tmp = x + s*apply_functions_to_rows_of_two_matrices(lik$etruncFUN,alpha,beta)
  
   ismissing = is.na(x) | is.na(s)
@@ -134,7 +134,8 @@ comp_postmean2.unimix = function(m,data){
   alpha = outer(-x, m$a,FUN="+")/s
   beta = outer(-x, m$b, FUN="+")/s
   tmp = x^2 +
-    2*x*s* apply_functions_to_rows_of_two_matrices(lik$etruncFUN,alpha,beta) +
+
+  2*x*s* apply_functions_to_rows_of_two_matrices(lik$etruncFUN,alpha,beta) +
     s^2* apply_functions_to_rows_of_two_matrices(lik$e2truncFUN,alpha,beta) 
  
   ismissing = is.na(x) | is.na(s)
