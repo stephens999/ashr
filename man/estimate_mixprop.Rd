@@ -5,7 +5,7 @@
 \title{Estimate mixture proportions of sigmaa by EM algorithm}
 \usage{
 estimate_mixprop(data, g, prior, optmethod = c("mixEM", "mixVBEM",
-  "cxxMixSquarem", "mixIP"), control = list())
+  "cxxMixSquarem", "mixIP"), control)
 }
 \arguments{
 \item{data}{list to be passed to log_compdens_conv; details depend on model}
