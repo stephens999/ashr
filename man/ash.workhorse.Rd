@@ -65,8 +65,7 @@ mixsd differ by one another. (Smaller values produce finer
 grids)}
 
 \item{outputlevel}{determines amount of output [0=just fitted g;
-1=also PosteriorMean and PosteriorSD (provided df=NULL - 
-if df non-null, set outputlevel =3 to get these); 2= everything usually
+1=also PosteriorMean and PosteriorSD; 2= everything usually
 needed; 3=also include results of mixture fitting procedure
 (includes matrix of log-likelihoods used to fit mixture); 4=
 output additional things required by flash (flash.data)]}

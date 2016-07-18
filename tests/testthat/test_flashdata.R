@@ -1,10 +1,10 @@
 test_that("PosteriorMean is equal to weighted component-specific posterior means", {
-  set.seed(1); z=rnorm(100,0,2); z.ash=ash(z,1, outputlevel=4); expect_equal(z.ash$PosteriorMean, colSums(z.ash$flash.data$comp_postprob * z.ash$flash.data$comp_postmean)) 
+  set.seed(1); z=rnorm(100,0,2); z.ash=ash(z,1, outputlevel=4); expect_equal(z.ash$res$PosteriorMean, colSums(z.ash$flash.data$comp_postprob * z.ash$flash.data$comp_postmean)) 
 })
 
 test_that("PosteriorSD squared is equal to weighted component mean2 minus posterior mean all squared", {
   set.seed(1); z=rnorm(100,0,2); z.ash=ash(z,1, outputlevel=4,mixcompdist="normal")
-  expect_equal(z.ash$PosteriorSD^2, colSums(z.ash$flash.data$comp_postprob * z.ash$flash.data$comp_postmean2)-z.ash$PosteriorMean^2) 
+  expect_equal(z.ash$res$PosteriorSD^2, colSums(z.ash$flash.data$comp_postprob * z.ash$flash.data$comp_postmean2)-z.ash$res$PosteriorMean^2) 
 })
 
 test_that("comp_postmean for null component is 0", {

@@ -146,7 +146,6 @@ calc_loglik = function(g,data){
   sum(calc_vloglik(g,data))
 }
 
-
 #' @title Compute loglikelihood for data under null that all beta are 0
 #'
 #' @description Return the log-likelihood of the data betahat, with
@@ -158,6 +157,7 @@ calc_loglik = function(g,data){
 calc_null_loglik = function(data){
   sum(calc_null_vloglik(data))
 }
+
 
 #' @title Compute loglikelihood ratio for data from ash fit
 #'
@@ -181,7 +181,7 @@ calc_logLR = function(g,data){
 #'
 calc_vloglik = function(g,data){
   if(class(g)=="ash"){
-    if(g$alpha != data$alpha){
+    if(g$data$alpha != data$alpha){
       warning("Model (alpha value) used to fit ash does not match alpha in data! Probably you have made a mistake!")
     }
     if(class(g)=="ash"){g = g$fitted.g} #extract g object from ash object if ash object passed

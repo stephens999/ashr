@@ -127,8 +127,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #'     mixsd differ by one another. (Smaller values produce finer
 #'     grids)
 #' @param outputlevel determines amount of output [0=just fitted g;
-#'     1=also PosteriorMean and PosteriorSD (provided df=NULL - 
-#'     if df non-null, set outputlevel =3 to get these); 2= everything usually
+#'     1=also PosteriorMean and PosteriorSD; 2= everything usually
 #'     needed; 3=also include results of mixture fitting procedure
 #'     (includes matrix of log-likelihoods used to fit mixture); 4=
 #'     output additional things required by flash (flash.data)]
@@ -334,41 +333,29 @@ ash.workhorse = function(betahat,sebetahat,
     pi.fit = list(g=g)
   }
 
-  ##4. Computing the posteriors
+  ##4. Computing the return values
 
-  n = length(betahat)
-  exclude = data$exclude
-  result = list(fitted.g=pi.fit$g,call=match.call())
-  if (outputlevel>0){
-    result = add_list(output_loglik, pi.fit$g, data, result)
-    result = c(result, list(logLR = result$loglik - calc_null_loglik(data)))
-  }
-  if ((outputlevel>0 & is.null(df)) | outputlevel>2 ) {
-    result = add_list(calc_pm,pi.fit$g,data,result)
-    result = add_list(calc_psd,pi.fit$g,data,result)
-  }
+  val = list() # val will hold the return value
+  ghat = pi.fit$g
+  output = set_output(outputlevel) #sets up flags for what to output
   
-  if (outputlevel > 1) {
-    result = add_list(calc_np,pi.fit$g,data,result)
-    result = add_list(calc_lfdr,pi.fit$g,data,result)
-    result = c(result,list(ZeroProb=result$lfdr))
+  if(isTRUE(output$fitted.g)){val = c(val,list(fitted.g=ghat))}
+  if(isTRUE(output$call)){val = c(val,list(call=match.call()))}
+  if(isTRUE(output$loglik)){val = c(val,list(loglik =calc_loglik(ghat,data)))}
+  if(isTRUE(output$logLR)){val = c(val,list(logLR=calc_logLR(ghat,data)))}
+  if(isTRUE(output$data)){val = c(val,list(data=data))}
+  if(isTRUE(output$fit)){val = c(val,list(fit = pi.fit))}
+  if(isTRUE(output$flash.data)){val = c(val, list(flash.data=calc_flash_data(ghat,data)))}
 
-    result = c(result, list(lfsr = compute_lfsr(result$NegativeProb,result$ZeroProb)))
-
-    PositiveProb = 1 - result$NegativeProb - result$ZeroProb
-    PositiveProb = ifelse(PositiveProb<0,0,PositiveProb) #deal with numerical issues that lead to numbers <0
-    result = c(result, list(PositiveProb = PositiveProb))
-    result = c(result, list(qvalue = qval.from.lfdr(result$lfdr)))
-    result = c(result, list(svalue = qval.from.lfdr(result$lfsr)))
-    
-    result = c(result, list(excludeindex = which(exclude), 
-                            alpha=alpha, optmethod =optmethod))
-
-  }
-  if (outputlevel >2) {result=c(result,list(fit=pi.fit))}
-  if(outputlevel>3){ #compute the flash output
-    result = add_list(calc_flash_data,pi.fit$g,data,result)
-  }
+  # Compute the res component of value - 
+  # res is a dataframe containing lfsr, etc
+  # output$resfns is a list of functions used to produce columns of that dataframe
+  if(!is.null(output$resfns)){
+    res = lapply(output$resfns,do.call,list(g=pi.fit$g,data=data))
+    res=as.data.frame(res)
+    val = c(val, list(res=res))
+  } 
+  
   if(nonzeromode){
     #Adding back the nonzero mean
     #not yet dealt with in this branch
@@ -383,13 +370,30 @@ ash.workhorse = function(betahat,sebetahat,
     if((outputlevel>0 & is.null(df)) | outputlevel>2 ){PosteriorMean = PosteriorMean + nonzeromode.fit$nonzeromode}
   }
 
-  
-  ##5. Returning the result
+  ##5. Returning the val
 
-#  if (outputlevel > 1.5){result = c(result,list(data= list(betahat = betahat, sebetahat = sebetahat,df=df)))}
-  class(result) = "ash"
-  return(result)
+  class(val) = "ash"
+  return(val)
 
+}
+
+# If outputlevel is a list, then just returns it
+# if outputlevel an integer, there are different combinations of
+# default output provided
+set_output=function(outputlevel){
+  if(is.list(outputlevel)){output=outputlevel} 
+  else {
+    output = list(fitted.g=TRUE, call=TRUE)
+    if(outputlevel>0){output$loglik=TRUE; output$logLR=TRUE
+      output$resfns = list(output_pm, output_psd)
+    }
+    if(outputlevel>1){output$data=TRUE
+      output$resfns = c(output_np, output_pp, output_lfsr, output_svalue, 
+                output_lfdr, output_qvalue, output$resfns)}
+    if(outputlevel>2){output$fit=TRUE}
+    if(outputlevel>3){output$flash.data = TRUE}
+  }
+  return(output)
 }
 
 #adds result of applying f to (g,data) to the list res
