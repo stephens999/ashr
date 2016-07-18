@@ -303,7 +303,8 @@ ash.workhorse = function(betahat,sebetahat,
     prior = setprior(prior,k,nullweight,null.comp)
     pi = initpi(k,length(data$x),null.comp,randomstart)
     
-    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform"))) stop("Error: invalid type of mixcompdist")
+    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform"))) 
+      stop("Error: invalid type of mixcompdist")
     if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),mixsd)
     if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)
     if(mixcompdist=="+uniform") g = unimix(pi,rep(0,k),mixsd)
@@ -333,57 +334,44 @@ ash.workhorse = function(betahat,sebetahat,
     pi.fit = list(g=g)
   }
 
-  ##4. Computing the posterior
+  ##4. Computing the posteriors
 
   n = length(betahat)
   exclude = data$exclude
+  result = list(fitted.g=pi.fit$g,call=match.call())
+  if (outputlevel>0){
+    result = add_list(output_loglik, pi.fit$g, data, result)
+    result = c(result, list(logLR = result$loglik - calc_null_loglik(data)))
+  }
   if ((outputlevel>0 & is.null(df)) | outputlevel>2 ) {
-    PosteriorMean = rep(0,length = n)
-    PosteriorSD = rep(0,length = n)
-    PosteriorMean[!exclude] = postmean(pi.fit$g,data)
-    PosteriorSD[!exclude] = postsd(pi.fit$g,data)
-    #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
-    PosteriorMean[exclude] = calc_mixmean(pi.fit$g)
-    PosteriorSD[exclude] = calc_mixsd(pi.fit$g)
-    PosteriorMean = PosteriorMean * (sebetahat^alpha)
-    PosteriorSD= PosteriorSD * (sebetahat^alpha)
+    result = add_list(calc_pm,pi.fit$g,data,result)
+    result = add_list(calc_psd,pi.fit$g,data,result)
   }
+  
   if (outputlevel > 1) {
-    ZeroProb = rep(0,length = n)
-    NegativeProb = rep(0,length = n)
-    ZeroProb[!exclude] = 
-      colSums(comppostprob(pi.fit$g,data)[comp_sd(pi.fit$g) ==0,,drop = FALSE])
-    NegativeProb[!exclude] = cdf_post(pi.fit$g, 0, data) - ZeroProb[!exclude]
-    #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
-    ZeroProb[exclude] = sum(mixprop(pi.fit$g)[comp_sd(pi.fit$g) == 0])
-    NegativeProb[exclude] = mixcdf(pi.fit$g,0)
-    lfsr = compute_lfsr(NegativeProb,ZeroProb)
-    PositiveProb = 1 - NegativeProb - ZeroProb
+    result = add_list(calc_np,pi.fit$g,data,result)
+    result = add_list(calc_lfdr,pi.fit$g,data,result)
+    result = c(result,list(ZeroProb=result$lfdr))
+
+    result = c(result, list(lfsr = compute_lfsr(result$NegativeProb,result$ZeroProb)))
+
+    PositiveProb = 1 - result$NegativeProb - result$ZeroProb
     PositiveProb = ifelse(PositiveProb<0,0,PositiveProb) #deal with numerical issues that lead to numbers <0
-    lfdr = ZeroProb
-    qvalue = qval.from.lfdr(lfdr)
-    svalue = qval.from.lfdr(lfsr)
+    result = c(result, list(PositiveProb = PositiveProb))
+    result = c(result, list(qvalue = qval.from.lfdr(result$lfdr)))
+    result = c(result, list(svalue = qval.from.lfdr(result$lfsr)))
+    
+    result = c(result, list(excludeindex = which(exclude), 
+                            alpha=alpha, optmethod =optmethod))
+
   }
-
+  if (outputlevel >2) {result=c(result,list(fit=pi.fit))}
   if(outputlevel>3){ #compute the flash output
-    kk = ncomp(pi.fit$g)
-    comp_postprob = matrix(0,nrow = kk, ncol = n)
-    comp_postmean = matrix(0,nrow = kk, ncol = n)
-    comp_postmean2 =  matrix(0,nrow = kk, ncol = n)
-
-    comp_postprob[,!exclude] = comppostprob(pi.fit$g,data)
-    comp_postmean[,!exclude] = comp_postmean(pi.fit$g,data)
-    comp_postmean2[,!exclude] = comp_postmean2(pi.fit$g,data)
-
-    #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
-    comp_postprob[,exclude] = mixprop(pi.fit$g)
-    comp_postmean[,exclude] = comp_mean(pi.fit$g)
-    comp_postmean2[,exclude] = comp_mean2(pi.fit$g)
-
-    flash.data = list(comp_postprob = comp_postprob,comp_postmean = comp_postmean,comp_postmean2 = comp_postmean2)
+    result = add_list(calc_flash_data,pi.fit$g,data,result)
   }
   if(nonzeromode){
     #Adding back the nonzero mean
+    #not yet dealt with in this branch
     betahat[completeobs]= betahat[completeobs]+nonzeromode.fit$nonzeromode
     if(mixcompdist=="normal"){
       pi.fit$g$mean = rep(nonzeromode.fit$nonzeromode,length(pi.fit$g$pi))
@@ -395,23 +383,19 @@ ash.workhorse = function(betahat,sebetahat,
     if((outputlevel>0 & is.null(df)) | outputlevel>2 ){PosteriorMean = PosteriorMean + nonzeromode.fit$nonzeromode}
   }
 
-  loglik = calc_loglik(pi.fit$g, data)
-  logLR = loglik - calc_null_loglik(data)
+  
   ##5. Returning the result
 
-  result = list(fitted.g=pi.fit$g,call=match.call())
-  if ((outputlevel>0 & is.null(df)) | outputlevel>2 ) {result=c(result,list(PosteriorMean = PosteriorMean,PosteriorSD = PosteriorSD))}
-  if (outputlevel>0){result=c(result,list(loglik = loglik, logLR=logLR))}
-  
-  if (outputlevel>1) {result=c(result,list(PositiveProb = PositiveProb, NegativeProb = NegativeProb,
-                ZeroProb = ZeroProb,lfsr = lfsr,lfdr = lfdr, qvalue = qvalue, svalue=svalue,
-                 excludeindex = which(exclude), alpha=alpha, optmethod =optmethod))}
-  if (outputlevel > 1.5){result = c(result,list(data= list(betahat = betahat, sebetahat = sebetahat,df=df)))}
-  if (outputlevel >2) {result=c(result,list(fit=pi.fit))}
-  if (outputlevel >3) {result = c(result, flash.data=list(flash.data))}
+#  if (outputlevel > 1.5){result = c(result,list(data= list(betahat = betahat, sebetahat = sebetahat,df=df)))}
   class(result) = "ash"
   return(result)
 
+}
+
+#adds result of applying f to (g,data) to the list res
+#the result of f should be a list with named elements
+add_list = function(f,g,data,res){
+  return(c(res,do.call(f, list(g=g,data=data))))
 }
 
 initpi = function(k,n,null.comp,randomstart){
@@ -461,8 +445,6 @@ compute_lfsr = function(NegativeProb,ZeroProb){
 compute_lfsra = function(PositiveProb, NegativeProb,ZeroProb){
   ifelse(PositiveProb<NegativeProb,2*PositiveProb+ZeroProb,2*NegativeProb+ZeroProb)
 }
-
-nobs = function(data){return(length(data$x))}
 
 
 #The kth element of this vector is the derivative

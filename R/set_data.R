@@ -31,12 +31,20 @@ set_data = function(betahat, sebetahat, lik=NULL, alpha=0){
   data$exclude = exclude
   data$alpha=alpha
   data$s_orig = sebetahat[!exclude]
+
+  data$betahat = betahat
+  data$sebetahat = sebetahat
   
   if(is.null(lik)){lik = normal_lik()}
   data$lik = lik
 
   return(data)
 }
+
+n_completeobs = function(data){return(length(data$x))}
+
+n_obs = function(data){return(length(data$betahat))}
+
 
 get_exclusions=function(betahat,sebetahat){
   return((sebetahat==0 | sebetahat == Inf | is.na(betahat) | is.na(sebetahat)))
