@@ -44,6 +44,13 @@ check_lik = function(lik){
 
 
 check_args = function(mixcompdist,df,prior,optmethod,gridmult,sebetahat,betahat){
+  if(!is.numeric(betahat)){
+    stop("Error: betahat must be numeric")
+  }
+  if(!is.numeric(sebetahat)){
+    stop("Error: sebetahat must be numeric")
+  }
+  
   if (mixcompdist == "normal" & !is.null(df))
     stop("Error: Normal mixture for student-t likelihood is not yet implemented")
   
