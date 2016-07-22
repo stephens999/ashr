@@ -106,20 +106,20 @@ ash returns an object of \code{\link[base]{class}} "ash", a list with some or al
 \item{fitted.g}{fitted mixture, either a normalmix or unimix}
 \item{loglik}{log P(D|mle(pi))}
 \item{logLR}{log[P(D|mle(pi))/P(D|beta==0)]}
-\item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
-\item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
-\item{PositiveProb}{A vector of posterior probability that beta is positive}
-\item{NegativeProb}{A vector of posterior probability that beta is negative}
-\item{ZeroProb}{A vector of posterior probability that beta is zero}
-\item{lfsr}{The local false sign rate}
-\item{lfdr}{A vector of estimated local false discovery rate}
-\item{qvalue}{A vector of q values}
-\item{svalue}{A vector of s values}
+\item{res}{A dataframe whose columns are}
+\describe{
+ \item{NegativeProb}{A vector of posterior probability that beta is negative}
+ \item{PositiveProb}{A vector of posterior probability that beta is positive}
+ \item{lfsr}{A vector of estimated local false sign rate}
+ \item{lfdr}{A vector of estimated local false discovery rate}
+ \item{qvalue}{A vector of q values}
+ \item{svalue}{A vector of s values}
+ \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
+ \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
+ }
 \item{call}{a call in which all of the specified arguments are specified by their full names}
-\item{model}{either "EE" or "ET", denoting whether exchangeable effects (EE) or exchangeable T stats (ET) has been used}
-\item{optmethod}{the optimization method used}
-\item{data}{a list consisting the input betahat and sebetahat (only included if outputlevel>2)}
-\item{fit}{a list containing results of mixture optimization, and matrix of component log-likelihoods used in this optimization}
+\item{data}{a list containing details of the data and models used (mostly for internal use)}
+\item{fit_details}{a list containing results of mixture optimization, and matrix of component log-likelihoods used in this optimization}
 }
 \description{
 Takes vectors of estimates (betahat) and their
@@ -139,9 +139,9 @@ sebetahat = abs(rnorm(200,0,1))
 betahat = rnorm(200,beta,sebetahat)
 beta.ash = ash(betahat, sebetahat)
 names(beta.ash)
-summary(beta.ash)
+head(beta.ash$res)
 head(as.data.frame(beta.ash))
-graphics::plot(betahat,beta.ash$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
+graphics::plot(betahat,beta.ash$res$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 
 CIMatrix=ashci(beta.ash,betahat,sebetahat,level=0.95)
 print(CIMatrix)

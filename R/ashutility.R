@@ -361,17 +361,18 @@ ashci = function (a, betahat=NULL, sebetahat=NULL,df=NULL,model=c("EE","ET"),lev
       df = a$data$df
   }
 
+  
   options(warn=-1)
   if(missing(betaindex)){
     betaindex =(a$lfsr<=lfsrcriteria)
     betaindex[is.na(betaindex)]=FALSE #Some lfsrs would have NA
   }
 
-  PosteriorMean=a$PosteriorMean[betaindex]
-  PosteriorSD = a$PosteriorSD[betaindex]
-  ZeroProb = a$ZeroProb[betaindex]
-  NegativeProb = a$NegativeProb[betaindex]
-  PositiveProb = a$PositiveProb[betaindex]
+  PosteriorMean=a$res$PosteriorMean[betaindex]
+  PosteriorSD = a$res$PosteriorSD[betaindex]
+  ZeroProb = a$res$lfdr[betaindex]
+  NegativeProb = a$res$NegativeProb[betaindex]
+  PositiveProb = a$res$PositiveProb[betaindex]
   x=betahat[betaindex]
   s=sebetahat[betaindex]
   m=a$fitted.g
@@ -515,7 +516,7 @@ ashci = function (a, betahat=NULL, sebetahat=NULL,df=NULL,model=c("EE","ET"),lev
   }
   numericindex=c(1:length(a$data$betahat))[betaindex]
   CImatrix[,1]=numericindex
-  CImatrix[,2]=a$lfsr[betaindex]
+  CImatrix[,2]=a$res$lfsr[betaindex]
   CImatrix=signif(CImatrix,digits=round(1-log(tol)/log(10)))
   #CImatrix[,6:7]=round(CImatrix[,6:7],5)
   return(CImatrix)
