@@ -6,13 +6,13 @@ test_that("optmethod switches to EM when given negative probabilities", {
         ash_out <- ash(betahat = betahat, sebetahat = sebetahat,
                              mixcompdist = "uniform", outputlevel=4)
         expect_true(min(ash_out$fitted.g$pi) > -10 ^ -12) 
-        expect_true(ash_out$fit$optmethod == "mixEM")
+        expect_true(ash_out$fit_details$optmethod == "mixEM")
 })
 
 test_that("control is passed to optmethod correctly when method is mixIP", {
   set.seed(1); z=rnorm(10,0,2) 
   z.ash= ash(z,1,control=list(rtol=1e-1),outputlevel=4)    
-  expect_true(z.ash$fit$optreturn$control$rtol==1e-1)
+  expect_true(z.ash$fit_details$optreturn$control$rtol==1e-1)
   z.ash= ash(z,1,outputlevel=4)
-  expect_true(z.ash$fit$optreturn$control$rtol==1e-6)
+  expect_true(z.ash$fit_details$optreturn$control$rtol==1e-6)
 })
