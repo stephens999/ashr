@@ -1,5 +1,5 @@
 # Issues: 
-# - the cdfFUN has to take log parameter currently (used in log_compdens_conv)
+# - the cdfFUN has to take log parameter currently (used in log_comp_dens_conv)
 # - the FUNargs have to be the same to cdf, pdf and etruncFUN; this means I added mean and sd to my_etrunct, but that functino
 #   actually doesn't use them. Need to think about what this means.
 # - 

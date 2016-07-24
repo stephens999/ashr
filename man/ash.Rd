@@ -43,7 +43,7 @@ ash returns an object of \code{\link[base]{class}} "ash", a list with some or al
  \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
  }
 \item{call}{a call in which all of the specified arguments are specified by their full names}
-\item{data_model}{a list containing details of the data and models used (mostly for internal use)}
+\item{data}{a list containing details of the data and models used (mostly for internal use)}
 \item{fit_details}{a list containing results of mixture optimization, and matrix of component log-likelihoods used in this optimization}
 }
 \description{

@@ -8,7 +8,7 @@ estimate_mixprop(data, g, prior, optmethod = c("mixEM", "mixVBEM",
   "cxxMixSquarem", "mixIP"), control)
 }
 \arguments{
-\item{data}{list to be passed to log_compdens_conv; details depend on model}
+\item{data}{list to be passed to log_comp_dens_conv; details depend on model}
 
 \item{g}{the prior distribution for beta (usually estimated from
 the data}

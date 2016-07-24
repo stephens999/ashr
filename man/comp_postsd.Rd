@@ -22,6 +22,6 @@ ash.beta = ash(betahat,1,mixcompdist="normal")
 data=list(x=betahat,s=rep(1,100),df=NULL)
 comp_postmean(ash.beta$fitted.g,data)
 comp_postsd(ash.beta$fitted.g,data)
-comppostprob(ash.beta$fitted.g,data)
+comp_postprob(ash.beta$fitted.g,data)
 }
 

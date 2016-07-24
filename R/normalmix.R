@@ -41,7 +41,7 @@ comp_mean.normalmix = function(m){
 }
 
 #' @export
-compdens.normalmix = function(m,y,log=FALSE){
+comp_dens.normalmix = function(m,y,log=FALSE){
   k=ncomp(m)
   n=length(y)
   d = matrix(rep(y,rep(k,n)),nrow=k)
@@ -55,30 +55,30 @@ comp_cdf.normalmix = function(m,y,lower.tail=TRUE){
 
 
 
-#' @title compdens_conv.normalmix
+#' @title comp_dens_conv.normalmix
 #' @description returns density of convolution of each component of a
 #'     normal mixture with N(0,s^2) at x. Note that
 #'     convolution of two normals is normal, so it works that way
 #' @param m mixture distribution with k components
 #' @param data a list with components x and s to be interpreted as a normally-distributed observation and its standard error
 #' @return a k by n matrix
-compdens_conv.normalmix = function(m,data){
+comp_dens_conv.normalmix = function(m,data){
   if(!is.null(data$v)){
-    stop("method compdens_conv of normal mixture not written for df!=NULL")
+    stop("method comp_dens_conv of normal mixture not written for df!=NULL")
   }
   sdmat = sqrt(outer(data$s^2,m$sd^2,FUN="+")) #n by k matrix of standard deviations of convolutions
   return(t(stats::dnorm(outer(data$x,m$mean,FUN="-")/sdmat)/sdmat))
 }
 
-#' @title log_compdens_conv.normalmix
+#' @title log_comp_dens_conv.normalmix
 #' @description returns log-density of convolution of each component
 #'     of a normal mixture with N(0,s^2) or s*t(v) at x. Note that
 #'     convolution of two normals is normal, so it works that way
-#' @inheritParams compdens_conv.normalmix
+#' @inheritParams comp_dens_conv.normalmix
 #' @return a k by n matrix
-log_compdens_conv.normalmix = function(m,data){
+log_comp_dens_conv.normalmix = function(m,data){
   if(!is.null(data$v)){
-    stop("method compdens_conv of normal mixture not written for df!=NULL")
+    stop("method comp_dens_conv of normal mixture not written for df!=NULL")
   }
   sdmat = sqrt(outer(data$s^2,m$sd^2,"+")) #n by k matrix of standard deviations of convolutions
   return(t(stats::dnorm(outer(data$x,m$mean,FUN="-")/sdmat,log=TRUE) - log(sdmat)))
@@ -90,7 +90,7 @@ log_compdens_conv.normalmix = function(m,data){
 
 
 #' @export
-compcdf_post.normalmix=function(m,c,data){
+comp_cdf_post.normalmix=function(m,c,data){
   if(!is.null(data$v)){
     stop("Error: normal mixture for student-t likelihood is not yet implemented")
   }

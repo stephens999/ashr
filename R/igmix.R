@@ -31,7 +31,7 @@ comp_mean.igmix = function(m){
   m$beta/(m$alpha-1)
 }
 
-compdens.igmix = function(m,y,log=FALSE){
+comp_dens.igmix = function(m,y,log=FALSE){
   k=ncomp(m)
   n=length(y)
   d = matrix(rep(y,rep(k,n)),nrow=k)
@@ -41,7 +41,7 @@ compdens.igmix = function(m,y,log=FALSE){
 #density of product of each component of a inverse-gamma mixture with Gamma(v/2,v/2) at s
 # s an n-vector at which density is to be evaluated
 #return a k by n matrix
-compdens_conv.igmix = function(m,x,s,v,FUN="+"){
+comp_dens_conv.igmix = function(m,x,s,v,FUN="+"){
   k=ncomp(m)
   n=length(s)
   dens = t(exp(v/2*log(v/2)-lgamma(v/2)
@@ -59,7 +59,7 @@ comp_cdf.igmix = function(m,y,lower.tail=TRUE){
 
 
 #' @export
-compcdf_post.igmix=function(m,c,betahat,sebetahat,v){
+comp_cdf_post.igmix=function(m,c,betahat,sebetahat,v){
   #compute posterior shape (alpha1) and rate (beta1)
   alpha1 = m$alpha+v/2
   beta1 = outer(m$beta,v/2*sebetahat^2,FUN="+")
@@ -90,7 +90,7 @@ comp_postsd.igmix = function(m,betahat,sebetahat,v){
 }
 
 #' @export
-compdens.igmix = function(m,y,log=FALSE){
+comp_dens.igmix = function(m,y,log=FALSE){
   k=ncomp(m)
   n=length(y)
   d = matrix(rep(y,rep(k,n)),nrow=k)

@@ -43,7 +43,7 @@
 #'  \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
 #'  }
 #' \item{call}{a call in which all of the specified arguments are specified by their full names}
-#' \item{data_model}{a list containing details of the data and models used (mostly for internal use)}
+#' \item{data}{a list containing details of the data and models used (mostly for internal use)}
 #' \item{fit_details}{a list containing results of mixture optimization, and matrix of component log-likelihoods used in this optimization}
 #'
 #' @seealso \code{\link{ash.workhorse}} for complete specification of ash function
@@ -226,6 +226,8 @@ ash.workhorse = function(betahat,sebetahat,
     stop("Specify either method or pointmass, not both")
   if(!missing(prior) & !missing(method))
     stop("Specify either method or prior, not both")
+  if(!missing(mode) & !missing(g))
+    stop("Specify either mode or g, not both")
   if(!missing(method)){
     method = match.arg(method)
     if (method == "shrink"){pointmass =FALSE; prior="uniform"}
@@ -250,7 +252,7 @@ ash.workhorse = function(betahat,sebetahat,
   lik = add_etruncFUN(lik) #if missing, add a function to compute mean of truncated distribution
   data = set_data(betahat, sebetahat, lik, alpha)
   
-  ##2. Generating mixture distribution
+  ##2. Generating mixture distribution g
 
   if(fixg & missing(g)){stop("if fixg=TRUE then you must specify g!")}
 
@@ -262,14 +264,7 @@ ash.workhorse = function(betahat,sebetahat,
                     g$pi=pi} #if g specified, only initialize pi if randomstart is TRUE
   } else {
     if(is.null(mixsd)){
-      if(nonzeromode){
-        stop("not dealt with nonzeromode yet in this branch")
-        mixsd = autoselect.mixsd(betahat[completeobs]-mean(betahat[completeobs]),sebetahat[completeobs],gridmult)
-        if(pointmass){ mixsd = c(0,mixsd) }
-        nonzeromode.fit=nonzeromodeEM(betahat[completeobs], sebetahat[completeobs], mixsd=mixsd, mixcompdist=mixcompdist,df=df,control= control)
-        betahat[completeobs]= betahat[completeobs] - nonzeromode.fit$nonzeromode
-      }
-      mixsd = autoselect.mixsd(data,gridmult)
+      mixsd = autoselect.mixsd(data,gridmult,mode)
     }
     if(pointmass){
       mixsd = c(0,mixsd)
@@ -282,18 +277,18 @@ ash.workhorse = function(betahat,sebetahat,
     
     if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform"))) 
       stop("Error: invalid type of mixcompdist")
-    if(mixcompdist=="normal") g=normalmix(pi,rep(0,k),mixsd)
-    if(mixcompdist=="uniform") g=unimix(pi,-mixsd,mixsd)
-    if(mixcompdist=="+uniform") g = unimix(pi,rep(0,k),mixsd)
-    if(mixcompdist=="-uniform") g = unimix(pi,-mixsd,rep(0,k))
+    if(mixcompdist=="normal") g=normalmix(pi,rep(mode,k),mixsd)
+    if(mixcompdist=="uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
+    if(mixcompdist=="+uniform") g = unimix(pi,rep(mode,k),mode+mixsd)
+    if(mixcompdist=="-uniform") g = unimix(pi,mode-mixsd,rep(mode,k))
     if(mixcompdist=="halfuniform"){
       if(min(mixsd)>0){ #simply reflect the components
-        g = unimix(c(pi,pi)/2,c(-mixsd,rep(0,k)),c(rep(0,k),mixsd))
+        g = unimix(c(pi,pi)/2,c(mode-mixsd,rep(mode,k)),c(rep(mode,k),mode+mixsd))
         prior = rep(prior, 2)
         pi = rep(pi, 2)
       } else { #define two sets of components, but don't duplicate null component
         null.comp=which.min(mixsd)
-        g = unimix(c(pi,pi[-null.comp])/2,c(-mixsd,rep(0,k-1)),c(rep(0,k),mixsd[-null.comp]))
+        g = unimix(c(pi,pi[-null.comp])/2,c(mode-mixsd,rep(mode,k-1)),c(rep(mode,k),mode+mixsd[-null.comp]))
         prior = c(prior,prior[-null.comp])
         pi = c(pi,pi[-null.comp])
       }
@@ -321,7 +316,7 @@ ash.workhorse = function(betahat,sebetahat,
   if(isTRUE(output$call)){val = c(val,list(call=match.call()))}
   if(isTRUE(output$loglik)){val = c(val,list(loglik =calc_loglik(ghat,data)))}
   if(isTRUE(output$logLR)){val = c(val,list(logLR=calc_logLR(ghat,data)))}
-  if(isTRUE(output$data)){val = c(val,list(data_model=data))}
+  if(isTRUE(output$data)){val = c(val,list(data=data))}
   if(isTRUE(output$fit_details)){val = c(val,list(fit_details = pi.fit))}
   if(isTRUE(output$flash.data)){val = c(val, list(flash.data=calc_flash_data(ghat,data)))}
 
@@ -355,24 +350,6 @@ ash.workhorse = function(betahat,sebetahat,
 
 }
 
-# If outputlevel is a list, then just returns it
-# if outputlevel an integer, there are different combinations of
-# default output provided
-set_output=function(outputlevel){
-  if(is.list(outputlevel)){output=outputlevel} 
-  else {
-    output = list(fitted.g=TRUE, call=TRUE)
-    if(outputlevel>0){output$loglik=TRUE; output$logLR=TRUE
-      output$resfns = list(output_pm, output_psd)
-    }
-    if(outputlevel>1){output$data=TRUE
-      output$resfns = c(output_np, output_pp, output_lfsr, output_svalue, 
-                output_lfdr, output_qvalue, output$resfns)}
-    if(outputlevel>2){output$fit_details=TRUE}
-    if(outputlevel>3){output$flash.data = TRUE}
-  }
-  return(output)
-}
 
 #adds result of applying f to (g,data) to the list res
 #the result of f should be a list with named elements
@@ -424,9 +401,6 @@ compute_lfsr = function(NegativeProb,ZeroProb){
   ifelse(NegativeProb> 0.5*(1-ZeroProb),1-NegativeProb,NegativeProb+ZeroProb)
 }
 
-compute_lfsra = function(PositiveProb, NegativeProb,ZeroProb){
-  ifelse(PositiveProb<NegativeProb,2*PositiveProb+ZeroProb,2*NegativeProb+ZeroProb)
-}
 
 
 #The kth element of this vector is the derivative
@@ -439,7 +413,7 @@ gradient = function(matrix_lik){
 
 #' Estimate mixture proportions of sigmaa by EM algorithm
 #'
-#' @param data list to be passed to log_compdens_conv; details depend on model
+#' @param data list to be passed to log_comp_dens_conv; details depend on model
 #' @param g the prior distribution for beta (usually estimated from
 #'     the data
 #' @param prior string, or numeric vector indicating Dirichlet prior
@@ -468,7 +442,7 @@ estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSq
   k=ncomp(g)
   
   if(isTRUE(control$trace)){tic()}
-  matrix_llik = t(log_compdens_conv(g,data)) #an n by k matrix
+  matrix_llik = t(log_comp_dens_conv(g,data)) #an n by k matrix
   matrix_llik = matrix_llik - apply(matrix_llik,1, max) #avoid numerical issues by subtracting max of each row
   matrix_lik = exp(matrix_llik)
 
@@ -611,9 +585,10 @@ qval.from.lfdr = function(lfdr){
 
 # try to select a default range for the sigmaa values
 # that should be used, based on the values of betahat and sebetahat
+# mode is the location about which inference is going to be centered
 # mult is the multiplier by which the sds differ across the grid
-autoselect.mixsd = function(data,mult){
-  betahat = data$x
+autoselect.mixsd = function(data,mult,mode){
+  betahat = data$x-mode
   sebetahat = data$s
   exclude = get_exclusions(betahat, sebetahat) | (sebetahat==0) 
   betahat = betahat[!exclude]

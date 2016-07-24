@@ -41,7 +41,7 @@ loglik_conv_mixlik.default = function(m,betahat,betahatsd,v,pilik,FUN="+"){
 #m is a mixture with k components
 #output is a (k*l) by n matrix of densities
 
-#' @title compdens_conv_mixlik
+#' @title comp_dens_conv_mixlik
 #' @description compute the density of the components of the mixture m
 #'     when convoluted with l-components normal mixture with standard
 #'     deviation s or C (scale vector) multiplies scaled (se)
@@ -58,13 +58,13 @@ loglik_conv_mixlik.default = function(m,betahat,betahatsd,v,pilik,FUN="+"){
 #' @export
 #'
 #todo: C is missing for function input
-compdens_conv_mixlik = function(m,x,s,v,pilik,FUN="+"){
-  UseMethod("compdens_conv_mixlik")
+comp_dens_conv_mixlik = function(m,x,s,v,pilik,FUN="+"){
+  UseMethod("comp_dens_conv_mixlik")
 }
-compdens_conv_mixlik.default = function(m,x,s,v,pilik,FUN="+"){
+comp_dens_conv_mixlik.default = function(m,x,s,v,pilik,FUN="+"){
   dens=NULL
   for (i in 1:dim(pilik)[2]){
-    dens=rbind(dens,pilik[,i]*compdens_conv(m,x,s[,i],v[i],FUN))
+    dens=rbind(dens,pilik[,i]*comp_dens_conv(m,x,s[,i],v[i],FUN))
   }
   return(dens)
 }
@@ -88,11 +88,11 @@ dens_conv_mixlik = function(m,x,s,v,pilik,FUN="+"){
 }
 dens_conv_mixlik.default = function(m,x,s,v,pilik,FUN="+"){
   l=dim(pilik)[2]
-  colSums(rep(m$pi,l) * compdens_conv_mixlik(m,x,s,v,pilik,FUN))
+  colSums(rep(m$pi,l) * comp_dens_conv_mixlik(m,x,s,v,pilik,FUN))
 }
 
 
-#' @title comppostprob_mixlik
+#' @title comp_postprob_mixlik
 #' @description compute the posterior prob that each observation came
 #'     from each component of the mixture m,output a k by n vector of
 #'     probabilities computed by weighting the component densities by
@@ -106,14 +106,14 @@ dens_conv_mixlik.default = function(m,x,s,v,pilik,FUN="+"){
 #' @param v degree of freedom of error distribution
 #' @param pilik mixture proportion , n-by-l matrix
 #' @export
-comppostprob_mixlik=function(m,x,s,v,pilik){
-  UseMethod("comppostprob_mixlik")
+comp_postprob_mixlik=function(m,x,s,v,pilik){
+  UseMethod("comp_postprob_mixlik")
 }
 #' @export
-comppostprob_mixlik.default = function(m,x,s,v,pilik){
+comp_postprob_mixlik.default = function(m,x,s,v,pilik){
   l=dim(pilik)[2]
   k=length(m$pi)
-  tmp= (t(rep(m$pi,l) * compdens_conv_mixlik(m,x,s,v,pilik))/dens_conv_mixlik(m,x,s,v,pilik))
+  tmp= (t(rep(m$pi,l) * comp_dens_conv_mixlik(m,x,s,v,pilik))/dens_conv_mixlik(m,x,s,v,pilik))
   ismissing = (is.na(x) | apply(is.na(s),1,sum))
   tmp[ismissing,]=rep(m$pi,l)/l
   group=rep(1:k,l)
@@ -121,7 +121,7 @@ comppostprob_mixlik.default = function(m,x,s,v,pilik){
 }
 
 
-#' @title comppostprob_mixlik2
+#' @title comp_postprob_mixlik2
 #' @description compute the posterior prob that each observation came
 #'     from each component of the mixture m and the likelihood
 #'     mixture, output a (k*l) by n vector of probabilities computed
@@ -135,14 +135,14 @@ comppostprob_mixlik.default = function(m,x,s,v,pilik){
 #' @param v degree of freedom of error distribution
 #' @param pilik mixture proportion , n-by-l matrix
 #' @export
-comppostprob_mixlik2=function(m,x,s,v,pilik){
-  UseMethod("comppostprob_mixlik2")
+comp_postprob_mixlik2=function(m,x,s,v,pilik){
+  UseMethod("comp_postprob_mixlik2")
 }
 #' @export
-comppostprob_mixlik2.default = function(m,x,s,v,pilik){
+comp_postprob_mixlik2.default = function(m,x,s,v,pilik){
   l=dim(pilik)[2]
   k=length(m$pi)
-  tmp= (t(rep(m$pi,l) * compdens_conv_mixlik(m,x,s,v,pilik))/dens_conv_mixlik(m,x,s,v,pilik))
+  tmp= (t(rep(m$pi,l) * comp_dens_conv_mixlik(m,x,s,v,pilik))/dens_conv_mixlik(m,x,s,v,pilik))
   ismissing = (is.na(x) | apply(is.na(s),1,sum))
   tmp[ismissing,]=rep(m$pi,l)/l
   return(t(tmp))
@@ -150,7 +150,7 @@ comppostprob_mixlik2.default = function(m,x,s,v,pilik){
 
 
 
-#' @title compcdf_post_mixlik
+#' @title comp_cdf_post_mixlik
 #' @description evaluate cdf of posterior distribution of beta at c
 #' @param m prior on beta, a mixture
 #' @param c location of evaluation
@@ -160,14 +160,14 @@ comppostprob_mixlik2.default = function(m,x,s,v,pilik){
 #' @param pilik mixture proportion
 #' @return it returns a (k*l) by n matrix
 #' @export
-compcdf_post_mixlik=function(m,c,betahat,sebetahat,v,pilik){
-  UseMethod("compcdf_post_mixlik")
+comp_cdf_post_mixlik=function(m,c,betahat,sebetahat,v,pilik){
+  UseMethod("comp_cdf_post_mixlik")
 }
 #' @export
-compcdf_post_mixlik.default=function(m,c,betahat,sebetahat,v,pilik){
+comp_cdf_post_mixlik.default=function(m,c,betahat,sebetahat,v,pilik){
   cdf=NULL
   for (i in 1:dim(pilik)[2]){
-    cdf=rbind(cdf,pilik[,i]*compcdf_post(m,c,betahat,sebetahat[,i],v[i]))
+    cdf=rbind(cdf,pilik[,i]*comp_cdf_post(m,c,betahat,sebetahat[,i],v[i]))
   }
   cdf
 }
@@ -176,8 +176,8 @@ cdf_post_mixlik = function(m,c,betahat,sebetahat,v,pilik){
   UseMethod("cdf_post_mixlik")
 }
 cdf_post_mixlik.default=function(m,c,betahat,sebetahat,v,pilik){
-  colSums(comppostprob_mixlik2(m,betahat,sebetahat,v,pilik)*
-            compcdf_post_mixlik(m,c,betahat,sebetahat,v,pilik))
+  colSums(comp_postprob_mixlik2(m,betahat,sebetahat,v,pilik)*
+            comp_cdf_post_mixlik(m,c,betahat,sebetahat,v,pilik))
 }
 
 
@@ -194,7 +194,7 @@ postmean_mixlik = function(m, betahat,sebetahat,v,pilik){
   UseMethod("postmean_mixlik")
 }
 postmean_mixlik.default = function(m,betahat,sebetahat,v,pilik){
-  colSums(comppostprob_mixlik2(m,betahat,sebetahat,v,pilik) * comp_postmean_mixlik(m,betahat,sebetahat,v,pilik))
+  colSums(comp_postprob_mixlik2(m,betahat,sebetahat,v,pilik) * comp_postmean_mixlik(m,betahat,sebetahat,v,pilik))
 }
 
 
@@ -211,7 +211,7 @@ postmean2_mixlik = function(m, betahat,sebetahat,v,pilik){
 }
 #' @export
 postmean2_mixlik.default = function(m,betahat,sebetahat,v,pilik){
-  colSums(comppostprob_mixlik2(m,betahat,sebetahat,v,pilik) * comp_postmean2_mixlik(m,betahat,sebetahat,v,pilik))
+  colSums(comp_postprob_mixlik2(m,betahat,sebetahat,v,pilik) * comp_postmean2_mixlik(m,betahat,sebetahat,v,pilik))
 }
 
 #' @title postsd_mixlik

@@ -33,8 +33,8 @@ output_psd = function(g,data){
 calc_lfdr = function(g,data){
   exclude  = data$exclude
   ZeroProb = rep(0,length = n_obs(data))
-  ZeroProb[!exclude] = colSums(comppostprob(g,data)[comp_sd(g) ==0,,drop = FALSE])
-  ZeroProb[exclude] = sum(mixprop(g)[comp_sd(g) == 0])
+  ZeroProb[!exclude] = colSums(comp_postprob(g,data)[pm_on_zero(g),,drop = FALSE])
+  ZeroProb[exclude] = sum(mixprop(g)[pm_on_zero(g)])
   return(ZeroProb)
 }
 output_lfdr = function(g,data){
@@ -88,7 +88,7 @@ calc_flash_data = function(g,data){
   comp_postmean = matrix(0,nrow = kk, ncol = n)
   comp_postmean2 =  matrix(0,nrow = kk, ncol = n)
   
-  comp_postprob[,!exclude] = comppostprob(g,data)
+  comp_postprob[,!exclude] = comp_postprob(g,data)
   comp_postmean[,!exclude] = comp_postmean(g,data)
   comp_postmean2[,!exclude] = comp_postmean2(g,data)
   
@@ -111,4 +111,23 @@ output_loglik = function(g,data){
 #outputs list for output
 output_logLR = function(g,data){
   return(list(logLR = calc_logLR(g,data) ))
+}
+
+# If outputlevel is a list, then just returns it
+# if outputlevel an integer, there are different combinations of
+# default output provided
+set_output=function(outputlevel){
+  if(is.list(outputlevel)){output=outputlevel} 
+  else {
+    output = list(fitted.g=TRUE, call=TRUE)
+    if(outputlevel>0){output$loglik=TRUE; output$logLR=TRUE
+    output$resfns = list(output_pm, output_psd)
+    }
+    if(outputlevel>1){output$data=TRUE
+    output$resfns = c(output_np, output_pp, output_lfsr, output_svalue, 
+                      output_lfdr, output_qvalue, output$resfns)}
+    if(outputlevel>2){output$fit_details=TRUE}
+    if(outputlevel>3){output$flash.data = TRUE}
+  }
+  return(output)
 }

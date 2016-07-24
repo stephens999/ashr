@@ -85,7 +85,7 @@ nonzeromodeEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi_ini
 nonzeromodeEMoptimfixpoint = function(mupi,betahat,sebetahat,g,df){
   mu=mupi[1]
   pimean=normalize(pmax(0,mupi[-1])) #avoid occasional problems with negative pis due to rounding
-  matrix_lik=t(compdens_conv(g,betahat-mu,sebetahat,df))
+  matrix_lik=t(comp_dens_conv(g,betahat-mu,sebetahat,df))
   m=t(pimean * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k
   m.rowsum=rowSums(m)
   classprob=m/m.rowsum #an n by k matrix

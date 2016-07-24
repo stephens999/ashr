@@ -38,7 +38,7 @@ comp_mean.unimix = function(m){
 
 
 
-compdens.unimix = function(m,y,log=FALSE){
+comp_dens.unimix = function(m,y,log=FALSE){
   k=ncomp(m)
   n=length(y)
   d = matrix(rep(y,rep(k,n)),nrow=k)
@@ -52,14 +52,14 @@ compdens.unimix = function(m,y,log=FALSE){
 #' @return a k by n matrix
 #'
 #' @export
-compdens_conv.unimix = function(m,data){
-  return(exp(log_compdens_conv(m,data)))
+comp_dens_conv.unimix = function(m,data){
+  return(exp(log_comp_dens_conv(m,data)))
 }
 
 #' log density of convolution of each component of a unif mixture 
-#' @inheritParams compdens_conv.unimix
+#' @inheritParams comp_dens_conv.unimix
 #' @return a k by n matrix of densities
-log_compdens_conv.unimix = function(m,data){
+log_comp_dens_conv.unimix = function(m,data){
   b = pmax(m$b,m$a) #ensure a<b
   a = pmin(m$b,m$a)
   lik = data$lik
@@ -67,14 +67,14 @@ log_compdens_conv.unimix = function(m,data){
   lpa = do.call(lik$lcdfFUN, list(outer(data$x,a,FUN="-")/data$s))
   lpb = do.call(lik$lcdfFUN, list(outer(data$x,b,FUN="-")/data$s))
    
-  lcompdens = t(lpa + log(1-exp(lpb-lpa))) - log(b-a)
-  lcompdens[a==b,] = t(do.call(lik$lpdfFUN, list(outer(data$x,b,FUN="-")/data$s))
+  lcomp_dens = t(lpa + log(1-exp(lpb-lpa))) - log(b-a)
+  lcomp_dens[a==b,] = t(do.call(lik$lpdfFUN, list(outer(data$x,b,FUN="-")/data$s))
                        -log(data$s))[a==b,]
-  return(lcompdens)
+  return(lcomp_dens)
 }
 
 #' @export
-compcdf_post.unimix=function(m,c,data){
+comp_cdf_post.unimix=function(m,c,data){
   k = length(m$pi)
   n=length(data$x)
   lik = data$lik
@@ -141,11 +141,11 @@ comp_postmean2.unimix = function(m,data){
   t(tmp)
 }
 
-#not yet implemented!
-#just returns 0s for now
-comp_postsd.unimix = function(m,data){
-  k= ncomp(m)
-  n=length(data$x)
-  return(matrix(NA,nrow=k,ncol=n))
-  #  return(sqrt(comp_postmean2(m,betahat,sebetahat,v)-comp_postmean(m,betahat,sebetahat,v)^2))
-}
+# #not yet implemented!
+# #just returns 0s for now
+# comp_postsd.unimix = function(m,data){
+#   k= ncomp(m)
+#   n=length(data$x)
+#   return(matrix(NA,nrow=k,ncol=n))
+#   #  return(sqrt(comp_postmean2(m,betahat,sebetahat,v)-comp_postmean(m,betahat,sebetahat,v)^2))
+# }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/mix.R
 \name{comp_sd}
 \alias{comp_sd}
-\title{Generic function of extracting the standard deviations of
+\title{Generic function to extract the standard deviations of
     components of the mixture}
 \usage{
 comp_sd(m)
@@ -15,7 +15,7 @@ unimix() or igmix()}
 it returns a vector of standard deviations
 }
 \description{
-Generic function of extracting the standard deviations of
+Generic function to extract the standard deviations of
     components of the mixture
 }
 
