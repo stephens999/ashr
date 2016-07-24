@@ -1,14 +1,11 @@
 #' @useDynLib ashr
 #' @import truncnorm SQUAREM doParallel pscl Rcpp foreach parallel
-#
-#
-
 
 #' @title Main Adaptive Shrinkage function
 #'
 #' @description Takes vectors of estimates (betahat) and their
-#'     standard errors (sebetahat), and applies shrinkage to them,
-#'     using Empirical Bayes methods, to compute shrunk estimates for
+#'     standard errors (sebetahat), together with degrees of freedom (df)
+#'     and applies shrinkage to them, using Empirical Bayes methods, to compute shrunk estimates for
 #'     beta.
 #'
 #' @details This function is actually just a simple wrapper that
@@ -31,10 +28,10 @@
 #'     \code{\link{ash.workhorse}}.
 #'
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
-#' \item{fitted.g}{fitted mixture, either a normalmix or unimix}
-#' \item{loglik}{log P(D|mle(pi))}
-#' \item{logLR}{log[P(D|mle(pi))/P(D|beta==0)]}
-#' \item{res}{A dataframe whose columns are}
+#' \item{fitted.g}{fitted mixture}
+#' \item{loglik}{log P(D|fitted.g)}
+#' \item{logLR}{log[P(D|fitted.g)/P(D|beta==0)]}
+#' \item{result}{A dataframe whose columns are}
 #' \describe{
 #'  \item{NegativeProb}{A vector of posterior probability that beta is negative}
 #'  \item{PositiveProb}{A vector of posterior probability that beta is positive}
@@ -46,7 +43,7 @@
 #'  \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
 #'  }
 #' \item{call}{a call in which all of the specified arguments are specified by their full names}
-#' \item{data}{a list containing details of the data and models used (mostly for internal use)}
+#' \item{data_model}{a list containing details of the data and models used (mostly for internal use)}
 #' \item{fit_details}{a list containing results of mixture optimization, and matrix of component log-likelihoods used in this optimization}
 #'
 #' @seealso \code{\link{ash.workhorse}} for complete specification of ash function
@@ -103,19 +100,19 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #'     value is "uniform" use "halfuniform" to allow for assymetric g,
 #'     and "+uniform"/"-uniform" to constrain g to be
 #'     positive/negative.
-#' @param optmethod specifies optimization method used. Default is
+#' @param optmethod specifies the function implementing an optimization method. Default is
 #'     "mixIP", an interior point method, if REBayes is installed;
 #'     otherwise an EM algorithm is used. The interior point method is
-#'     faster for large problems (n>2000).
+#'     faster for large problems (n>2000), particularly when method="shrink".
 #' @param df appropriate degrees of freedom for (t) distribution of
 #'     betahat/sebetahat, default is NULL(Gaussian)
 #' @param nullweight scalar, the weight put on the prior under
 #'     "nullbiased" specification, see \code{prior}
 #' @param randomstart logical, indicating whether to initialize EM
 #'     randomly. If FALSE, then initializes to prior mean (for EM
-#'     algorithm) or prior (for VBEM)
-#' @param nonzeromode logical, indicating whether to use a non-zero
-#'     unimodal mixture(default is "FALSE")
+#'     algorithm) or prior (for VBEM).
+#' @param mode either numeric (indicating mode of g) or string "estimate", 
+#'      to indicate mode should be estimated.
 #' @param pointmass logical, indicating whether to use a point mass at
 #'     zero as one of components for a mixture distribution
 #' @param prior string, or numeric vector indicating Dirichlet prior
@@ -137,24 +134,8 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #'     computations with the "true" g)
 #' @param fixg if TRUE, don't estimate g but use the specified g -
 #'     useful for computations under the "true" g in simulations
-#' @param VB (deprecated, use optmethod) whether to use Variational
-#'     Bayes to estimate mixture proportions (instead of EM to find
-#'     MAP estimate), see \code{\link{mixVBEM}} and
-#'     \code{\link{mixEM}}
-#' @param cxx flag (deprecated, use optmethod) to indicate whether to
-#'     use the c++ (Rcpp) version. After application of Squared
-#'     extrapolation methods for accelerating fixed-point iterations
-#'     (R Package "SQUAREM"), the c++ version is no longer faster than
-#'     non-c++ version, thus we do not recommend using this one, and
-#'     might be removed at any point.
-#' @param model c("EE","ET") specifies whether to assume exchangeable
-#'     effects (EE) or exchangeable T stats (ET).
-#' @param control A list of control parameters for the optmization
-#'     algorithm. Default value is set to be control.default=list(K =
-#'     1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4,
-#'     kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User
-#'     may supply changes to this list of parameter, say,
-#'     control=list(maxiter=10000,trace=TRUE)
+#' @param alpha numeric value of alpha parameter in the model
+#' @param control A list of control parameters passed to optmethod
 #' @param lik contains details of the likelihood used; for general ash
 #' 
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
@@ -236,9 +217,8 @@ ash.workhorse = function(betahat,sebetahat,
                          outputlevel=2,
                          g=NULL,
                          fixg=FALSE,
-                         cxx=NULL,
-                         VB=NULL,
-                         model=c("EE","ET"),
+                         mode=0,
+                         alpha=0,
                          control=list(),
                          lik=NULL
 ){
@@ -256,13 +236,10 @@ ash.workhorse = function(betahat,sebetahat,
   ##1.Handling Input Parameters
   mixcompdist = match.arg(mixcompdist)
   optmethod   = match.arg(optmethod)
-  model       = match.arg(model)
   prior       = match.arg(prior)
  
-  if(model == "EE"){alpha=0} else if(model == "ET"){alpha=1}
-  
   # Set optimization method, and defaults for optimization control
-  optmethod = set_optmethod(optmethod,VB,cxx)  
+  optmethod = set_optmethod(optmethod)  
   check_args(mixcompdist,df,prior,optmethod,gridmult,sebetahat,betahat)
   if(is.null(lik)){ #set likelihood based on defaults if missing
     if(is.null(df)){
@@ -344,17 +321,17 @@ ash.workhorse = function(betahat,sebetahat,
   if(isTRUE(output$call)){val = c(val,list(call=match.call()))}
   if(isTRUE(output$loglik)){val = c(val,list(loglik =calc_loglik(ghat,data)))}
   if(isTRUE(output$logLR)){val = c(val,list(logLR=calc_logLR(ghat,data)))}
-  if(isTRUE(output$data)){val = c(val,list(data=data))}
+  if(isTRUE(output$data)){val = c(val,list(data_model=data))}
   if(isTRUE(output$fit_details)){val = c(val,list(fit_details = pi.fit))}
   if(isTRUE(output$flash.data)){val = c(val, list(flash.data=calc_flash_data(ghat,data)))}
 
-  # Compute the res component of value - 
-  # res is a dataframe containing lfsr, etc
+  # Compute the result component of value - 
+  # result is a dataframe containing lfsr, etc
   # output$resfns is a list of functions used to produce columns of that dataframe
   if(!is.null(output$resfns)){
-    res = lapply(output$resfns,do.call,list(g=pi.fit$g,data=data))
-    res=as.data.frame(res)
-    val = c(val, list(res=res))
+    result = lapply(output$resfns,do.call,list(g=pi.fit$g,data=data))
+    result = as.data.frame(result)
+    val = c(val, list(result=result))
   } 
   
   if(nonzeromode){

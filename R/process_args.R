@@ -1,11 +1,6 @@
 #sets optimization method
-#deals with old flags VB and cxx
 #also checks if necessary tools installed for optmethod specified
-set_optmethod = function(optmethod,VB,cxx){
-  # if user tries to set both optmethod and VB/cxx that's an error
-  if ( !is.null(optmethod) && (!is.null(VB) || !is.null(cxx)) )
-    stop("VB and cxx options are deprecated and incompatible with optmethod; use optmethod instead")
-  
+set_optmethod = function(optmethod){
   # Fallbacks for optmethod
   # By default it will be "mixIP", if REBayes not present then fallback to EM
   if (!requireNamespace("REBayes", quietly = TRUE)) {  # check whether REBayes package is present
@@ -17,18 +12,6 @@ set_optmethod = function(optmethod,VB,cxx){
       optmethod = "mixEM"  # fallback if neither Rcpp or REBayes are installed
       message("Using vanilla EM; for faster performance install REBayes (preferred) or Rcpp")
     }
-  }
-  
-  # Check if VB and cxx are set to logical; for backwards compatibility
-  if (!is.null(VB)) {
-    warning("VB option is deprecated, use optmethod instead")
-    if (VB == TRUE) optmethod = "mixVBEM"
-  }
-  
-  if (!is.null(cxx)) {
-    warning("cxx option is deprecated, use optmethod instead")
-    if (cxx == TRUE)  optmethod = "cxxMixSquarem"
-    if (cxx == FALSE) optmethod = "mixEM"
   }
   
   if (optmethod == "mixIP") assertthat::assert_that(requireNamespace("REBayes", quietly = TRUE))

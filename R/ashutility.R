@@ -20,42 +20,6 @@ summary.ash=function(object,...){
   print(object$fit$converged)
 }
 
-#' @title Create data from from ash object
-#'
-#' @description Creates data frame for easy plotting of results etc
-#'
-#' @details Returns a data frame with named columnns
-#' @param x the fitted ash object
-#' @param row.names NULL or a character vector giving the row names for the data frame. Missing values are not allowed.
-#' @param optional not used, included for consistency as an S3 generic/method
-#' @param ... not used, included for consistency as an S3
-#'     generic/method.
-#'
-#' @examples
-#' a = ash(rnorm(100,0,2),1)
-#' head(as.data.frame(a))
-#' 
-#' @export
-as.data.frame.ash=function(x,row.names=NULL,optional=FALSE,...){
-  if(is.null(x$lfsr)){stop("Can't make data.frame from ash object unless outputlevel>=1.5")}
-  if(is.null(row.names)){row.names=1:length(x$lfsr)}
-  df = data.frame(row.names=row.names)
-
-  if(!is.null(x$data)){
-    df$betahat = x$data$betahat
-    df$sebetahat = x$data$sebetahat
-  }
-
-  df$lfsr = x$lfsr
-  df$svalue = x$svalue
-  df$PosteriorMean = x$PosteriorMean
-  df$PosteriorSD = x$PosteriorSD
-
-  df$lfdr = x$lfdr
-  df$qvalue = x$qvalue
-
-  return(df)
-}
 
 #' @title Print method for ash object
 #'
@@ -91,47 +55,6 @@ plot.ash = function(x,...,xmin,xmax){
   xgrid = seq(xmin,xmax,length=1000)
   y = cdf.ash(x,xgrid)
   graphics::plot(y,type="l",...)
-}
-
-#compute the predictive density of an observation
-#given the fitted ash object a and the vector se of standard errors
-#not implemented yet
-#todo
-predictive=function(a,se){
-
-}
-
-
-#' @title Get fitted loglikelihood for ash object
-#'
-#' @description Return the log-likelihood of the data under the fitted
-#'     distribution
-#'
-#' @param a the fitted ash object
-#'
-#' @details None
-#'
-#' @export
-#'
-#'
-get_loglik = function(a){
-  return(a$loglik)
-}
-
-#' @title Get pi0 estimate for ash object
-#'
-#' @description Return estimate of the null proportion, pi0
-#'
-#' @param a the fitted ash object
-#'
-#' @details Extracts the estimate of the null proportion, pi0, from
-#'     the object a
-#'
-#' @export
-#'
-get_pi0 = function(a){
-  null.comp = comp_sd(a$fitted.g)==0
-  return(sum(a$fitted.g$pi[null.comp]))
 }
 
 #' @title Compute loglikelihood for data from ash fit
@@ -756,3 +679,5 @@ ashn=function(betahat,sebetahat,
 
   return(list(bestash = beta.ash, BestMode=BestMode,loglikevector = loglikvector,allash = allash))
 }
+
+

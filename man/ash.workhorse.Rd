@@ -10,8 +10,7 @@ ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
   randomstart = FALSE, nullweight = 10, nonzeromode = FALSE,
   pointmass = TRUE, prior = c("nullbiased", "uniform", "unit"),
   mixsd = NULL, gridmult = sqrt(2), outputlevel = 2, g = NULL,
-  fixg = FALSE, cxx = NULL, VB = NULL, model = c("EE", "ET"),
-  control = list(), lik = NULL)
+  fixg = FALSE, mode = 0, alpha = 0, control = list(), lik = NULL)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -31,23 +30,20 @@ value is "uniform" use "halfuniform" to allow for assymetric g,
 and "+uniform"/"-uniform" to constrain g to be
 positive/negative.}
 
-\item{optmethod}{specifies optimization method used. Default is
+\item{optmethod}{specifies the function implementing an optimization method. Default is
 "mixIP", an interior point method, if REBayes is installed;
 otherwise an EM algorithm is used. The interior point method is
-faster for large problems (n>2000).}
+faster for large problems (n>2000), particularly when method="shrink".}
 
 \item{df}{appropriate degrees of freedom for (t) distribution of
 betahat/sebetahat, default is NULL(Gaussian)}
 
 \item{randomstart}{logical, indicating whether to initialize EM
 randomly. If FALSE, then initializes to prior mean (for EM
-algorithm) or prior (for VBEM)}
+algorithm) or prior (for VBEM).}
 
 \item{nullweight}{scalar, the weight put on the prior under
 "nullbiased" specification, see \code{prior}}
-
-\item{nonzeromode}{logical, indicating whether to use a non-zero
-unimodal mixture(default is "FALSE")}
 
 \item{pointmass}{logical, indicating whether to use a point mass at
 zero as one of components for a mixture distribution}
@@ -77,27 +73,12 @@ computations with the "true" g)}
 \item{fixg}{if TRUE, don't estimate g but use the specified g -
 useful for computations under the "true" g in simulations}
 
-\item{cxx}{flag (deprecated, use optmethod) to indicate whether to
-use the c++ (Rcpp) version. After application of Squared
-extrapolation methods for accelerating fixed-point iterations
-(R Package "SQUAREM"), the c++ version is no longer faster than
-non-c++ version, thus we do not recommend using this one, and
-might be removed at any point.}
+\item{mode}{either numeric (indicating mode of g) or string "estimate", 
+to indicate mode should be estimated.}
 
-\item{VB}{(deprecated, use optmethod) whether to use Variational
-Bayes to estimate mixture proportions (instead of EM to find
-MAP estimate), see \code{\link{mixVBEM}} and
-\code{\link{mixEM}}}
+\item{alpha}{numeric value of alpha parameter in the model}
 
-\item{model}{c("EE","ET") specifies whether to assume exchangeable
-effects (EE) or exchangeable T stats (ET).}
-
-\item{control}{A list of control parameters for the optmization
-algorithm. Default value is set to be control.default=list(K =
-1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4,
-kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). User
-may supply changes to this list of parameter, say,
-control=list(maxiter=10000,trace=TRUE)}
+\item{control}{A list of control parameters passed to optmethod}
 
 \item{lik}{contains details of the likelihood used; for general ash}
 }

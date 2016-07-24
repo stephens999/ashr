@@ -43,7 +43,7 @@ test_that("logLR in ash object matches calc_logLR", {
   set.seed(1); z=rnorm(100); z.ash = ashr::ash(z,1)
   data1 = set_data(z,1)
   expect_equal(z.ash$logLR, calc_logLR(z.ash$fitted.g,data1))
-  z.ash = ashr::ash(z,1,model="ET",df=3)
+  z.ash = ashr::ash(z,1,alpha=1,df=3)
   data = set_data(z,1,t_lik(3),alpha=1)
   expect_equal(z.ash$logLR, calc_logLR(z.ash$fitted.g,data))
 })

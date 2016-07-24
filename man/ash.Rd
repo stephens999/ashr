@@ -28,10 +28,10 @@ infinity (Gaussian)}
 }
 \value{
 ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
-\item{fitted.g}{fitted mixture, either a normalmix or unimix}
-\item{loglik}{log P(D|mle(pi))}
-\item{logLR}{log[P(D|mle(pi))/P(D|beta==0)]}
-\item{res}{A dataframe whose columns are}
+\item{fitted.g}{fitted mixture}
+\item{loglik}{log P(D|fitted.g)}
+\item{logLR}{log[P(D|fitted.g)/P(D|beta==0)]}
+\item{result}{A dataframe whose columns are}
 \describe{
  \item{NegativeProb}{A vector of posterior probability that beta is negative}
  \item{PositiveProb}{A vector of posterior probability that beta is positive}
@@ -43,13 +43,13 @@ ash returns an object of \code{\link[base]{class}} "ash", a list with some or al
  \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
  }
 \item{call}{a call in which all of the specified arguments are specified by their full names}
-\item{data}{a list containing details of the data and models used (mostly for internal use)}
+\item{data_model}{a list containing details of the data and models used (mostly for internal use)}
 \item{fit_details}{a list containing results of mixture optimization, and matrix of component log-likelihoods used in this optimization}
 }
 \description{
 Takes vectors of estimates (betahat) and their
-    standard errors (sebetahat), and applies shrinkage to them,
-    using Empirical Bayes methods, to compute shrunk estimates for
+    standard errors (sebetahat), together with degrees of freedom (df)
+    and applies shrinkage to them, using Empirical Bayes methods, to compute shrunk estimates for
     beta.
 }
 \details{
