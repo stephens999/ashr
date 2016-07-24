@@ -1,7 +1,6 @@
-# this file contains functions to compute outputs from ash
-# The calc_xx functions just compute a result
-# The output_xx functions return a named list, 
-# with the names being used in the ash output
+# this file contains functions to compute the columns of
+# the result data.frame from ash
+# all such functions must take parameters (g,data)
 
 # Posterior Mean
 calc_pm = function(g,data){
@@ -12,9 +11,7 @@ calc_pm = function(g,data){
   PosteriorMean = PosteriorMean * (data$sebetahat^data$alpha)
   return(PosteriorMean)
 }
-output_pm = function(g,data){
-  return(list(PosteriorMean = calc_pm(g,data)))  
-}
+
 
 # Posterior Standard Deviation
 calc_psd = function(g,data){
@@ -25,9 +22,6 @@ calc_psd = function(g,data){
   PosteriorSD= PosteriorSD * (data$sebetahat^data$alpha)
   return(PosteriorSD)
 }
-output_psd = function(g,data){
-  list(PosteriorSD = calc_psd(g,data))
-}
 
 # Local FDR
 calc_lfdr = function(g,data){
@@ -36,9 +30,6 @@ calc_lfdr = function(g,data){
   ZeroProb[!exclude] = colSums(comp_postprob(g,data)[pm_on_zero(g),,drop = FALSE])
   ZeroProb[exclude] = sum(mixprop(g)[pm_on_zero(g)])
   return(ZeroProb)
-}
-output_lfdr = function(g,data){
-  list(lfdr=calc_lfdr(g,data))
 }
 
 #negative probability
@@ -49,33 +40,25 @@ calc_np = function(g,data){
   NegativeProb[exclude] = mixcdf(g,0)
   return(NegativeProb)
 }
-output_np = function(g,data){
- list(NegativeProb = calc_np(g,data)) 
-}
+
 
 #positive probability
 calc_pp = function(g,data){
   pp=(1-calc_np(g,data)-calc_lfdr(g,data))
   ifelse(pp<0,0,pp) #deal with numerical issues that lead to numbers <0
 }
-output_pp = function(g,data){
-  list(PositiveProb = calc_pp(g,data))
-}
 
 # local False Sign Rate
 calc_lfsr = function(g,data){
   compute_lfsr(calc_np(g,data),calc_lfdr(g,data))
 }
-output_lfsr = function(g,data){
-  return(list(lfsr=calc_lfsr(g,data)))
+
+calc_svalue = function(g,data){
+  return(qval.from.lfdr(calc_lfsr(g,data)))
 }
 
-output_svalue = function(g,data){
-  return(list(svalue = qval.from.lfdr(calc_lfsr(g,data))))
-}
-
-output_qvalue = function(g,data){
-  return(list(qvalue = qval.from.lfdr(calc_lfdr(g,data))))
+calc_qvalue = function(g,data){
+  return(qval.from.lfdr(calc_lfdr(g,data)))
 }
 
 
@@ -98,20 +81,7 @@ calc_flash_data = function(g,data){
   comp_postmean2[,exclude] = comp_mean2(g)
   return(list(comp_postprob = comp_postprob,comp_postmean = comp_postmean,comp_postmean2 = comp_postmean2))
 }
-output_flash_data = function(g,data){
-  return(list(flash.data=calc_flash_data(g,data)))
-}
 
-
-#outputs list for output
-output_loglik = function(g,data){
-  return(list(loglik = calc_loglik(g,data) ))
-}
-
-#outputs list for output
-output_logLR = function(g,data){
-  return(list(logLR = calc_logLR(g,data) ))
-}
 
 # If outputlevel is a list, then just returns it
 # if outputlevel an integer, there are different combinations of
@@ -121,11 +91,12 @@ set_output=function(outputlevel){
   else {
     output = list(fitted.g=TRUE, call=TRUE)
     if(outputlevel>0){output$loglik=TRUE; output$logLR=TRUE
-    output$resfns = list(output_pm, output_psd)
+    output$resfns = list(PosteriorMean = calc_pm, PosteriorSD = calc_psd)
     }
     if(outputlevel>1){output$data=TRUE
-    output$resfns = c(output_np, output_pp, output_lfsr, output_svalue, 
-                      output_lfdr, output_qvalue, output$resfns)}
+      output$resfns = c(NegativeProb = calc_np, PositiveProb= calc_pp, lfsr = calc_lfsr, svalue = calc_svalue, 
+                      lfdr = calc_lfdr, qvalue = calc_qvalue, output$resfns)
+    }
     if(outputlevel>2){output$fit_details=TRUE}
     if(outputlevel>3){output$flash.data = TRUE}
   }
