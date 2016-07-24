@@ -439,6 +439,7 @@ estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSq
   # the last of these conditions checks whether the gradient at the null is negative wrt pi0
   # to avoid running the optimization when the global null (pi0=1) is the optimal.
   if(optmethod=="mixVBEM" || max(prior[-1])>1 || min(gradient(matrix_lik)+prior[1]-1,na.rm=TRUE)<0){
+    if(optmethod=="cxxMixSquarem"){control=set_control_squarem(control,nrow(matrix_lik))}
     fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=control))
   } else {
     fit = list(converged=TRUE,pihat=c(1,rep(0,k-1)),optmethod="gradient_check")
