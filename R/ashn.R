@@ -107,3 +107,10 @@ ashn=function(betahat,sebetahat,
   return(list(bestash = beta.ash, BestMode=BestMode,loglikevector = loglikvector,allash = allash))
 }
 
+#' @export
+ashn2 = function(betahat,...){
+  test.op = function(c){return(-ash(betahat=betahat,mode=c,output="loglik",...)$loglik)}
+  opt = optimize(test.op,interval=c(min(betahat),max(betahat)))
+  ash(betahat=betahat,mode=opt$minimum,...)
+}
+

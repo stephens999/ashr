@@ -28,6 +28,6 @@ beta = rnorm(100,0,1)
 betahat= beta+rnorm(100,0,1)
 sebetahat=rep(1,100)
 ash.beta = ash(betahat,1,mixcompdist="normal")
-c = pcdf_post(ash.beta$fitted.g,beta,betahat,sebetahat,NULL)
+c = pcdf_post(ash.beta$fitted_g,beta,betahat,sebetahat,NULL)
 }
 

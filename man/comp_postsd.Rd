@@ -20,8 +20,8 @@ beta = rnorm(100,0,1)
 betahat= beta+rnorm(100,0,1)
 ash.beta = ash(betahat,1,mixcompdist="normal")
 data=list(x=betahat,s=rep(1,100),df=NULL)
-comp_postmean(ash.beta$fitted.g,data)
-comp_postsd(ash.beta$fitted.g,data)
-comp_postprob(ash.beta$fitted.g,data)
+comp_postmean(ash.beta$fitted_g,data)
+comp_postsd(ash.beta$fitted_g,data)
+comp_postprob(ash.beta$fitted_g,data)
 }
 

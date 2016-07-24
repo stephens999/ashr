@@ -51,12 +51,12 @@ get_logLR=function(a){a$logLR}
 
 #' @describeIn get_lfsr fitted g mixture
 #' @export
-get_fitted.g=function(a){a$fitted.g}
+get_fitted_g=function(a){a$fitted_g}
 
 
 #' @describeIn get_lfsr pi0, the proportion of nulls 
 #' @export
 get_pi0 = function(a){
-  null.comp = comp_sd(a$fitted.g)==0
-  return(sum(a$fitted.g$pi[null.comp]))
+  null.comp = comp_sd(a$fitted_g)==0
+  return(sum(a$fitted_g$pi[null.comp]))
 }

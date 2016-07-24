@@ -28,9 +28,9 @@
 #'     \code{\link{ash.workhorse}}.
 #'
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
-#' \item{fitted.g}{fitted mixture}
-#' \item{loglik}{log P(D|fitted.g)}
-#' \item{logLR}{log[P(D|fitted.g)/P(D|beta==0)]}
+#' \item{fitted_g}{fitted mixture}
+#' \item{loglik}{log P(D|fitted_g)}
+#' \item{logLR}{log[P(D|fitted_g)/P(D|beta==0)]}
 #' \item{result}{A dataframe whose columns are}
 #' \describe{
 #'  \item{NegativeProb}{A vector of posterior probability that beta is negative}
@@ -57,8 +57,8 @@
 #' betahat = rnorm(200,beta,sebetahat)
 #' beta.ash = ash(betahat, sebetahat)
 #' names(beta.ash)
-#' head(beta.ash$res) # the main dataframe of results
-#' graphics::plot(betahat,beta.ash$res$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
+#' head(beta.ash$result) # the main dataframe of results
+#' graphics::plot(betahat,beta.ash$result$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 #'
 #' CIMatrix=ashci(beta.ash,level=0.95)
 #' print(CIMatrix)
@@ -66,9 +66,9 @@
 #' #Illustrating the non-zero mode feature
 #' betahat=betahat+5
 #' beta.ash = ash(betahat, sebetahat)
-#' graphics::plot(betahat,beta.ash$res$PosteriorMean)
-#' betan.ash=ash(betahat, sebetahat,nonzeromode=TRUE)
-#' graphics::plot(betahat, betan.ash$res$PosteriorMean)
+#' graphics::plot(betahat,beta.ash$result$PosteriorMean)
+#' betan.ash=ash(betahat, sebetahat,mode=5)
+#' graphics::plot(betahat, betan.ash$result$PosteriorMean)
 #' summary(betan.ash)
 ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),df=NULL,...){
   return(modifyList(ash.workhorse(betahat,sebetahat,mixcompdist=mixcompdist,df=df,...),list(call=match.call())))
@@ -124,11 +124,12 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @param gridmult the multiplier by which the default grid values for
 #'     mixsd differ by one another. (Smaller values produce finer
 #'     grids)
-#' @param outputlevel determines amount of output [0=just fitted g;
+#' @param outputlevel determines amount of output. There are several numeric options [0=just fitted g;
 #'     1=also PosteriorMean and PosteriorSD; 2= everything usually
 #'     needed; 3=also include results of mixture fitting procedure
 #'     (includes matrix of log-likelihoods used to fit mixture); 4=
-#'     output additional things required by flash (flash.data)]
+#'     output additional things required by flash (flash_data)]. Otherwise the user can also specify 
+#'     the output they require in detail (see Examples)
 #' @param g the prior distribution for beta (usually estimated from
 #'     the data; this is used primarily in simulated data to do
 #'     computations with the "true" g)
@@ -139,10 +140,10 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @param lik contains details of the likelihood used; for general ash
 #' 
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
-#' \item{fitted.g}{fitted mixture, either a normalmix or unimix}
+#' \item{fitted_g}{fitted mixture, either a normalmix or unimix}
 #' \item{loglik}{log P(D|mle(pi))}
 #' \item{logLR}{log[P(D|mle(pi))/P(D|beta==0)]}
-#' \item{res}{A dataframe whose columns are}
+#' \item{result}{A dataframe whose columns are}
 #' \describe{
 #'  \item{NegativeProb}{A vector of posterior probability that beta is negative}
 #'  \item{PositiveProb}{A vector of posterior probability that beta is positive}
@@ -172,9 +173,9 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' betahat = rnorm(200,beta,sebetahat)
 #' beta.ash = ash(betahat, sebetahat)
 #' names(beta.ash)
-#' head(beta.ash$res)
+#' head(beta.ash$result)
 #' head(as.data.frame(beta.ash))
-#' graphics::plot(betahat,beta.ash$res$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
+#' graphics::plot(betahat,beta.ash$result$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 #'
 #' CIMatrix=ashci(beta.ash,betahat,sebetahat,level=0.95)
 #' print(CIMatrix)
@@ -187,7 +188,10 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' e.ash = ash(e,1,lik=logf_lik(df1=10,df2=10)) 
 #' 
 #' 
-#' #Testing the non-zero mode feature
+#' # Specifying the output
+#' beta.ash = ash(betahat, sebetahat, output = c("fitted_g","logLR","lfsr"))
+#' 
+#' # Setting the mode to be non-zero
 #' betahat=betahat+5
 #' beta.ash = ash(betahat, sebetahat)
 #' graphics::plot(betahat,beta.ash$PosteriorMean)
@@ -222,6 +226,7 @@ ash.workhorse = function(betahat,sebetahat,
                          control=list(),
                          lik=NULL
 ){
+
   if(!missing(pointmass) & !missing(method))
     stop("Specify either method or pointmass, not both")
   if(!missing(prior) & !missing(method))
@@ -311,37 +316,22 @@ ash.workhorse = function(betahat,sebetahat,
   val = list() # val will hold the return value
   ghat = pi.fit$g
   output = set_output(outputlevel) #sets up flags for what to output
-  
-  if(isTRUE(output$fitted.g)){val = c(val,list(fitted.g=ghat))}
-  if(isTRUE(output$call)){val = c(val,list(call=match.call()))}
-  if(isTRUE(output$loglik)){val = c(val,list(loglik =calc_loglik(ghat,data)))}
-  if(isTRUE(output$logLR)){val = c(val,list(logLR=calc_logLR(ghat,data)))}
-  if(isTRUE(output$data)){val = c(val,list(data=data))}
-  if(isTRUE(output$fit_details)){val = c(val,list(fit_details = pi.fit))}
-  if(isTRUE(output$flash.data)){val = c(val, list(flash.data=calc_flash_data(ghat,data)))}
+  if("fitted_g" %in% output){val = c(val,list(fitted_g=ghat))}
+  if("loglik" %in% output){val = c(val,list(loglik =calc_loglik(ghat,data)))}
+  if("logLR" %in% output){val = c(val,list(logLR=calc_logLR(ghat,data)))}
+  if("data" %in% output){val = c(val,list(data=data))}
+  if("fit_details" %in% output){val = c(val,list(fit_details = pi.fit))}
+  if("flash_data" %in% output){val = c(val, list(flash_data=calc_flash_data(ghat,data)))}
 
   # Compute the result component of value - 
   # result is a dataframe containing lfsr, etc
-  # output$resfns is a list of functions used to produce columns of that dataframe
-  if(!is.null(output$resfns)){
-    result = lapply(output$resfns,do.call,list(g=pi.fit$g,data=data))
+  # resfns is a list of functions used to produce columns of that dataframe
+  resfns = set_resfns(output)
+  if(length(resfns)>0){
+    result = lapply(resfns,do.call,list(g=pi.fit$g,data=data))
     result = as.data.frame(result)
     val = c(val, list(result=result))
   } 
-  
-  if(nonzeromode){
-    #Adding back the nonzero mean
-    #not yet dealt with in this branch
-    betahat[completeobs]= betahat[completeobs]+nonzeromode.fit$nonzeromode
-    if(mixcompdist=="normal"){
-      pi.fit$g$mean = rep(nonzeromode.fit$nonzeromode,length(pi.fit$g$pi))
-    }
-    else if(mixcompdist=="uniform"|mixcompdist=="halfuniform"){
-      pi.fit$g$a = pi.fit$g$a + nonzeromode.fit$nonzeromode
-      pi.fit$g$b = pi.fit$g$b + nonzeromode.fit$nonzeromode
-    }
-    if((outputlevel>0 & is.null(df)) | outputlevel>2 ){PosteriorMean = PosteriorMean + nonzeromode.fit$nonzeromode}
-  }
 
   ##5. Returning the val
 

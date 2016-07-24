@@ -42,14 +42,14 @@ test_that("calc_loglik returns warning when called with wrong model", {
 test_that("logLR in ash object matches calc_logLR", {
   set.seed(1); z=rnorm(100); z.ash = ashr::ash(z,1)
   data1 = set_data(z,1)
-  expect_equal(z.ash$logLR, calc_logLR(z.ash$fitted.g,data1))
+  expect_equal(z.ash$logLR, calc_logLR(z.ash$fitted_g,data1))
   z.ash = ashr::ash(z,1,alpha=1,df=3)
   data = set_data(z,1,t_lik(3),alpha=1)
-  expect_equal(z.ash$logLR, calc_logLR(z.ash$fitted.g,data))
+  expect_equal(z.ash$logLR, calc_logLR(z.ash$fitted_g,data))
 })
 
 test_that("sum of calc_vlogLR is same as calc_logLR", {
   set.seed(2); z=rnorm(100,0,2); z.ash = ashr::ash(z,1,df=4)
   data = set_data(z,1,t_lik(4))
-  expect_equal(sum(calc_vlogLR(z.ash$fitted.g,data)),z.ash$logLR)
+  expect_equal(sum(calc_vlogLR(z.ash$fitted_g,data)),z.ash$logLR)
 })

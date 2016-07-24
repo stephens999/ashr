@@ -60,11 +60,12 @@ optmethod=mixVBEM version only]}
 mixsd differ by one another. (Smaller values produce finer
 grids)}
 
-\item{outputlevel}{determines amount of output [0=just fitted g;
+\item{outputlevel}{determines amount of output. There are several numeric options [0=just fitted g;
 1=also PosteriorMean and PosteriorSD; 2= everything usually
 needed; 3=also include results of mixture fitting procedure
 (includes matrix of log-likelihoods used to fit mixture); 4=
-output additional things required by flash (flash.data)]}
+output additional things required by flash (flash_data)]. Otherwise the user can also specify 
+the output they require in detail (see Examples)}
 
 \item{g}{the prior distribution for beta (usually estimated from
 the data; this is used primarily in simulated data to do
@@ -84,10 +85,10 @@ to indicate mode should be estimated.}
 }
 \value{
 ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
-\item{fitted.g}{fitted mixture, either a normalmix or unimix}
+\item{fitted_g}{fitted mixture, either a normalmix or unimix}
 \item{loglik}{log P(D|mle(pi))}
 \item{logLR}{log[P(D|mle(pi))/P(D|beta==0)]}
-\item{res}{A dataframe whose columns are}
+\item{result}{A dataframe whose columns are}
 \describe{
  \item{NegativeProb}{A vector of posterior probability that beta is negative}
  \item{PositiveProb}{A vector of posterior probability that beta is positive}
@@ -120,9 +121,9 @@ sebetahat = abs(rnorm(200,0,1))
 betahat = rnorm(200,beta,sebetahat)
 beta.ash = ash(betahat, sebetahat)
 names(beta.ash)
-head(beta.ash$res)
+head(beta.ash$result)
 head(as.data.frame(beta.ash))
-graphics::plot(betahat,beta.ash$res$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
+graphics::plot(betahat,beta.ash$result$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 
 CIMatrix=ashci(beta.ash,betahat,sebetahat,level=0.95)
 print(CIMatrix)
@@ -135,7 +136,10 @@ e = rnorm(100)+log(rf(100,df1=10,df2=10)) # simulated data with log(F) error
 e.ash = ash(e,1,lik=logf_lik(df1=10,df2=10)) 
 
 
-#Testing the non-zero mode feature
+# Specifying the output
+beta.ash = ash(betahat, sebetahat, output = c("fitted_g","logLR","lfsr"))
+
+# Setting the mode to be non-zero
 betahat=betahat+5
 beta.ash = ash(betahat, sebetahat)
 graphics::plot(betahat,beta.ash$PosteriorMean)

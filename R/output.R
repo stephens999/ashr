@@ -83,22 +83,28 @@ calc_flash_data = function(g,data){
 }
 
 
-# If outputlevel is a list, then just returns it
-# if outputlevel an integer, there are different combinations of
-# default output provided
+
+# if outputlevel an integer, produce a vector of character strings naming output to be produced
+# (otherwise return outputlevel)
 set_output=function(outputlevel){
-  if(is.list(outputlevel)){output=outputlevel} 
-  else {
-    output = list(fitted.g=TRUE, call=TRUE)
-    if(outputlevel>0){output$loglik=TRUE; output$logLR=TRUE
-    output$resfns = list(PosteriorMean = calc_pm, PosteriorSD = calc_psd)
+  if(!is.numeric(outputlevel)){return(outputlevel)} #allows that user might specify directly
+  else{
+    output = c("fitted_g")
+    if(outputlevel>0){
+      output = c(output,"loglik","logLR","PosteriorMean","PosteriorSD") 
     }
-    if(outputlevel>1){output$data=TRUE
-      output$resfns = c(NegativeProb = calc_np, PositiveProb= calc_pp, lfsr = calc_lfsr, svalue = calc_svalue, 
-                      lfdr = calc_lfdr, qvalue = calc_qvalue, output$resfns)
-    }
-    if(outputlevel>2){output$fit_details=TRUE}
-    if(outputlevel>3){output$flash.data = TRUE}
+    if(outputlevel>1){output=c("data","NegativeProb","PositiveProb","lfsr","svalue","lfdr","qvalue",output)}
+    if(outputlevel>2){output=c(output,"fit_details")}
+    if(outputlevel>3){output=c(output,"flash_data")}
+    return(output)
   }
-  return(output)
+}
+
+# returns a named list of output functions, whose names are given in outputnames
+# eg set_resfns(c("lfsr","lfdr")) would extract results functions for lfsr and lfdr
+set_resfns = function(outputnames){
+  result_fns = list(NegativeProb= calc_np, PositiveProb= calc_pp, lfsr = calc_lfsr, 
+                  svalue = calc_svalue, lfdr = calc_lfdr, qvalue = calc_qvalue,PosteriorMean = calc_pm, PosteriorSD = calc_psd)
+
+  return(result_fns[intersect(names(result_fns), outputnames)]) #extract the results functions specified in output 
 }

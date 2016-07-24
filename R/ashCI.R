@@ -100,7 +100,7 @@ ashci = function (a, betahat=NULL, sebetahat=NULL,df=NULL,model=c("EE","ET"),lev
   PositiveProb = a$res$PositiveProb[betaindex]
   x=betahat[betaindex]
   s=sebetahat[betaindex]
-  m=a$fitted.g
+  m=a$fitted_g
   model=match.arg(model)
   percentage=1
   

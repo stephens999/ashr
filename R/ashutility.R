@@ -15,7 +15,7 @@
 #' @export
 #'
 summary.ash=function(object,...){
-  print(object$fitted.g)
+  print(object$fitted_g)
   print(utils::tail(object$fit$loglik,1),digits=10)
   print(object$fit$converged)
 }
@@ -34,7 +34,7 @@ summary.ash=function(object,...){
 #' @export
 #'
 print.ash =function(x,...){
-  print(x$fitted.g)
+  print(x$fitted_g)
 }
 
 #' @title Plot method for ash object
@@ -107,7 +107,7 @@ calc_vloglik = function(g,data){
     if(g$data$alpha != data$alpha){
       warning("Model (alpha value) used to fit ash does not match alpha in data! Probably you have made a mistake!")
     }
-    if(class(g)=="ash"){g = g$fitted.g} #extract g object from ash object if ash object passed
+    if(class(g)=="ash"){g = g$fitted_g} #extract g object from ash object if ash object passed
   }
   return(log(dens_conv(g,data))- data$alpha*(log(data$s_orig)))
 }
@@ -154,7 +154,7 @@ calc_vlogLR = function(g,data){
 #'
 #'
 get_density=function(a,x){
-  list(x=x,y=dens(a$fitted.g,x))
+  list(x=x,y=dens(a$fitted_g,x))
 }
 
 
@@ -170,7 +170,7 @@ get_density=function(a,x){
 #'
 #' @export
 cdf.ash=function(a,x,lower.tail=TRUE){
-  return(list(x=x,y=mixcdf(a$fitted.g,x,lower.tail)))
+  return(list(x=x,y=mixcdf(a$fitted_g,x,lower.tail)))
 }
 
 
@@ -298,7 +298,7 @@ ashci = function (a, betahat=NULL, sebetahat=NULL,df=NULL,model=c("EE","ET"),lev
   PositiveProb = a$res$PositiveProb[betaindex]
   x=betahat[betaindex]
   s=sebetahat[betaindex]
-  m=a$fitted.g
+  m=a$fitted_g
   model=match.arg(model)
   percentage=1
 

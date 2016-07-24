@@ -24,6 +24,6 @@ beta = rnorm(100,0,1)
 betahat= beta+rnorm(100,0,1)
 sebetahat=rep(1,100)
 ash.beta = ash(betahat,1,mixcompdist="normal")
-c = vcdf_post(ash.beta$fitted.g,seq(-5,5,length=1000),data = list(x=betahat,s=sebetahat,df=NULL))
+c = vcdf_post(ash.beta$fitted_g,seq(-5,5,length=1000),data = list(x=betahat,s=sebetahat,df=NULL))
 }
 

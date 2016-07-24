@@ -28,9 +28,9 @@ infinity (Gaussian)}
 }
 \value{
 ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
-\item{fitted.g}{fitted mixture}
-\item{loglik}{log P(D|fitted.g)}
-\item{logLR}{log[P(D|fitted.g)/P(D|beta==0)]}
+\item{fitted_g}{fitted mixture}
+\item{loglik}{log P(D|fitted_g)}
+\item{logLR}{log[P(D|fitted_g)/P(D|beta==0)]}
 \item{result}{A dataframe whose columns are}
 \describe{
  \item{NegativeProb}{A vector of posterior probability that beta is negative}
@@ -64,8 +64,8 @@ sebetahat = abs(rnorm(200,0,1))
 betahat = rnorm(200,beta,sebetahat)
 beta.ash = ash(betahat, sebetahat)
 names(beta.ash)
-head(beta.ash$res) # the main dataframe of results
-graphics::plot(betahat,beta.ash$res$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
+head(beta.ash$result) # the main dataframe of results
+graphics::plot(betahat,beta.ash$result$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
 
 CIMatrix=ashci(beta.ash,level=0.95)
 print(CIMatrix)
@@ -73,9 +73,9 @@ print(CIMatrix)
 #Illustrating the non-zero mode feature
 betahat=betahat+5
 beta.ash = ash(betahat, sebetahat)
-graphics::plot(betahat,beta.ash$res$PosteriorMean)
-betan.ash=ash(betahat, sebetahat,nonzeromode=TRUE)
-graphics::plot(betahat, betan.ash$res$PosteriorMean)
+graphics::plot(betahat,beta.ash$result$PosteriorMean)
+betan.ash=ash(betahat, sebetahat,mode=5)
+graphics::plot(betahat, betan.ash$result$PosteriorMean)
 summary(betan.ash)
 }
 \seealso{

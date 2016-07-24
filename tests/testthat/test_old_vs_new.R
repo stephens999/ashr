@@ -8,7 +8,7 @@ test_that("new results match old ones ", {
   expect_equal(oldres$PosteriorMean,z.ash$res$PosteriorMean)
   expect_equal(oldres$PosteriorSD,z.ash$res$PosteriorSD)
   expect_equal(oldres$lfsr,z.ash$res$lfsr)
-  expect_equal(oldres$fitted.g,z.ash$fitted.g)
+  expect_equal(oldres$fitted.g,z.ash$fitted_g)
   expect_equal(oldres$logLR,z.ash$logLR)
   expect_equal(oldres$loglik,z.ash$loglik)
 })

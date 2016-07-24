@@ -314,7 +314,7 @@ comp_postprob.default = function(m,data){
 #' betahat= beta+rnorm(100,0,1)
 #' sebetahat=rep(1,100)
 #' ash.beta = ash(betahat,1,mixcompdist="normal")
-#' comp_cdf_post(ash.beta$fitted.g,0,data=list(x=betahat,s=sebetahat,df=NULL))
+#' comp_cdf_post(ash.beta$fitted_g,0,data=list(x=betahat,s=sebetahat,df=NULL))
 #' @export
 comp_cdf_post=function(m,c,data){
   UseMethod("comp_cdf_post")
@@ -337,7 +337,7 @@ comp_cdf_post.default=function(m,c,data){
 #' betahat= beta+rnorm(100,0,1)
 #' sebetahat=rep(1,100)
 #' ash.beta = ash(betahat,1,mixcompdist="normal")
-#' cdf0 = cdf_post(ash.beta$fitted.g,0,betahat,sebetahat,NULL)
+#' cdf0 = cdf_post(ash.beta$fitted_g,0,betahat,sebetahat,NULL)
 #' graphics::plot(cdf0,1-ash.beta$PositiveProb)
 #' @export
 cdf_post = function(m,c,data){
@@ -358,7 +358,7 @@ cdf_post.default=function(m,c,data){
 #' betahat= beta+rnorm(100,0,1)
 #' sebetahat=rep(1,100)
 #' ash.beta = ash(betahat,1,mixcompdist="normal")
-#' c = vcdf_post(ash.beta$fitted.g,seq(-5,5,length=1000),data = list(x=betahat,s=sebetahat,df=NULL))
+#' c = vcdf_post(ash.beta$fitted_g,seq(-5,5,length=1000),data = list(x=betahat,s=sebetahat,df=NULL))
 #' @export
 vcdf_post = function(m,c,data){
   mapply(cdf_post,c,MoreArgs=list(m=m,data=data))
@@ -376,7 +376,7 @@ vcdf_post = function(m,c,data){
 #' betahat= beta+rnorm(100,0,1)
 #' sebetahat=rep(1,100)
 #' ash.beta = ash(betahat,1,mixcompdist="normal")
-#' c = pcdf_post(ash.beta$fitted.g,beta,betahat,sebetahat,NULL)
+#' c = pcdf_post(ash.beta$fitted_g,beta,betahat,sebetahat,NULL)
 #' @export
 pcdf_post = function(m,c,data){
 #  mapply(cdf_post,c,data$x,MoreArgs=list(m=m,v=data$v))
@@ -471,9 +471,9 @@ comp_postmean.default = function(m,data){
 #' betahat= beta+rnorm(100,0,1)
 #' ash.beta = ash(betahat,1,mixcompdist="normal")
 #' data=list(x=betahat,s=rep(1,100),df=NULL)
-#' comp_postmean(ash.beta$fitted.g,data)
-#' comp_postsd(ash.beta$fitted.g,data)
-#' comp_postprob(ash.beta$fitted.g,data)
+#' comp_postmean(ash.beta$fitted_g,data)
+#' comp_postsd(ash.beta$fitted_g,data)
+#' comp_postprob(ash.beta$fitted_g,data)
 #' @export
 comp_postsd = function(m,data){
   UseMethod("comp_postsd")
