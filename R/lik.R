@@ -39,7 +39,7 @@ t_lik = function(df){
 #'    ash(e,1,lik=logF_lik(df1=10,df2=10))
 #' @export
 logF_lik = function(df1,df2){
-  list(lcdfFUN = function(x){plogf(x,df1=df1,df2=df2,log=TRUE)},
+  list(lcdfFUN = function(x){plogf(x,df1=df1,df2=df2,log.p=TRUE)},
        lpdfFUN = function(x){dlogf(x,df1=df1,df2=df2,log=TRUE)})
 }
 
