@@ -431,7 +431,6 @@ estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSq
   if(optmethod=="mixVBEM"){pi_init=NULL}  #for some reason pi_init doesn't work with mixVBEM
   k=ncomp(g)
   
-  if(isTRUE(control$trace)){tic()}
   matrix_llik = t(log_comp_dens_conv(g,data)) #an n by k matrix
   matrix_llik = matrix_llik - apply(matrix_llik,1, max) #avoid numerical issues by subtracting max of each row
   matrix_lik = exp(matrix_llik)
@@ -461,7 +460,6 @@ estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSq
 
   loglik.final =  penloglik(pi,matrix_lik,1) #compute penloglik without penalty
   g$pi=fit$pihat
-  if(isTRUE(control$trace)){toc()}
 
   return(list(loglik=loglik.final,matrix_lik=matrix_lik,g=g,optreturn=fit,optmethod=optmethod))
 }
