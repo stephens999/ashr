@@ -83,10 +83,11 @@ comp_cdf_post.unimix=function(m,c,data){
   tmp[m$a > c,] = 0
   subset = m$a<=c & m$b>c # subset of components (1..k) with nontrivial cdf
   if(sum(subset)>0){
-    pna = exp(do.call(lik$lcdfFUN, list(outer(data$x,m$a[subset],FUN="-")/data$s)))
-    pnc = exp(do.call(lik$lcdfFUN, list(outer(data$x,rep(c,sum(subset)),FUN="-")/data$s)))
-    pnb = exp(do.call(lik$lcdfFUN, list(outer(data$x,m$b[subset],FUN="-")/data$s)))
-    tmp[subset,] = t((pnc-pna)/(pnb-pna))
+    lpna = do.call(lik$lcdfFUN, list(outer(data$x,m$a[subset],FUN="-")/data$s))
+    lpnc = do.call(lik$lcdfFUN, list(outer(data$x,rep(c,sum(subset)),FUN="-")/data$s))
+    lpnb = do.call(lik$lcdfFUN, list(outer(data$x,m$b[subset],FUN="-")/data$s))
+    tmp[subset,] = t((exp(lpnc-lpna)-1)/(exp(lpnb-lpna)-1))
+    #tmp[subset,] = t((pnc-pna)/(pnb-pna)) ; doing on different log scale reduces numerical issues
   }
   subset = (m$a == m$b) #subset of components with trivial cdf
   tmp[subset,]= rep(m$a[subset] <= c,n)
