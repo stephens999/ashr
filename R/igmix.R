@@ -64,12 +64,9 @@ comp_cdf.igmix = function(m,y,lower.tail=TRUE){
 #' @export
 comp_cdf_post.igmix=function(m,c,data){
   #compute posterior shape (alpha1) and rate (beta1)
-  betahat = data$x
-  sebetahat = data$s
-  v = data$v
-  alpha1 = m$alpha+v/2
-  beta1 = outer(m$beta,v/2*sebetahat^2,FUN="+")
-  ismissing = is.na(sebetahat)
+  alpha1 = m$alpha+data$v/2
+  beta1 = outer(m$beta,data$v/2*data$s^2,FUN="+")
+  ismissing = is.na(data$s)
   beta1[,ismissing]=m$beta
   return(t(pigamma(c,alpha1,beta1)))
 }
