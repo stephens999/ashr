@@ -114,3 +114,10 @@ ashn2 = function(betahat,...){
   ash(betahat=betahat,mode=opt$minimum,...)
 }
 
+ash.nzm = function(...){
+  cc = sys.call()
+  test.op = function(c){eval(call_modify(cc,newargs = list(mode=c)))$loglik}
+  test.op(2)
+   # opt = optimize(test.op,interval=c(min(betahat),max(betahat)))
+#  ash(betahat=betahat,mode=opt$minimum,...)
+}

@@ -6,7 +6,9 @@
 #'    ash(z,1,lik=normal_lik())
 #' @export
 normal_lik= function(){
-  list(lcdfFUN = function(x){pnorm(x,log=TRUE)},
+  list(name="normal",
+       const = TRUE, #used to indicate whether the likelihood function is constant for all observations (some parts of ash only work in this case)
+       lcdfFUN = function(x){pnorm(x,log=TRUE)},
        lpdfFUN = function(x){dnorm(x,log=TRUE)},
        etruncFUN = function(a,b){my_etruncnorm(a,b)},
        e2truncFUN = function(a,b){my_e2truncnorm(a,b)}
@@ -22,7 +24,9 @@ normal_lik= function(){
 #'    ash(z,1,lik=t_lik(df=4))
 #' @export
 t_lik = function(df){
-  list(lcdfFUN = function(x){pt(x,df=df,log=TRUE)},
+  list(name = "t",
+      const = (length(unique(df))==1),
+      lcdfFUN = function(x){pt(x,df=df,log=TRUE)},
       lpdfFUN = function(x){dt(x,df=df,log=TRUE)},
       etruncFUN = function(a,b){etrunct::e_trunct(a,b,df=df,r=1)},
       e2truncFUN = function(a,b){etrunct::e_trunct(a,b,df=df,r=2)}
@@ -39,7 +43,9 @@ t_lik = function(df){
 #'    ash(e,1,lik=logF_lik(df1=10,df2=10))
 #' @export
 logF_lik = function(df1,df2){
-  list(lcdfFUN = function(x){plogf(x,df1=df1,df2=df2,log.p=TRUE)},
+  list(name = "logF",
+       const = (length(unique(df1))==1) & (length(unique(df2))==1),
+       lcdfFUN = function(x){plogf(x,df1=df1,df2=df2,log.p=TRUE)},
        lpdfFUN = function(x){dlogf(x,df1=df1,df2=df2,log=TRUE)})
 }
 
@@ -53,3 +59,8 @@ add_etruncFUN = function(lik){
   }
   lik
 }
+
+is_normal = function(lik){lik$name=="normal"}
+is_const = function(lik){lik$const}
+get_name = function(lik){lik$name}
+

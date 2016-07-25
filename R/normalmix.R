@@ -63,8 +63,8 @@ comp_cdf.normalmix = function(m,y,lower.tail=TRUE){
 #' @param data a list with components x and s to be interpreted as a normally-distributed observation and its standard error
 #' @return a k by n matrix
 comp_dens_conv.normalmix = function(m,data){
-  if(!is.null(data$v)){
-    stop("method comp_dens_conv of normal mixture not written for df!=NULL")
+  if(!is_normal(data$lik)){
+    stop("Error: normal mixture for non-normal likelihood is not yet implemented")
   }
   sdmat = sqrt(outer(data$s^2,m$sd^2,FUN="+")) #n by k matrix of standard deviations of convolutions
   return(t(stats::dnorm(outer(data$x,m$mean,FUN="-")/sdmat)/sdmat))
@@ -77,8 +77,8 @@ comp_dens_conv.normalmix = function(m,data){
 #' @inheritParams comp_dens_conv.normalmix
 #' @return a k by n matrix
 log_comp_dens_conv.normalmix = function(m,data){
-  if(!is.null(data$v)){
-    stop("method comp_dens_conv of normal mixture not written for df!=NULL")
+  if(!is_normal(data$lik)){
+    stop("Error: normal mixture for non-normal likelihood is not yet implemented")
   }
   sdmat = sqrt(outer(data$s^2,m$sd^2,"+")) #n by k matrix of standard deviations of convolutions
   return(t(stats::dnorm(outer(data$x,m$mean,FUN="-")/sdmat,log=TRUE) - log(sdmat)))
@@ -91,8 +91,8 @@ log_comp_dens_conv.normalmix = function(m,data){
 
 #' @export
 comp_cdf_post.normalmix=function(m,c,data){
-  if(!is.null(data$v)){
-    stop("Error: normal mixture for student-t likelihood is not yet implemented")
+  if(!is_normal(data$lik)){
+    stop("Error: normal mixture for non-normal likelihood is not yet implemented")
   }
   k = length(m$pi)
   
@@ -108,8 +108,8 @@ comp_cdf_post.normalmix=function(m,c,data){
 
 #' @export
 comp_postmean.normalmix = function(m,data){
-  if(!is.null(data$v)){
-    stop("method comp_postmean of normal mixture not written for df!=NULL")
+  if(!is_normal(data$lik)){
+    stop("Error: normal mixture for non-normal likelihood is not yet implemented")
   }
   tmp=(outer(data$s^2,m$mean, FUN="*") + outer(data$x,m$sd^2, FUN="*"))/outer(data$s^2,m$sd^2,FUN="+")
   ismissing = (is.na(data$x) | is.na(data$s))
@@ -120,8 +120,8 @@ comp_postmean.normalmix = function(m,data){
 
 #' @export
 comp_postsd.normalmix = function(m,data){
-  if(!is.null(data$v)){
-    stop("method comp_postsd of normal mixture not written for df!=NULL")
+  if(!is_normal(data$lik)){
+    stop("Error: normal mixture for non-normal likelihood is not yet implemented")
   }
   t(sqrt(outer(data$s^2,m$sd^2,FUN="*")/outer(data$s^2,m$sd^2,FUN="+")))
 }

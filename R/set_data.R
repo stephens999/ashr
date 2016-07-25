@@ -41,6 +41,17 @@ set_data = function(betahat, sebetahat, lik=NULL, alpha=0){
   return(data)
 }
 
+#extract data corresponding to ith data point
+extract_data=function(data,i){
+  if(!is_const(data$lik)){stop("extracting data not supported for non-constant likelihoods")}
+  data_i = list()
+  data_i$x = data$x[i]
+  data_i$s = data$s[i]
+  data_i$alpha = data$alpha[i]
+  data_i$lik = data$lik
+  return(data_i)
+}
+
 n_completeobs = function(data){return(length(data$x))}
 
 n_obs = function(data){return(length(data$betahat))}
