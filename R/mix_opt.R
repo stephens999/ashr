@@ -171,7 +171,7 @@ mixVBEM = function(matrix_lik, prior, pi_init = NULL,control=list()){
   control = set_control_squarem(control,nrow(matrix_lik))
   k=ncol(matrix_lik)
   if(is.null(pi_init)){  pi_init = rep(1,k)  }# Use as starting point for pi 
-  res = squarem(par=pi_init,fixptfn=VBfixpoint, objfn=VBnegpenloglik,matrix_lik=matrix_lik, prior=prior, control=controlinput)
+  res = squarem(par=pi_init,fixptfn=VBfixpoint, objfn=VBnegpenloglik,matrix_lik=matrix_lik, prior=prior, control=control)
   
   return(list(pihat = res$par/sum(res$par), B=res$value.objfn, niter = res$iter, converged=res$convergence,post=res$par))
 }
