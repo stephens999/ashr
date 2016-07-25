@@ -41,8 +41,11 @@ comp_dens.igmix = function(m,y,log=FALSE){
 #density of product of each component of a inverse-gamma mixture with Gamma(v/2,v/2) at s
 # s an n-vector at which density is to be evaluated
 #return a k by n matrix
-comp_dens_conv.igmix = function(m,x,s,v,FUN="+"){
+comp_dens_conv.igmix = function(m,data,FUN="+"){
   k=ncomp(m)
+  x = data$x
+  s = data$s
+  v = data$v
   n=length(s)
   dens = t(exp(v/2*log(v/2)-lgamma(v/2)
                +(v/2-1)*outer(log(s^2),rep(1,k))
@@ -59,8 +62,11 @@ comp_cdf.igmix = function(m,y,lower.tail=TRUE){
 
 
 #' @export
-comp_cdf_post.igmix=function(m,c,betahat,sebetahat,v){
+comp_cdf_post.igmix=function(m,c,data){
   #compute posterior shape (alpha1) and rate (beta1)
+  betahat = data$x
+  sebetahat = data$s
+  v = data$v
   alpha1 = m$alpha+v/2
   beta1 = outer(m$beta,v/2*sebetahat^2,FUN="+")
   ismissing = is.na(sebetahat)
@@ -70,22 +76,22 @@ comp_cdf_post.igmix=function(m,c,betahat,sebetahat,v){
 
 
 #' @export
-comp_postmean.igmix = function(m,betahat,sebetahat,v){
+comp_postmean.igmix = function(m,data){
   k = length(m$pi)
-  n=length(sebetahat)
-  tmp=outer(v/2*sebetahat^2,m$beta,FUN="+")/outer(rep(1,n),m$alpha+v/2-1)
-  ismissing = is.na(sebetahat)
+  n=length(data$s)
+  tmp=outer(data$v/2*data$s^2,m$beta,FUN="+")/outer(rep(1,n),m$alpha+data$v/2-1)
+  ismissing = is.na(data$s)
   tmp[ismissing,]=m$beta/(m$alpha-1) #return prior mean when missing data
   t(tmp)
 }
 
 
 #' @export
-comp_postsd.igmix = function(m,betahat,sebetahat,v){
+comp_postsd.igmix = function(m,data){
   k = length(m$pi)
-  n=length(sebetahat)
-  alpha1 = outer(rep(1,n),m$alpha+v/2-1)
-  beta1 = outer(v/2*sebetahat^2,m$beta,FUN="+")
+  n=length(data$s)
+  alpha1 = outer(rep(1,n),m$alpha+data$v/2-1)
+  beta1 = outer(data$v/2*data$s^2,m$beta,FUN="+")
   return(t(beta1/(alpha1-1)/sqrt(alpha1-2)))
 }
 
