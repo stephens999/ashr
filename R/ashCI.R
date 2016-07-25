@@ -9,10 +9,6 @@
 #'     cost is linear of the length of betahat.
 #'
 #' @param a the fitted ash object
-#' @param betahat the values of beta used for ash
-#' @param sebetahat the values of betahat used
-#' @param df the degrees of freedom
-#' @param model the model used.
 #' @param level the level for the credible interval, (default=0.95)
 #' @param betaindex a vector consisting of locations of betahat where
 #'     you would like to compute the credible interval
@@ -75,7 +71,7 @@
 #the searching interval from the mixture
 #2.A:Done by shrinking searching interval using while loop
 #
-ashci = function (a,alpha=0,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=100,shrinkingcoefficient=0.9,trace=FALSE,ncores=FALSE){
+ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=100,shrinkingcoefficient=0.9,trace=FALSE,ncores=FALSE){
   data = a$data
   if(is.null(data)){stop("ash object has to have data returned to compute CIs; use outputlevel 2 or more when running ash")}
  
@@ -95,13 +91,6 @@ ashci = function (a,alpha=0,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, max
   percentage=1
   
   if( class(m) != "normalmix" && class(m) != "unimix" ){stop(paste("Invalid class",class(m)))}
-  if(alpha!=0){ #for ET model, standardize
-    stop("not tested for alpha!=0")
-    # x=x/s
-    # PosteriorMean=PosteriorMean/s
-    # sebetahat.orig=s
-    # s=rep(1,length(betaindex))
-  }
 
   CImatrix=matrix(NA,nrow=length(PosteriorMean),ncol=7)
   CImatrix[,3]=PosteriorMean
@@ -126,35 +115,41 @@ ashci = function (a,alpha=0,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, max
       #Starting at Posterior Mean, step out until exceed required level
       #The search will go from the PosteriorMean to the upper or lower point
       #Note: this assumes the Posterior Mean is in the CI... !
-      lower = PosteriorMean[i]-PosteriorSD[i]
       data_i = extract_data(data,i)
-      while(cdf_post(m,lower,data_i) > (1-level)/2){
-        lower = lower-PosteriorSD[i]
-      }
-      upper = PosteriorMean[i]+PosteriorSD[i]
-      while(cdf_post(m,upper,data_i) < 1 - (1-level)/2){
-        upper = upper+PosteriorSD[i]
-      }
-      
-      
-      #Calculating the lower bound
-      #First check if lower bound is 0
-      if(NegativeProb[i]<(1-level)/2 & (ZeroProb[i]+NegativeProb[i])> (1-level)/2){
+      if(is.nan(PosteriorSD[i])){
+        CImatrix[i,4]=NA;
+      } else if(PosteriorSD[i]==0){ #special case where posterior is (approximately) point mass
+        CImatrix[i,4]=PosteriorMean[i];
+      } else if(NegativeProb[i]<(1-level)/2 & (ZeroProb[i]+NegativeProb[i])> (1-level)/2){
         CImatrix[i,4]=0;
-        CImatrix[i,6]=cdf_post(m,CImatrix[i,4],data_i)
       } else {
+        gap = ifelse(PosteriorSD[i]<1e-5,1e-5,PosteriorSD[i])
+        lower = PosteriorMean[i]-gap
+        while(cdf_post(m,lower,data_i) > (1-level)/2){
+          lower = lower-gap
+        }
         CImatrix[i,4]=stats::optimize(f=ci.lower,interval=c(lower,PosteriorMean[i]),m=m,data=data_i,level=level,tol=tol)$minimum
-        CImatrix[i,6]=cdf_post(m,CImatrix[i,4],data_i)
       }
-      #Calculating the upper bound
-      #First check if upper bound is 0
-      if(PositiveProb[i] < ((1-level)/2) & (ZeroProb[i]+PositiveProb[i])> (1-level)/2){
+     
+      
+      if(is.nan(PosteriorSD[i])){
+        CImatrix[i,5]=NA;
+      } else if(PosteriorSD[i]==0){ #special case where posterior is point mass
+        CImatrix[i,5]=PosteriorMean[i];
+      } else if(PositiveProb[i] < ((1-level)/2) & (ZeroProb[i]+PositiveProb[i])> (1-level)/2){
         CImatrix[i,5]=0;
-        CImatrix[i,7]=cdf_post(m,CImatrix[i,5],data_i)
       } else {
+        gap = ifelse(PosteriorSD[i]<1e-5,1e-5,PosteriorSD[i])
+        upper = PosteriorMean[i]+gap
+        while(cdf_post(m,upper,data_i) < 1 - (1-level)/2){
+          upper = upper+gap
+        }
         CImatrix[i,5]=stats::optimize(f=ci.upper,interval=c(PosteriorMean[i],upper),m=m,data=data_i,level=level,tol=tol)$minimum
-        CImatrix[i,7]=cdf_post(m,CImatrix[i,5],data_i)
       }
+      
+      CImatrix[i,6]=cdf_post(m,CImatrix[i,4],data_i)
+      CImatrix[i,7]=cdf_post(m,CImatrix[i,5],data_i)
+      
       if(trace==TRUE & percentage <=100){
         currentpercentage=round(i*100/length(betaindex))
         if(currentpercentage == percentage){
@@ -163,6 +158,8 @@ ashci = function (a,alpha=0,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, max
           percentage = percentage + 1}
       }
     }
+    CImatrix[,4] = CImatrix[,4] * data$s_orig^data$alpha
+    CImatrix[,5] = CImatrix[,5] * data$s_orig^data$alpha #correct CIs for the fact they are CIs for beta/s^alpha
   } else{
     ## Proceed with parallel computation
     #if(trace==TRUE){

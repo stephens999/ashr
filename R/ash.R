@@ -226,7 +226,7 @@ ash.workhorse = function(betahat,sebetahat,
                          control=list(),
                          lik=NULL
 ){
-
+  
   if(!missing(pointmass) & !missing(method))
     stop("Specify either method or pointmass, not both")
   if(!missing(prior) & !missing(method))
@@ -238,6 +238,15 @@ ash.workhorse = function(betahat,sebetahat,
     if (method == "shrink"){pointmass =FALSE; prior="uniform"}
     if (method == "fdr"){pointmass =TRUE; prior= "nullbiased"}
   }
+  
+  if(mode=="estimate"){ #just pass everything through to ash.nzm for non-zero-mode
+    args <- as.list(environment())
+    args$mode = NULL
+    args$outputlevel = NULL
+    args$method=NULL # avoid specifying method as well as prior/pointmass
+    args$g = NULL # avoid specifying g as well as mode
+    #args = as.list( match.call() )
+    mode = do.call(ash.estmode,args)}
   
   
   ##1.Handling Input Parameters

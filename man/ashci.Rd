@@ -4,9 +4,9 @@
 \alias{ashci}
 \title{Credible Interval Computation for the ash object}
 \usage{
-ashci(a, alpha = 0, level = 0.95, betaindex, lfsrcriteria = 0.05,
-  tol = 1e-05, maxcounts = 100, shrinkingcoefficient = 0.9,
-  trace = FALSE, ncores = FALSE)
+ashci(a, level = 0.95, betaindex, lfsrcriteria = 0.05, tol = 1e-05,
+  maxcounts = 100, shrinkingcoefficient = 0.9, trace = FALSE,
+  ncores = FALSE)
 }
 \arguments{
 \item{a}{the fitted ash object}
@@ -41,14 +41,6 @@ user could specify number of cores they would like to
 use. Further, if user does not specify and we have over 1000
 entries to compute, then the function would perform parallel
 computation using number of CPU cores on the current host.}
-
-\item{betahat}{the values of beta used for ash}
-
-\item{sebetahat}{the values of betahat used}
-
-\item{df}{the degrees of freedom}
-
-\item{model}{the model used.}
 }
 \value{
 A matrix, with first column being the location,second

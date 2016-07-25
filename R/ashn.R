@@ -107,17 +107,23 @@ ashn=function(betahat,sebetahat,
   return(list(bestash = beta.ash, BestMode=BestMode,loglikevector = loglikvector,allash = allash))
 }
 
-#' @export
-ashn2 = function(betahat,...){
-  test.op = function(c){return(-ash(betahat=betahat,mode=c,output="loglik",...)$loglik)}
+#' a wrapper function that estimates the mode, using optim
+#' called by ash if mode="estimate"
+ash.estmode = function(betahat,...){
+  test.op = function(c){return(-ash(betahat=betahat,mode=c,outputlevel="loglik",...)$loglik)}
   opt = optimize(test.op,interval=c(min(betahat),max(betahat)))
-  ash(betahat=betahat,mode=opt$minimum,...)
+  return(opt$minimum)
+  #ash(betahat=betahat,mode=opt$minimum,...)
 }
 
-ash.nzm = function(...){
-  cc = sys.call()
-  test.op = function(c){eval(call_modify(cc,newargs = list(mode=c)))$loglik}
-  test.op(2)
-   # opt = optimize(test.op,interval=c(min(betahat),max(betahat)))
-#  ash(betahat=betahat,mode=opt$minimum,...)
-}
+# ash.nzm = function(...){
+#   cc = sys.call()
+#   test.op = function(c){eval(call_modify(cc,newargs = list(mode=c)))$loglik}
+#   opt = optimize(test.op,interval=c(min(betahat),max(betahat)))
+#   ash(betahat=betahat,mode=opt$minimum,...)
+# }
+
+#ways to implement nzm:
+# ash.nzm = function(specify all ash args)
+# then ash
+  
