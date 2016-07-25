@@ -379,8 +379,8 @@ vcdf_post = function(m,c,data){
 #' c = pcdf_post(ash.beta$fitted_g,beta,betahat,sebetahat,NULL)
 #' @export
 pcdf_post = function(m,c,data){
-#  mapply(cdf_post,c,data$x,MoreArgs=list(m=m,v=data$v))
-  stop("not written for general case yet")
+  vapply(1:length(c),
+        function(i){do.call(cdf_post,list(m=m,c=c[i],data=extract_data(data,i)))},FUN.VALUE=0)
 }
 
 #output posterior mean for beta for prior mixture m,

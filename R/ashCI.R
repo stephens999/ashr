@@ -92,9 +92,9 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
   
   if( class(m) != "normalmix" && class(m) != "unimix" ){stop(paste("Invalid class",class(m)))}
 
-  CImatrix=matrix(NA,nrow=length(PosteriorMean),ncol=7)
-  CImatrix[,3]=PosteriorMean
-  colnames(CImatrix)=c("Index(Location)","lfsr","Posterior Mean",(1-level)/2,(1+level)/2,"Fitted CDF(lower) ","Fitted CDF(upper)")
+  CImatrix=matrix(NA,nrow=length(PosteriorMean),ncol=2)
+  colnames(CImatrix)=c((1-level)/2,(1+level)/2)
+  #c("Fitted CDF(lower) ","Fitted CDF(upper)")
   
   if(missing(trace)){
     if(length(betaindex)>=1000){
@@ -117,38 +117,37 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
       #Note: this assumes the Posterior Mean is in the CI... !
       data_i = extract_data(data,i)
       if(is.nan(PosteriorSD[i])){
-        CImatrix[i,4]=NA;
+        CImatrix[i,1]=NA;
       } else if(PosteriorSD[i]==0){ #special case where posterior is (approximately) point mass
-        CImatrix[i,4]=PosteriorMean[i];
+        CImatrix[i,1]=PosteriorMean[i];
       } else if(NegativeProb[i]<(1-level)/2 & (ZeroProb[i]+NegativeProb[i])> (1-level)/2){
-        CImatrix[i,4]=0;
+        CImatrix[i,1]=0;
       } else {
         gap = ifelse(PosteriorSD[i]<1e-5,1e-5,PosteriorSD[i])
         lower = PosteriorMean[i]-gap
         while(cdf_post(m,lower,data_i) > (1-level)/2){
           lower = lower-gap
         }
-        CImatrix[i,4]=stats::optimize(f=ci.lower,interval=c(lower,PosteriorMean[i]),m=m,data=data_i,level=level,tol=tol)$minimum
+        CImatrix[i,1]=stats::optimize(f=ci.lower,interval=c(lower,PosteriorMean[i]),m=m,data=data_i,level=level,tol=tol)$minimum
       }
      
       
       if(is.nan(PosteriorSD[i])){
-        CImatrix[i,5]=NA;
+        CImatrix[i,2]=NA;
       } else if(PosteriorSD[i]==0){ #special case where posterior is point mass
-        CImatrix[i,5]=PosteriorMean[i];
+        CImatrix[i,2]=PosteriorMean[i];
       } else if(PositiveProb[i] < ((1-level)/2) & (ZeroProb[i]+PositiveProb[i])> (1-level)/2){
-        CImatrix[i,5]=0;
+        CImatrix[i,2]=0;
       } else {
         gap = ifelse(PosteriorSD[i]<1e-5,1e-5,PosteriorSD[i])
         upper = PosteriorMean[i]+gap
         while(cdf_post(m,upper,data_i) < 1 - (1-level)/2){
           upper = upper+gap
         }
-        CImatrix[i,5]=stats::optimize(f=ci.upper,interval=c(PosteriorMean[i],upper),m=m,data=data_i,level=level,tol=tol)$minimum
+        CImatrix[i,2]=stats::optimize(f=ci.upper,interval=c(PosteriorMean[i],upper),m=m,data=data_i,level=level,tol=tol)$minimum
       }
       
-      CImatrix[i,6]=cdf_post(m,CImatrix[i,4],data_i)
-      CImatrix[i,7]=cdf_post(m,CImatrix[i,5],data_i)
+  
       
       if(trace==TRUE & percentage <=100){
         currentpercentage=round(i*100/length(betaindex))
@@ -158,9 +157,9 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
           percentage = percentage + 1}
       }
     }
-    CImatrix[,4] = CImatrix[,4] * data$s_orig^data$alpha
-    CImatrix[,5] = CImatrix[,5] * data$s_orig^data$alpha #correct CIs for the fact they are CIs for beta/s^alpha
+    CImatrix = CImatrix * data$s_orig^data$alpha #correct CIs for the fact they are CIs for beta/s^alpha
   } else{
+    stop("not yet implemented in this branch")
     ## Proceed with parallel computation
     #if(trace==TRUE){
     #cat("Computation time would be linear w.r.t sample size, parallel computation progress would be printed to the screen \n")
@@ -219,13 +218,10 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
     }
     stopCluster(cl)
   }
-  # if(model=="ET"){
-  #   CImatrix=CImatrix*sebetahat.orig
-  # }
-  CImatrix[,1]=1:length(get_lfsr(a))
-  CImatrix[,2]=get_lfsr(a)
+
+  #CImatrix[i,6]=cdf_post(m,CImatrix[i,4],data)
+  #CImatrix[i,7]=cdf_post(m,CImatrix[i,5],data)
   CImatrix=signif(CImatrix,digits=round(1-log(tol)/log(10)))
-  #CImatrix[,6:7]=round(CImatrix[,6:7],5)
   return(CImatrix)
 }
 
