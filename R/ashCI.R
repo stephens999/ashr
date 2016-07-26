@@ -112,43 +112,27 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
       tic()
     }
     for(i in betaindex){
-      #Starting at Posterior Mean, step out until exceed required level
-      #The search will go from the PosteriorMean to the upper or lower point
-      #Note: this assumes the Posterior Mean is in the CI... !
       data_i = extract_data(data,i)
+      
       if(is.nan(PosteriorSD[i])){
-        CImatrix[i,1]=NA;
+        CImatrix[i,]=c(NA,NA)
       } else if(PosteriorSD[i]==0){ #special case where posterior is (approximately) point mass
-        CImatrix[i,1]=PosteriorMean[i];
-      } else if(NegativeProb[i]<(1-level)/2 & (ZeroProb[i]+NegativeProb[i])> (1-level)/2){
-        CImatrix[i,1]=0;
+        CImatrix[i,]=PosteriorMean[i]
       } else {
-        gap = ifelse(PosteriorSD[i]<1e-5,1e-5,PosteriorSD[i])
-        lower = PosteriorMean[i]-gap
-        while(cdf_post(m,lower,data_i) > (1-level)/2){
-          lower = lower-gap
+        #find lower point (first checking if 0 is it)
+        if(NegativeProb[i]<(1-level)/2 & (ZeroProb[i]+NegativeProb[i])> (1-level)/2){
+          CImatrix[i,1]=0;
+        } else {
+          CImatrix[i,1]=stats::uniroot(f=taildiff,interval=c(PosteriorMean[i]-2*PosteriorSD[i],PosteriorMean[i]),extendInt="upX",m=m,data=data_i,target=(1-level)/2,tol=tol)$root
         }
-        CImatrix[i,1]=stats::optimize(f=ci.lower,interval=c(lower,PosteriorMean[i]),m=m,data=data_i,level=level,tol=tol)$minimum
-      }
-     
-      
-      if(is.nan(PosteriorSD[i])){
-        CImatrix[i,2]=NA;
-      } else if(PosteriorSD[i]==0){ #special case where posterior is point mass
-        CImatrix[i,2]=PosteriorMean[i];
-      } else if(PositiveProb[i] < ((1-level)/2) & (ZeroProb[i]+PositiveProb[i])> (1-level)/2){
-        CImatrix[i,2]=0;
-      } else {
-        gap = ifelse(PosteriorSD[i]<1e-5,1e-5,PosteriorSD[i])
-        upper = PosteriorMean[i]+gap
-        while(cdf_post(m,upper,data_i) < 1 - (1-level)/2){
-          upper = upper+gap
+        
+        #find upper point (first checking if 0 is it)
+        if(PositiveProb[i] < ((1-level)/2) & (ZeroProb[i]+PositiveProb[i])> (1-level)/2){
+          CImatrix[i,2]=0;
+        } else {
+          CImatrix[i,2]=stats::uniroot(f=taildiff,interval=c(PosteriorMean[i],PosteriorMean[i]+2*PosteriorSD[i]),extendInt="upX",m=m,data=data_i,target=(1+level)/2,tol=tol)$root
         }
-        CImatrix[i,2]=stats::optimize(f=ci.upper,interval=c(PosteriorMean[i],upper),m=m,data=data_i,level=level,tol=tol)$minimum
       }
-      
-  
-      
       if(trace==TRUE & percentage <=100){
         currentpercentage=round(i*100/length(betaindex))
         if(currentpercentage == percentage){
@@ -219,21 +203,18 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
     stopCluster(cl)
   }
 
-  #CImatrix[i,6]=pcdf_post(m,CImatrix[i,1],data)
-  #CImatrix[i,7]=pcdf_post(m,CImatrix[i,2],data)
+  #CImatrix[i,6]=pcdf_post(m,CImatrix[,1],data)
+  #CImatrix[i,7]=pcdf_post(m,CImatrix[,2],data)
   CImatrix=signif(CImatrix,digits=round(1-log(tol)/log(10)))
   return(CImatrix)
 }
 
-ci.lower=function(z,m,data,level){
-  tailprob=cdf_post(m,z,data)
-  return((tailprob-(1-level)/2)^2)
+
+#difference of tailprob from target
+taildiff=function(z,m,data,target){
+  cdf_post(m,z,data)-target
 }
 
-ci.upper=function(z,m,data,level){
-  tailprob=1-cdf_post(m,z,data)
-  return((tailprob-(1-level)/2)^2)
-}
 
 
 
