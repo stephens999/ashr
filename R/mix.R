@@ -444,9 +444,14 @@ postmean2 = function(m, betahat,sebetahat,v){
 }
 #' @export
 postmean2.default = function(m,betahat,sebetahat,v){
-  colSums(comppostprob(m,betahat,sebetahat,v) * comp_postmean2(m,betahat,sebetahat,v))
+    postmean2_vals <- colSums(comppostprob(m, betahat, sebetahat, v) * comp_postmean2(m, betahat, sebetahat, v))
+    if (any(postmean2_vals < -10 ^ -10)) {
+        warning("postmean2.default is returning negative values")
+    } else {
+        postmean2_vals[postmean2_vals < 0] <- 0
+    }
+    return(postmean2_vals)
 }
-
 
 #' @title postsd
 #' @description output posterior sd for beta for prior mixture m,given
@@ -459,13 +464,16 @@ postmean2.default = function(m,betahat,sebetahat,v){
 postsd = function(m,betahat,sebetahat,v){
   UseMethod("postsd")
 }
-
 #' @export
 postsd.default = function(m,betahat,sebetahat,v){
-  sqrt(postmean2(m,betahat,sebetahat,v)-postmean(m,betahat,sebetahat,v)^2)
+    post_var <- postmean2(m, betahat, sebetahat, v) - postmean(m, betahat, sebetahat, v) ^ 2
+    if (any(post_var < -10 ^ -10)) {
+        warning("postsd.default is returning NaN's")
+    } else {
+        post_var[post_var < 0] <- 0
+    }
+    sqrt(post_var)
 }
-
-
 
 #' @title comp_postmean2
 #' @description output posterior mean-squared value for beta for prior
