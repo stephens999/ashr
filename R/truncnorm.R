@@ -20,7 +20,8 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   #E(X|a<X<b)=a when a==b is a natural result
   #while etruncnorm would simply return NaN,causing PosteriorMean also NaN
   tmp1=etruncnorm(alpha,beta,0,1)
-  isequal=(alpha==beta)
+  isequal=is.equal(alpha,beta)
+  
   tmp1[isequal]=alpha[isequal]
   
   tmp= (-1)^flip * (mean+sd*tmp1)
@@ -31,6 +32,13 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   toobig[is.na(toobig)]=FALSE
   tmp[toobig] = max_ab[toobig]
   tmp
+}
+
+#tests for equality, with NA defined to be FALSE
+is.equal = function(a,b){
+  isequal = (a==b)
+  isequal[is.na(isequal)]=FALSE
+  return(isequal)
 }
 
 #' More about the truncated normal
@@ -50,7 +58,8 @@ my_e2truncnorm= function(a,b,mean=0,sd=1){
   #E(X|a<X<b)=a when a==b as a natural result
   #while etruncnorm would simply return NaN,causing PosteriorMean also NaN
   tmp1=etruncnorm(alpha,beta,0,1)
-  isequal=(alpha==beta)
+  isequal=is.equal(alpha,beta)
+ 
   tmp1[isequal]=alpha[isequal]
   tmp= (-1)^flip * (mean+sd*tmp1)
   # for the variance
@@ -72,7 +81,7 @@ my_e2truncnorm= function(a,b,mean=0,sd=1){
   tmpvar = my_vtruncnorm(ifelse(alpha<beta,alpha,beta),ifelse(alpha<beta,beta,alpha),0,1)
   # for the second moment
   tmp2 = tmp^2 + tmpvar*sd^2
-  isequal=(a==b)
+  isequal=is.equal(a,b)
   tmp2[isequal]=(a[isequal])^2
   
   # if the truncate value is too big

@@ -4,39 +4,39 @@
 
 # Posterior Mean
 calc_pm = function(g,data){
-  exclude = data$exclude
+  exclude = get_exclusions(data)
   PosteriorMean = rep(0,length = n_obs(data))
-  PosteriorMean[!exclude] = postmean(g,data)
+  PosteriorMean[!exclude] = postmean(g,data)[!exclude]
   PosteriorMean[exclude] = calc_mixmean(g)
-  PosteriorMean = PosteriorMean * (data$sebetahat^data$alpha)
+  PosteriorMean = PosteriorMean * (data$s_orig^data$alpha)
   return(PosteriorMean)
 }
 
 
 # Posterior Standard Deviation
 calc_psd = function(g,data){
-  exclude  = data$exclude
+  exclude  = get_exclusions(data)
   PosteriorSD = rep(0,length = n_obs(data))
-  PosteriorSD[!exclude] = postsd(g,data)
+  PosteriorSD[!exclude] = postsd(g,data)[!exclude]
   PosteriorSD[exclude] = calc_mixsd(g)
-  PosteriorSD= PosteriorSD * (data$sebetahat^data$alpha)
+  PosteriorSD= PosteriorSD * (data$s_orig^data$alpha)
   return(PosteriorSD)
 }
 
 # Local FDR
 calc_lfdr = function(g,data){
-  exclude  = data$exclude
+  exclude  = get_exclusions(data)
   ZeroProb = rep(0,length = n_obs(data))
-  ZeroProb[!exclude] = colSums(comp_postprob(g,data)[pm_on_zero(g),,drop = FALSE])
+  ZeroProb[!exclude] = colSums(comp_postprob(g,data)[pm_on_zero(g),,drop = FALSE])[!exclude]
   ZeroProb[exclude] = sum(mixprop(g)[pm_on_zero(g)])
   return(ZeroProb)
 }
 
 #negative probability
 calc_np = function(g,data){
-  exclude  = data$exclude
+  exclude  = get_exclusions(data)
   NegativeProb = rep(0,length = n_obs(data))
-  NegativeProb[!exclude] = cdf_post(g, 0, data) - calc_lfdr(g,data)[!exclude]
+  NegativeProb[!exclude] = cdf_post(g, 0, data)[!exclude] - calc_lfdr(g,data)[!exclude]
   NegativeProb[exclude] = mixcdf(g,0)
   return(NegativeProb)
 }
@@ -66,14 +66,14 @@ calc_qvalue = function(g,data){
 calc_flash_data = function(g,data){
   kk = ncomp(g)
   n = n_obs(data)
-  exclude = data$exclude
+  exclude = get_exclusions(data)
   comp_postprob = matrix(0,nrow = kk, ncol = n)
   comp_postmean = matrix(0,nrow = kk, ncol = n)
   comp_postmean2 =  matrix(0,nrow = kk, ncol = n)
   
-  comp_postprob[,!exclude] = comp_postprob(g,data)
-  comp_postmean[,!exclude] = comp_postmean(g,data)
-  comp_postmean2[,!exclude] = comp_postmean2(g,data)
+  comp_postprob[,!exclude] = comp_postprob(g,data)[,!exclude]
+  comp_postmean[,!exclude] = comp_postmean(g,data)[,!exclude]
+  comp_postmean2[,!exclude] = comp_postmean2(g,data)[,!exclude]
   
   #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
   comp_postprob[,exclude] = mixprop(g)

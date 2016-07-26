@@ -219,8 +219,8 @@ ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-5, maxcounts=1
     stopCluster(cl)
   }
 
-  #CImatrix[i,6]=cdf_post(m,CImatrix[i,4],data)
-  #CImatrix[i,7]=cdf_post(m,CImatrix[i,5],data)
+  #CImatrix[i,6]=pcdf_post(m,CImatrix[i,1],data)
+  #CImatrix[i,7]=pcdf_post(m,CImatrix[i,2],data)
   CImatrix=signif(CImatrix,digits=round(1-log(tol)/log(10)))
   return(CImatrix)
 }
