@@ -337,8 +337,9 @@ ash.workhorse = function(betahat,sebetahat,
   # resfns is a list of functions used to produce columns of that dataframe
   resfns = set_resfns(output)
   if(length(resfns)>0){
-    result = lapply(resfns,do.call,list(g=pi.fit$g,data=data))
-    result = as.data.frame(result)
+    result = data.frame(betahat = betahat,sebetahat = sebetahat)
+    if(!is.null(df)){result$df = df}
+    result = cbind(result,as.data.frame(lapply(resfns,do.call,list(g=pi.fit$g,data=data))))
     val = c(val, list(result=result))
   } 
 

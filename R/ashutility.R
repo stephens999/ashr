@@ -15,9 +15,9 @@
 #' @export
 #'
 summary.ash=function(object,...){
-  print(object$fitted_g)
-  print(utils::tail(object$fit$loglik,1),digits=10)
-  print(object$fit$converged)
+  if(!is.null(object$fitted_g)){print(object$fitted_g)}
+  print("Ash object has elements: ")
+  print(paste(names(object),sep=","))
 }
 
 
@@ -34,7 +34,7 @@ summary.ash=function(object,...){
 #' @export
 #'
 print.ash =function(x,...){
-  print(x$fitted_g)
+  summary(x)
 }
 
 #' @title Plot method for ash object
