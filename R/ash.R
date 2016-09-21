@@ -239,7 +239,7 @@ ash.workhorse = function(betahat,sebetahat,
     if (method == "fdr"){pointmass =TRUE; prior= "nullbiased"}
   }
   
-  if(mode=="estimate"){ #just pass everything through to ash.nzm for non-zero-mode
+  if(mode=="estimate"){ #just pass everything through to ash.estmode for non-zero-mode
     args <- as.list(environment())
     args$mode = NULL
     args$outputlevel = NULL
