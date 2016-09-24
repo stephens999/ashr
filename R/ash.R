@@ -411,29 +411,26 @@ gradient = function(matrix_lik){
   return(grad)
 }
 
-#' Estimate mixture proportions of sigmaa by EM algorithm
+#' Estimate mixture proportions of a mixture g given noisy (error-prone) data from that mixture.
+#' 
+#' @details This is used by the ash function. Most users won't need to call this directly, but is
+#' exported for use by some other related packages.
 #'
 #' @param data list to be passed to log_comp_dens_conv; details depend on model
-#' @param g the prior distribution for beta (usually estimated from
-#'     the data
-#' @param prior string, or numeric vector indicating Dirichlet prior
-#'     on mixture proportions (defaults to "uniform", or (1,1...,1);
-#'     also can be "nullbiased" (nullweight,1,...,1) to put more
-#'     weight on first component)
+#' @param g an object representing a mixture distribution (eg normalmix for mixture of normals;
+#'  unimix for mixture of uniforms). The component parameters of g (eg the means and variances) specify the
+#'  components whose mixture proportions are to be estimated. The mixture proportions of g are the parameters to be estimated; 
+#'  the values passed in may be used to initialize the optimization (depending on the optmethod used) 
+#' @param prior numeric vector indicating parameters of "Dirichlet prior" 
+#'     on mixture proportions 
 #' @param optmethod name of function to use to do optimization
-#' @param control A list of control parameters for the SQUAREM
-#'     algorithm, default value is set to be control.default=list(K =
-#'     1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4,
-#'     kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE).
-#' @return A list, including the final loglikelihood, the null loglikelihood, a n by k likelihoodmatrix with (j,k)th element equal to \eqn{f_k(x_j)},and a flag to indicate convergence.
-#
-#prior gives the parameter of a Dirichlet prior on pi
-#(prior is used to encourage results towards smallest value of sigma when
-#likelihood is flat)
-#VB provides an approach to estimate the approximate posterior distribution
-#of mixture proportions of sigmaa by variational Bayes method
-#(use Dirichlet prior and approximate Dirichlet posterior)
-#if cxx TRUE use cpp version of R function mixEM
+#' @param control list of control parameters to be passed to optmethod, 
+#' typically affecting things like convergence tolerance
+#' @return list, including the final loglikelihood, the null loglikelihood, 
+#' an n by k likelihood matrix with (j,k)th element equal to \eqn{f_k(x_j)}, 
+#' the fit
+#' and results of optmethod
+#' @export
 estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSquarem","mixIP"),control){
   optmethod=match.arg(optmethod)
 
