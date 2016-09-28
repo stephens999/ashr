@@ -409,8 +409,11 @@ postmean2 = function(m, data){
   UseMethod("postmean2")
 }
 #' @export
+
 postmean2.default = function(m,data){
-  colSums(comp_postprob(m,data) * comp_postmean2(m,data))
+  postmean2_vals <- colSums(comp_postprob(m,data) * comp_postmean2(m,data))
+  postmean2_vals[postmean2_vals < 0] <- 0
+  return(postmean2_vals)
 }
 
 
@@ -428,8 +431,6 @@ postsd.default = function(m,data){
   postvar[postvar<0]=0 #deal with occasional numerical underflow
   sqrt(postvar)
 }
-
-
 
 #' @title comp_postmean2
 #' @description output posterior mean-squared value given prior
