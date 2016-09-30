@@ -42,9 +42,9 @@ sebetahat = abs(rnorm(40,0,1))
 betahat = rnorm(40,beta,sebetahat)
 beta.ash = ash(betahat, sebetahat)
 
-CImatrix=ashci(beta.ash,betahat,sebetahat,level=0.95)
+CImatrix=ashci(beta.ash,level=0.95)
 
-CImatrix1=ashci(beta.ash,betahat,sebetahat,level=0.95,betaindex=c(1,2,5))
-CImatrix2=ashci(beta.ash,betahat,sebetahat,level=0.95,lfsrcriteria=0.1)
+CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
+CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)
 }
 

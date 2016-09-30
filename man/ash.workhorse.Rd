@@ -122,10 +122,9 @@ betahat = rnorm(200,beta,sebetahat)
 beta.ash = ash(betahat, sebetahat)
 names(beta.ash)
 head(beta.ash$result)
-head(as.data.frame(beta.ash))
-graphics::plot(betahat,beta.ash$result$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
+graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4)) #get_pm obtains PosteriorMean from ash object 
 
-CIMatrix=ashci(beta.ash,betahat,sebetahat,level=0.95)
+CIMatrix=ashci(beta.ash,level=0.95) #note currently default is only compute CIs for lfsr<0.05
 print(CIMatrix)
 
 #Running ash with different error models
@@ -159,13 +158,9 @@ true_g = normalmix(c(0.5,0.5),c(0,0),c(0,1)) # define true g
 beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
 }
 \seealso{
-\code{\link{ash}} for simplified specification of ash
-    function
+\code{\link{ash}} for simplified specification of ash function
 
 \code{\link{ashci}} for computation of credible intervals
     after getting the ash object return by \code{ash()}
-
-\code{\link{ashm}} for Multi-model Adaptive Shrinkage
-    function
 }
 

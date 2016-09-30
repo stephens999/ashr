@@ -82,7 +82,5 @@ summary(betan.ash)
 \code{\link{ash.workhorse}} for complete specification of ash function
 
 \code{\link{ashci}} for computation of credible intervals after getting the ash object return by \code{ash()}
-
-\code{\link{ashm}} for Multi-model Adaptive Shrinkage function
 }
 

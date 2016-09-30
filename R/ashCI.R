@@ -28,10 +28,10 @@
 #' betahat = rnorm(40,beta,sebetahat)
 #' beta.ash = ash(betahat, sebetahat)
 #'
-#' CImatrix=ashci(beta.ash,betahat,sebetahat,level=0.95)
+#' CImatrix=ashci(beta.ash,level=0.95)
 #'
-#' CImatrix1=ashci(beta.ash,betahat,sebetahat,level=0.95,betaindex=c(1,2,5))
-#' CImatrix2=ashci(beta.ash,betahat,sebetahat,level=0.95,lfsrcriteria=0.1)
+#' CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
+#' CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)
 ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-3, maxcounts=100,trace=FALSE){
   data = a$data
   if(is.null(data)){stop("ash object has to have data returned to compute CIs; use outputlevel 2 or more when running ash")}
