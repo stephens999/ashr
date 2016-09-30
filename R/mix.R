@@ -367,9 +367,7 @@ vcdf_post = function(m,c,data){
 #' @description ``parallel" vector version of \code{\link{cdf_post}} where c is a vector, of same length as betahat and sebetahat
 #' @param m mixture distribution with k components
 #' @param c a numeric vector with n elements
-#' @param betahat an n vector of observations
-#' @param sebetahat an n vector of standard errors
-#' @param v degree of freedom of error distribution (scalar)
+#' @param data depends on context
 #' @return an n vector, whose ith element is the cdf for beta_i at c_i
 #' @examples
 #' beta = rnorm(100,0,1)

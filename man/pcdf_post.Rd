@@ -11,11 +11,7 @@ pcdf_post(m, c, data)
 
 \item{c}{a numeric vector with n elements}
 
-\item{betahat}{an n vector of observations}
-
-\item{sebetahat}{an n vector of standard errors}
-
-\item{v}{degree of freedom of error distribution (scalar)}
+\item{data}{depends on context}
 }
 \value{
 an n vector, whose ith element is the cdf for beta_i at c_i

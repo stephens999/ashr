@@ -4,7 +4,7 @@
 \alias{my_e2trunct}
 \title{my_e2trunct}
 \usage{
-my_e2trunct(a, b, df, mean = 0, sd = 1)
+my_e2trunct(a, b, df)
 }
 \arguments{
 \item{a}{left limit of distribution}

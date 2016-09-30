@@ -4,7 +4,7 @@
 \alias{my_etrunct}
 \title{my_etrunct}
 \usage{
-my_etrunct(a, b, df, mean = 0, sd = 1)
+my_etrunct(a, b, df)
 }
 \arguments{
 \item{a}{left limit of distribution}

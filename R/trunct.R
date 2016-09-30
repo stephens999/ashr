@@ -5,7 +5,7 @@
 #' @param b right limit of distribution
 #' @param df degree of freedom of error distribution
 #' @export
-my_e2trunct = function(a,b,df,mean=0,sd=1){
+my_e2trunct = function(a,b,df){
   etrunct::e_trunct(a,b,df,r=2)
 }
 
@@ -16,7 +16,7 @@ my_e2trunct = function(a,b,df,mean=0,sd=1){
 #' @param b right limit of distribution
 #' @param df degree of freedom of error distribution
 #' @export
-my_etrunct = function(a,b,df,mean=0,sd=1){
+my_etrunct = function(a,b,df){
   etrunct::e_trunct(a,b,df,r=1)
 }
 

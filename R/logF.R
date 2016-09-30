@@ -7,7 +7,7 @@
 #' @param df1,df2 degrees of freedom
 #' @param ncp non-centrality parameter. If omitted the central F is assumed.
 #' @param log.p logical; if TRUE, probabilities p are given as log(p).
-#' @param lower.tail logical; if TRUE (default), probabilities are P[X ≤ x], otherwise, P[X > x].
+#' @param lower.tail logical; if TRUE (default), probabilities are P[X <= x], otherwise, P[X > x].
 #' @return The distribution function. 
 #' @export
 plogf = function(q, df1, df2, ncp, lower.tail=TRUE, log.p=FALSE){

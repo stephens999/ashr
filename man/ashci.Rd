@@ -4,8 +4,8 @@
 \alias{ashci}
 \title{Credible Interval Computation for the ash object}
 \usage{
-ashci(a, level = 0.95, betaindex, lfsrcriteria = 0.05, tol = 0.001,
-  maxcounts = 100, trace = FALSE)
+ashci(a, level = 0.95, betaindex, lfsr_threshold = 0.05, tol = 0.001,
+  trace = FALSE)
 }
 \arguments{
 \item{a}{the fitted ash object}
@@ -15,14 +15,14 @@ ashci(a, level = 0.95, betaindex, lfsrcriteria = 0.05, tol = 0.001,
 \item{betaindex}{a vector consisting of locations of betahat where
 you would like to compute the credible interval}
 
+\item{lfsr_threshold}{a scalar, if specified then computes CIs only for observations
+more significant than that threshold.}
+
 \item{tol}{passed to uniroot; indicates desired accuracy.}
 
 \item{trace}{a logical variable denoting whether some of the
 intermediate results of iterations should be displayed to the
 user. Default is FALSE.}
-
-\item{lfsr_threshold}{a scalar, if specified then computes CIs only for observations
-more significant than that threshold.}
 }
 \value{
 A matrix, with 2 columns, ith row giving CI for ith observation
@@ -45,6 +45,6 @@ beta.ash = ash(betahat, sebetahat)
 CImatrix=ashci(beta.ash,level=0.95)
 
 CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
-CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)
+CImatrix2=ashci(beta.ash,level=0.95,lfsr_threshold=0.1)
 }
 

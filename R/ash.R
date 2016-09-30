@@ -182,14 +182,14 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' # Specifying the output
 #' beta.ash = ash(betahat, sebetahat, output = c("fitted_g","logLR","lfsr"))
 #' 
-#' # Setting the mode to be non-zero
+#' #Illustrating the non-zero mode feature
 #' betahat=betahat+5
 #' beta.ash = ash(betahat, sebetahat)
-#' graphics::plot(betahat,beta.ash$PosteriorMean)
-#' summary(beta.ash)
-#' betan.ash=ash(betahat, sebetahat,nonzeromode=TRUE)
-#' graphics::plot(betahat, betan.ash$PosteriorMean)
+#' graphics::plot(betahat,beta.ash$result$PosteriorMean)
+#' betan.ash=ash(betahat, sebetahat,mode=5)
+#' graphics::plot(betahat, betan.ash$result$PosteriorMean)
 #' summary(betan.ash)
+#' 
 #'
 #' #Running ash with a pre-specified g, rather than estimating it
 #' beta = c(rep(0,100),rnorm(100))
@@ -205,7 +205,7 @@ ash.workhorse = function(betahat,sebetahat,
                          mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),
                          optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
                          df=NULL,
-                         nullweight=10,nonzeromode=FALSE,
+                         nullweight=10,
                          pointmass = TRUE,
                          prior=c("nullbiased","uniform","unit"),
                          mixsd=NULL, gridmult=sqrt(2),
