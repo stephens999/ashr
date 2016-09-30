@@ -19,33 +19,23 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   #Fix a bug of quoting the truncnorm package
   #E(X|a<X<b)=a when a==b is a natural result
   #while etruncnorm would simply return NaN,causing PosteriorMean also NaN
-#   tmp1=etruncnorm(alpha,beta,0,1)
-#   isequal=is.equal(alpha,beta)
-#   
-#   tmp1[isequal]=alpha[isequal]
-#   
-#   tmp= (-1)^flip * (mean+sd*tmp1)
-#   
-#   max_alphabeta = ifelse(alpha<beta, beta,alpha)
-#   max_ab = ifelse(alpha<beta,b,a)
-#   toobig = max_alphabeta<(-30)
-#   toobig[is.na(toobig)]=FALSE
-#   tmp[toobig] = max_ab[toobig]
   # ZMZ:  when a and b are both negative and far from 0, etruncnorm can't compute
-  # the mean and variance
-  tmp1=ifelse(!flip,etruncnorm(alpha,beta,0,1),etruncnorm(beta,alpha,0,1))
+  # the mean and variance. Also we should deal with 0/0 situation caused by sd = 0.
+  tmp1=etruncnorm(alpha,beta,0,1)
   isequal=is.equal(alpha,beta)
-  tmp1[isequal]=alpha[isequal]*(-1)^flip[isequal]
-  not = is.na(tmp1)
-  #tmp1[not] = max(beta[not],alpha[not])
-  tmp1[not] = apply(cbind(beta[not],alpha[not]),1,max)
-  tmp=as.matrix(mean+sd*tmp1)
+  
+  tmp1[isequal]=beta[isequal]
+  
+  tmp= (-1)^flip * (mean+sd*tmp1)
   
   max_alphabeta = ifelse(alpha<beta, beta,alpha)
   max_ab = ifelse(alpha<beta,b,a)
   toobig = max_alphabeta<(-30)
   toobig[is.na(toobig)]=FALSE
   tmp[toobig] = max_ab[toobig]
+
+  sdzero = sd == 0
+  tmp[sdzero] = mean[sdzero]
   tmp
 }
 
