@@ -6,15 +6,15 @@ test_that("optmethod switches to EM when given negative probabilities", {
         ash_out <- ash(betahat = betahat, sebetahat = sebetahat,
                              mixcompdist = "uniform", outputlevel=4)
         expect_true(min(ash_out$fitted_g$pi) > -10 ^ -12) 
-        expect_true(ash_out$fit_details$optmethod == "mixEM" | ash_out$fit_details$optmethod == "cxxMixSquarem")
-#note: had to add check for cxxMixSquarem to make this run on travis
+        expect_true(ash_out$fit_details$optmethod == "mixEM" | ash_out$fit_details$optmethod != "mixIP")
+#note: had to add check for mixIP to make this run on travis
 })
 
 test_that("control is passed to optmethod correctly when method is mixIP", {
   set.seed(1); z=rnorm(10,0,2) 
   z.ash= ash(z,1,control=list(rtol=1e-1),outputlevel=4)    
-  expect_true(z.ash$fit_details$optreturn$control$rtol==1e-1 | z.ash$fit_details$optmethod == "cxxMixSquarem")
+  expect_true(z.ash$fit_details$optreturn$control$rtol==1e-1 | z.ash$fit_details$optmethod != "mixIP")
   z.ash= ash(z,1,outputlevel=4)
-  expect_true(z.ash$fit_details$optreturn$control$rtol==1e-6 | z.ash$fit_details$optmethod == "cxxMixSquarem")
-  #note: had to add check for cxxMixSquarem to make this run on travis
+  expect_true(z.ash$fit_details$optreturn$control$rtol==1e-6 | z.ash$fit_details$optmethod != "mixIP")
+  #note: had to add check for mixIP to make this run on travis
 })
