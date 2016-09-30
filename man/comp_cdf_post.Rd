@@ -26,6 +26,6 @@ beta = rnorm(100,0,1)
 betahat= beta+rnorm(100,0,1)
 sebetahat=rep(1,100)
 ash.beta = ash(betahat,1,mixcompdist="normal")
-comp_cdf_post(ash.beta$fitted_g,0,data=list(x=betahat,s=sebetahat,df=NULL))
+comp_cdf_post(get_fitted_g(ash.beta),0,data=set_data(beta,sebetahat))
 }
 

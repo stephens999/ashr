@@ -314,7 +314,7 @@ comp_postprob.default = function(m,data){
 #' betahat= beta+rnorm(100,0,1)
 #' sebetahat=rep(1,100)
 #' ash.beta = ash(betahat,1,mixcompdist="normal")
-#' comp_cdf_post(ash.beta$fitted_g,0,data=list(x=betahat,s=sebetahat,df=NULL))
+#' comp_cdf_post(get_fitted_g(ash.beta),0,data=set_data(beta,sebetahat))
 #' @export
 comp_cdf_post=function(m,c,data){
   UseMethod("comp_cdf_post")
@@ -358,7 +358,7 @@ cdf_post.default=function(m,c,data){
 #' betahat= beta+rnorm(100,0,1)
 #' sebetahat=rep(1,100)
 #' ash.beta = ash(betahat,1,mixcompdist="normal")
-#' c = vcdf_post(ash.beta$fitted_g,seq(-5,5,length=1000),data = list(x=betahat,s=sebetahat,df=NULL))
+#' c = vcdf_post(get_fitted_g(ash.beta),seq(-5,5,length=1000),data = set_data(betahat,sebetahat))
 #' @export
 vcdf_post = function(m,c,data){
   mapply(cdf_post,c,MoreArgs=list(m=m,data=data))
@@ -374,7 +374,7 @@ vcdf_post = function(m,c,data){
 #' betahat= beta+rnorm(100,0,1)
 #' sebetahat=rep(1,100)
 #' ash.beta = ash(betahat,1,mixcompdist="normal")
-#' c = pcdf_post(ash.beta$fitted_g,beta,betahat,sebetahat,NULL)
+#' c = pcdf_post(get_fitted_g(ash.beta),beta,set_data(betahat,sebetahat))
 #' @export
 pcdf_post = function(m,c,data){
   vapply(1:length(c),
@@ -469,10 +469,10 @@ comp_postmean.default = function(m,data){
 #' beta = rnorm(100,0,1)
 #' betahat= beta+rnorm(100,0,1)
 #' ash.beta = ash(betahat,1,mixcompdist="normal")
-#' data=list(x=betahat,s=rep(1,100),df=NULL)
-#' comp_postmean(ash.beta$fitted_g,data)
-#' comp_postsd(ash.beta$fitted_g,data)
-#' comp_postprob(ash.beta$fitted_g,data)
+#' data= set_data(betahat,rep(1,100))
+#' comp_postmean(get_fitted_g(ash.beta),data)
+#' comp_postsd(get_fitted_g(ash.beta),data)
+#' comp_postprob(get_fitted_g(ash.beta),data)
 #' @export
 comp_postsd = function(m,data){
   UseMethod("comp_postsd")
@@ -514,8 +514,5 @@ plot_post_cdf.default = function(m,data,npoints=100,...){
   x = seq(min_lim(m),max_lim(m),length=npoints)
   x_cdf = vapply(x,cdf_post,FUN.VALUE=betahat,m=m,data=data)
   graphics::plot(x,x_cdf,type="l",xlab="x",ylab="cdf",...)
- # for(i in 2:nrow(x_cdf)){
- #   lines(x,x_cdf[i,],col=i)
- # }
 }
 
