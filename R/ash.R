@@ -165,8 +165,10 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' betahat = rnorm(200,beta,sebetahat)
 #' beta.ash = ash(betahat, sebetahat)
 #' names(beta.ash)
-#' head(beta.ash$result)
-#' graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4)) #get_pm obtains PosteriorMean from ash object 
+#' head(beta.ash$result) #dataframe of results
+#' head(get_lfsr(beta.ash)) #get lfsr
+#' head(get_pm(beta.ash)) #get posterior mean
+#' graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4)) 
 #'
 #' CIMatrix=ashci(beta.ash,level=0.95) #note currently default is only compute CIs for lfsr<0.05
 #' print(CIMatrix)

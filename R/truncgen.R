@@ -31,7 +31,7 @@ gen_etruncFUN_single = function(lcdfFUN,lpdfFUN){
         xpdf = function(x){
           x*exp(lpdfFUN(x))
         }
-        tmp = try(integrate(xpdf,a,b)$value,silent=TRUE)
+        tmp = try(stats::integrate(xpdf,a,b)$value,silent=TRUE)
         if (class(tmp)!="try-error") 
           return(tmp/denom)
       }

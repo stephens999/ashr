@@ -512,7 +512,7 @@ plot_post_cdf = function(m,data,npoints=100,...){
 }
 plot_post_cdf.default = function(m,data,npoints=100,...){
   x = seq(min_lim(m),max_lim(m),length=npoints)
-  x_cdf = vapply(x,cdf_post,FUN.VALUE=betahat,m=m,data=data)
+  x_cdf = vapply(x,cdf_post,FUN.VALUE=data$x,m=m,data=data)
   graphics::plot(x,x_cdf,type="l",xlab="x",ylab="cdf",...)
 }
 
