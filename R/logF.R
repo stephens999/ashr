@@ -11,7 +11,7 @@
 #' @return The distribution function. 
 #' @export
 plogf = function(q, df1, df2, ncp, lower.tail=TRUE, log.p=FALSE){
-  return(pf(exp(q), df1=df1, df2=df2, ncp=ncp, lower.tail=lower.tail,
+  return(stats::pf(exp(q), df1=df1, df2=df2, ncp=ncp, lower.tail=lower.tail,
             log.p=log.p))
 }
 
@@ -25,9 +25,9 @@ plogf = function(q, df1, df2, ncp, lower.tail=TRUE, log.p=FALSE){
 #' @export
 dlogf = function(x, df1, df2, ncp, log=FALSE){
   if (log==FALSE){
-    df(exp(x), df1=df1, df2=df2, ncp=ncp)*exp(x)
+    stats::df(exp(x), df1=df1, df2=df2, ncp=ncp)*exp(x)
   }else{
-    df(exp(x), df1=df1, df2=df2, ncp=ncp, log=TRUE)+x
+    stats::df(exp(x), df1=df1, df2=df2, ncp=ncp, log=TRUE)+x
   }
 }
 
@@ -59,22 +59,22 @@ my_etrunclogf= function(a,b,df1,df2){
 # x*dlogf
 etrunclogf_num = function(x,df1,df2,a,b){
   #multiply c to avoid numerical issues
-  c = 10^(-round(min(log10(df(exp(a),df1,df2)*exp(a)),
-                     log10(df(exp(b),df1,df2)*exp(b)))))
-  c*x*df(exp(x),df1=df1,df2=df2)*exp(x)
+  c = 10^(-round(min(log10(stats::df(exp(a),df1,df2)*exp(a)),
+                     log10(stats::df(exp(b),df1,df2)*exp(b)))))
+  c*x*stats::df(exp(x),df1=df1,df2=df2)*exp(x)
 }
 
 # dlogf
 etrunclogf_denom = function(x,df1,df2,a,b){
   #multiply c to avoid numerical issues
-  c = 10^(-round(min(log10(df(exp(a),df1,df2)*exp(a)),
-                     log10(df(exp(b),df1,df2)*exp(b)))))
-  c*df(exp(x),df1=df1,df2=df2)*exp(x)
+  c = 10^(-round(min(log10(stats::df(exp(a),df1,df2)*exp(a)),
+                     log10(stats::df(exp(b),df1,df2)*exp(b)))))
+  c*stats::df(exp(x),df1=df1,df2=df2)*exp(x)
 }
 
 # x multiply by the density of truncated log-F distribution on (a,b) at x
 xdtrunclogf = function(x,df1,df2,a,b){
-  x*df(exp(x),df1=df1,df2=df2)*exp(x)/(pf(exp(b),df1,df2)-pf(exp(a),df1,df2))
+  x*stats::df(exp(x),df1=df1,df2=df2)*exp(x)/(stats::pf(exp(b),df1,df2)-stats::pf(exp(a),df1,df2))
 }
 
 # compute expectation of truncated log-F distribution.

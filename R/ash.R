@@ -70,7 +70,7 @@
 #' graphics::plot(betahat, betan.ash$result$PosteriorMean)
 #' summary(betan.ash)
 ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),df=NULL,...){
-  return(modifyList(ash.workhorse(betahat,sebetahat,mixcompdist=mixcompdist,df=df,...),list(call=match.call())))
+  return(utils::modifyList(ash.workhorse(betahat,sebetahat,mixcompdist=mixcompdist,df=df,...),list(call=match.call())))
 }
 
 

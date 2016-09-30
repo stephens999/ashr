@@ -29,7 +29,7 @@ nonzeromodeEM = function(betahat, sebetahat, mixsd, mixcompdist, df=NULL, pi_ini
   namc=names(control)
   if (!all(namc %in% names(control.default)))
     stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
-  controlinput=modifyList(control.default, control)
+  controlinput=utils::modifyList(control.default, control)
 
   if(is.null(pi_init)){
     pi_init = rep(1/length(mixsd),length(mixsd))# Use as starting point for pi

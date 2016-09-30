@@ -182,7 +182,7 @@ set_control_mixIP=function(control){
   namc=names(control)
   if (!all(namc %in% names(control.default))) 
     stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
-  control=modifyList(control.default, control)
+  control=utils::modifyList(control.default, control)
   return(control)
 }
 
@@ -194,7 +194,7 @@ set_control_squarem=function(control,nobs){
   namc=names(control)
   if (!all(namc %in% names(control.default))) 
     stop("unknown names in control: ", namc[!(namc %in% names(control.default))])
-  control=modifyList(control.default, control)
+  control=utils::modifyList(control.default, control)
   return(control)
 }
 
