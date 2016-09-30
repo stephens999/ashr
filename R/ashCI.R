@@ -31,14 +31,14 @@
 #' CImatrix=ashci(beta.ash,level=0.95)
 #'
 #' CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
-#' CImatrix2=ashci(beta.ash,level=0.95,lfsrcriteria=0.1)
-ashci = function (a,level=0.95,betaindex,lfsrcriteria=0.05,tol=1e-3, maxcounts=100,trace=FALSE){
+#' CImatrix2=ashci(beta.ash,level=0.95,lfsr_threshold=0.1)
+ashci = function (a,level=0.95,betaindex,lfsr_threshold=0.05,tol=1e-3,trace=FALSE){
   data = a$data
   if(is.null(data)){stop("ash object has to have data returned to compute CIs; use outputlevel 2 or more when running ash")}
  
   options(warn=-1)
   if(missing(betaindex)){
-    betaindex = which(get_lfsr(a)<=lfsrcriteria)
+    betaindex = which(get_lfsr(a)<=lfsr_threshold)
     #betaindex[is.na(betaindex)]=FALSE #Some lfsrs would have NA
   }
   

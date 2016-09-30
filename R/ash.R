@@ -107,9 +107,6 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #'     betahat/sebetahat, default is NULL(Gaussian)
 #' @param nullweight scalar, the weight put on the prior under
 #'     "nullbiased" specification, see \code{prior}
-#' @param randomstart logical, indicating whether to initialize EM
-#'     randomly. If FALSE, then initializes to prior mean (for EM
-#'     algorithm) or prior (for VBEM).
 #' @param mode either numeric (indicating mode of g) or string "estimate", 
 #'      to indicate mode should be estimated.
 #' @param pointmass logical, indicating whether to use a point mass at
@@ -175,11 +172,11 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' print(CIMatrix)
 #'
 #' #Running ash with different error models
-#' beta.ash1 = ash(betahat, sebetahat, lik = norm_lik())
+#' beta.ash1 = ash(betahat, sebetahat, lik = normal_lik())
 #' beta.ash2 = ash(betahat, sebetahat, lik = t_lik(df=4))
 #' 
 #' e = rnorm(100)+log(rf(100,df1=10,df2=10)) # simulated data with log(F) error
-#' e.ash = ash(e,1,lik=logf_lik(df1=10,df2=10)) 
+#' e.ash = ash(e,1,lik=logF_lik(df1=10,df2=10)) 
 #' 
 #' 
 #' # Specifying the output
@@ -207,7 +204,7 @@ ash.workhorse = function(betahat,sebetahat,
                          method = c("fdr","shrink"),
                          mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),
                          optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
-                         df=NULL,randomstart=FALSE,
+                         df=NULL,
                          nullweight=10,nonzeromode=FALSE,
                          pointmass = TRUE,
                          prior=c("nullbiased","uniform","unit"),
@@ -266,10 +263,8 @@ ash.workhorse = function(betahat,sebetahat,
 
   if(!is.null(g)){
     k=ncomp(g)
-    null.comp=1 #null.comp not actually used unless randomstart true
+    null.comp=1 #null.comp not actually used 
     prior = setprior(prior,k,nullweight,null.comp)
-    if(randomstart){pi = initpi(k,n,null.comp,randomstart)
-                    g$pi=pi} #if g specified, only initialize pi if randomstart is TRUE
   } else {
     if(is.null(mixsd)){
       mixsd = autoselect.mixsd(data,gridmult,mode)
@@ -281,7 +276,7 @@ ash.workhorse = function(betahat,sebetahat,
 
     k = length(mixsd)
     prior = setprior(prior,k,nullweight,null.comp)
-    pi = initpi(k,length(data$x),null.comp,randomstart)
+    pi = initpi(k,length(data$x),null.comp)
     
     if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform"))) 
       stop("Error: invalid type of mixcompdist")
@@ -351,7 +346,7 @@ add_list = function(f,g,data,res){
   return(c(res,do.call(f, list(g=g,data=data))))
 }
 
-initpi = function(k,n,null.comp,randomstart){
+initpi = function(k,n,null.comp,randomstart=FALSE){
   if(randomstart){
     pi = stats::rgamma(k,1,1)
   } else {

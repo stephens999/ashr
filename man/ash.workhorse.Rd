@@ -128,7 +128,7 @@ CIMatrix=ashci(beta.ash,level=0.95) #note currently default is only compute CIs 
 print(CIMatrix)
 
 #Running ash with different error models
-beta.ash1 = ash(betahat, sebetahat, lik = norm_lik())
+beta.ash1 = ash(betahat, sebetahat, lik = normal_lik())
 beta.ash2 = ash(betahat, sebetahat, lik = t_lik(df=4))
 
 e = rnorm(100)+log(rf(100,df1=10,df2=10)) # simulated data with log(F) error
