@@ -245,7 +245,7 @@ ash.workhorse = function(betahat,sebetahat,
   optmethod   = match.arg(optmethod)
   prior       = match.arg(prior)
  
-  # Set optimization method, and defaults for optimization control
+  # Set optimization method
   optmethod = set_optmethod(optmethod)  
   check_args(mixcompdist,df,prior,optmethod,gridmult,sebetahat,betahat)
   if(is.null(lik)){ #set likelihood based on defaults if missing
