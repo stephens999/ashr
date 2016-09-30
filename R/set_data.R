@@ -12,7 +12,6 @@
 #' 
 #' @param betahat vector of betahats
 #' @param sebetahat vector of standard errors
-#' @param df degree of freedom to assume (for t likelihood)
 #' @param lik a likelihood (see eg normal_lik())
 #' @param alpha specifies value of alpha to use (model is for betahat/sebetahat^alpha | sebetahat)
 #' 
