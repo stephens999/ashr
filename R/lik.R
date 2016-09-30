@@ -8,8 +8,8 @@
 normal_lik= function(){
   list(name="normal",
        const = TRUE, #used to indicate whether the likelihood function is constant for all observations (some parts of ash only work in this case)
-       lcdfFUN = function(x){pnorm(x,log=TRUE)},
-       lpdfFUN = function(x){dnorm(x,log=TRUE)},
+       lcdfFUN = function(x){stats::pnorm(x,log=TRUE)},
+       lpdfFUN = function(x){stats::dnorm(x,log=TRUE)},
        etruncFUN = function(a,b){my_etruncnorm(a,b)},
        e2truncFUN = function(a,b){my_e2truncnorm(a,b)}
        )
@@ -26,8 +26,8 @@ normal_lik= function(){
 t_lik = function(df){
   list(name = "t",
       const = (length(unique(df))==1),
-      lcdfFUN = function(x){pt(x,df=df,log=TRUE)},
-      lpdfFUN = function(x){dt(x,df=df,log=TRUE)},
+      lcdfFUN = function(x){stats::pt(x,df=df,log=TRUE)},
+      lpdfFUN = function(x){stats::dt(x,df=df,log=TRUE)},
       etruncFUN = function(a,b){etrunct::e_trunct(a,b,df=df,r=1)},
       e2truncFUN = function(a,b){etrunct::e_trunct(a,b,df=df,r=2)}
       )

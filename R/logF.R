@@ -81,10 +81,10 @@ xdtrunclogf = function(x,df1,df2,a,b){
 etrunclogf = function(df1,df2,a,b,adj=FALSE){
   if (adj==TRUE){
     # numerator and denominator both multiply a constant to avoid numerical issues
-    n = integrate(etrunclogf_num, lower=a, upper=b, df1=df1,df2=df2,a=a,b=b)$value
-    d = integrate(etrunclogf_denom, lower=a, upper=b, df1=df1,df2=df2,a=a,b=b)$value
+    n = stats::integrate(etrunclogf_num, lower=a, upper=b, df1=df1,df2=df2,a=a,b=b)$value
+    d = stats::integrate(etrunclogf_denom, lower=a, upper=b, df1=df1,df2=df2,a=a,b=b)$value
     return(n/d)
   }else{
-    return(integrate(xdtrunclogf, lower=a, upper=b, df1=df1,df2=df2,a=a,b=b)$value)
+    return(stats::integrate(xdtrunclogf, lower=a, upper=b, df1=df1,df2=df2,a=a,b=b)$value)
   } 
 }

@@ -337,7 +337,7 @@ comp_cdf_post.default=function(m,c,data){
 #' betahat= beta+rnorm(100,0,1)
 #' sebetahat=rep(1,100)
 #' ash.beta = ash(betahat,1,mixcompdist="normal")
-#' cdf0 = cdf_post(ash.beta$fitted_g,0,betahat,sebetahat,NULL)
+#' cdf0 = cdf_post(ash.beta$fitted_g,0,set_data(betahat,sebetahat))
 #' graphics::plot(cdf0,1-ash.beta$PositiveProb)
 #' @export
 cdf_post = function(m,c,data){
