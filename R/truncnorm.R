@@ -114,12 +114,10 @@ my_vtruncnorm = function(a,b,mean = 0, sd = 1){
   beta =  (b-mean)/sd
   frac1 = (beta*stats::dnorm(beta,0,1) - alpha*stats::dnorm(alpha,0,1)) / (stats::pnorm(beta,0,1)-stats::pnorm(alpha,0,1) )
   frac2 = (stats::dnorm(beta,0,1) - stats::dnorm(alpha,0,1)) / (stats::pnorm(beta,0,1)-stats::pnorm(alpha,0,1) )
-  # ZMZ: deal with NAs when both the numerator and denominator is zero
-  # not = is.na(frac1)
-  # frac1[not]=
   truncnormvar = sd^2 * (1 - frac1 - frac2^2)
+  
   # turn all nan and negative into 0
-  not = is.na(truncnormvar) | truncnormvar < 0
-  truncnormvar[not] = 0
+  nan.index = is.na(truncnormvar) | truncnormvar < 0
+  truncnormvar[nan.index] = 0
   return(truncnormvar)
 }
