@@ -48,7 +48,6 @@
 #'
 #' @seealso \code{\link{ash.workhorse}} for complete specification of ash function
 #' @seealso \code{\link{ashci}} for computation of credible intervals after getting the ash object return by \code{ash()}
-#' @seealso \code{\link{ashm}} for Multi-model Adaptive Shrinkage function
 #'
 #' @export
 #' @examples
@@ -158,13 +157,9 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' \item{data}{a list containing details of the data and models used (mostly for internal use)}
 #' \item{fit_details}{a list containing results of mixture optimization, and matrix of component log-likelihoods used in this optimization}
 #'
-#' @seealso \code{\link{ash}} for simplified specification of ash
-#'     function
+#' @seealso \code{\link{ash}} for simplified specification of ash function
 #' @seealso \code{\link{ashci}} for computation of credible intervals
 #'     after getting the ash object return by \code{ash()}
-#' @seealso \code{\link{ashm}} for Multi-model Adaptive Shrinkage
-#'     function
-
 #'
 #' @export
 #' @examples
