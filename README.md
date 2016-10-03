@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/stephens999/ashr.svg)](https://travis-ci.org/stephens999/ashr)
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/dcgerard/ashr?branch=master&svg=true)](https://ci.appveyor.com/project/dcgerard/ashr)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/stephens999/ashr?branch=master&svg=true)](https://ci.appveyor.com/project/stephens999/ashr)
+[![Coverage Status](https://coveralls.io/repos/github/stephens999/ashr/badge.svg?branch=master)](https://coveralls.io/github/stephens999/ashr?branch=master)
 
 This repository contains an R package for performing "Adaptive Shrinkage."
 
