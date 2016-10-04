@@ -11,6 +11,10 @@ install:
   ps: Bootstrap
 
 # Adapt as necessary starting from here
+environment:
+  global:
+    - _R_CHECK_FORCE_SUGGESTS_=false
+
 
 build_script:
   - travis-tool.sh install_deps
