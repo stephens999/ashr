@@ -13,7 +13,7 @@ install:
 # Adapt as necessary starting from here
 environment:
   global:
-    - _R_CHECK_FORCE_SUGGESTS_: false
+    R_CHECK_ARGS: '_R_CHECK_FORCE_SUGGESTS_ = FALSE'
 
 
 build_script:
