@@ -12,7 +12,6 @@ install:
 
 # Adapt as necessary starting from here
 environment:
-  global:
   - _R_CHECK_FORCE_SUGGESTS_=false
 
 
