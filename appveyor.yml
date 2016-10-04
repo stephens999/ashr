@@ -12,7 +12,8 @@ install:
 
 # Adapt as necessary starting from here
 environment:
-  - _R_CHECK_FORCE_SUGGESTS_=false
+  global:
+    - _R_CHECK_FORCE_SUGGESTS_: false
 
 
 build_script:
