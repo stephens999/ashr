@@ -13,7 +13,8 @@ install:
 # Adapt as necessary starting from here
 environment:
   global:
-    R_CHECK_ARGS: '_R_CHECK_FORCE_SUGGESTS_=false NOT_CRAN=true'
+    _R_CHECK_FORCE_SUGGESTS_: false
+    NOT_CRAN: true
 
 
 build_script:
