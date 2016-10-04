@@ -10,7 +10,7 @@ before_install:
 install:
   - ./travis-tool.sh install_deps
   - ./travis-tool.sh install_github
-  
+
 script: ./travis-tool.sh run_tests
 
 on_failure:
@@ -20,7 +20,7 @@ notifications:
   email:
     on_success: change
     on_failure: change
-    
+
 sudo: required
 
 env:
@@ -33,3 +33,10 @@ env:
 branches:
   only:
     - master
+
+r_github_packages:
+  - jimhester/covr
+
+after_success:
+  - Rscript -e 'covr::coveralls()'
+  - Rscript -e 'covr::codecov()'
