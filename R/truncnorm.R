@@ -24,7 +24,7 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   tmp1=etruncnorm(alpha,beta,0,1)
   isequal=is.equal(alpha,beta)
   
-  tmp1[isequal]=beta[isequal]
+  tmp1[isequal]=alpha[isequal]
   
   tmp= (-1)^flip * (mean+sd*tmp1)
   
@@ -35,7 +35,15 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   tmp[toobig] = max_ab[toobig]
 
   sdzero = sd == 0
-  tmp[sdzero] = mean[sdzero]
+  if(a[sdzero]<=mean[sdzero] & b[sdzero]>=mean[sdzero]){
+    tmp[sdzero] = mean[sdzero]
+  }
+  else if(a[sdzero] > mean[sdzero]){
+    tmp[sdzero] = a[sdzero]
+  }
+  else{
+    tmp[sdzero] = b[sdzero]
+  }
   tmp
 }
 
