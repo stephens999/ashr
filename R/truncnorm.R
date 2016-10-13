@@ -35,6 +35,7 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   tmp[toobig] = max_ab[toobig]
 
   sdzero = sd == 0
+  if(sum(sdzero) > 0) {
   if(a[sdzero]<=mean[sdzero] & b[sdzero]>=mean[sdzero]){
     tmp[sdzero] = mean[sdzero]
   }
@@ -44,6 +45,8 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   else{
     tmp[sdzero] = b[sdzero]
   }
+  }
+  
   tmp
 }
 
