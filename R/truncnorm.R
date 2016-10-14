@@ -19,6 +19,8 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   #Fix a bug of quoting the truncnorm package
   #E(X|a<X<b)=a when a==b is a natural result
   #while etruncnorm would simply return NaN,causing PosteriorMean also NaN
+  # ZMZ:  when a and b are both negative and far from 0, etruncnorm can't compute
+  # the mean and variance. Also we should deal with 0/0 situation caused by sd = 0.
   tmp1=etruncnorm(alpha,beta,0,1)
   isequal=is.equal(alpha,beta)
   
@@ -31,6 +33,20 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   toobig = max_alphabeta<(-30)
   toobig[is.na(toobig)]=FALSE
   tmp[toobig] = max_ab[toobig]
+
+  sdzero = sd == 0
+  if(sum(sdzero) > 0) {
+  if(a[sdzero]<=mean[sdzero] & b[sdzero]>=mean[sdzero]){
+    tmp[sdzero] = mean[sdzero]
+  }
+  else if(a[sdzero] > mean[sdzero]){
+    tmp[sdzero] = a[sdzero]
+  }
+  else{
+    tmp[sdzero] = b[sdzero]
+  }
+  }
+  
   tmp
 }
 
@@ -110,5 +126,9 @@ my_vtruncnorm = function(a,b,mean = 0, sd = 1){
   frac1 = (beta*stats::dnorm(beta,0,1) - alpha*stats::dnorm(alpha,0,1)) / (stats::pnorm(beta,0,1)-stats::pnorm(alpha,0,1) )
   frac2 = (stats::dnorm(beta,0,1) - stats::dnorm(alpha,0,1)) / (stats::pnorm(beta,0,1)-stats::pnorm(alpha,0,1) )
   truncnormvar = sd^2 * (1 - frac1 - frac2^2)
+  
+  # turn all nan and negative into 0
+  nan.index = is.na(truncnormvar) | truncnormvar < 0
+  truncnormvar[nan.index] = 0
   return(truncnormvar)
 }
