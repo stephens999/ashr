@@ -35,11 +35,11 @@ comp_dens_conv.tnormalmix = function(m,data){
     stop("Error: truncated normal mixture for non-normal likelihood is not yet implemented")
   }
   if(length(data$s)==1){data$s=rep(data$s,length(x))}
-  A = sqrt(outer(1/m$sd^2,1/data$s^2,FUN))
-  B = 1/sqrt(outer(m$sd^2,data$s^2,FUN))
+  A = sqrt(outer(1/m$sd^2,1/data$s^2,FUN="+"))
+  B = 1/sqrt(outer(m$sd^2,data$s^2,FUN="+"))
   C = outer(m$sd,data$s,"/")
   D = stats::pnorm(m$b/m$sd)-stats::pnorm(m$a/m$sd)
-  varmat = outer(m$sd^2,data$s^2,FUN)
+  varmat = outer(m$sd^2,data$s^2,FUN="+")
   left = stats::pnorm(A*m$b-t(t(B*C)*data$x))
   right = stats::pnorm(A*m$a-t(t(B*C)*data$x))
   denx = stats::dnorm(matrix(data$x,length(m$sd),length(data$x),byrow=TRUE)/sqrt(varmat))/sqrt(varmat)
@@ -58,11 +58,11 @@ log_comp_dens_conv.tnormalmix = function(m,data) {
   #### use previous function directly
   #return(log(compdens_conv.tnormalmix(m,x,s,v)))
   if(length(data$s)==1){data$s=rep(data$s,length(x))}
-  A = sqrt(outer(1/m$sd^2,1/data$s^2,FUN))
-  B = 1/sqrt(outer(m$sd^2,data$s^2,FUN))
+  A = sqrt(outer(1/m$sd^2,1/data$s^2,FUN="+"))
+  B = 1/sqrt(outer(m$sd^2,data$s^2,FUN="+"))
   C = outer(m$sd,data$s,"/")
   D = stats::pnorm(m$b/m$sd)-stats::pnorm(m$a/m$sd)
-  varmat = outer(m$sd^2,data$s^2,FUN)
+  varmat = outer(m$sd^2,data$s^2,FUN="+")
   left = stats::pnorm(A*m$b-t(t(B*C)*data$x))
   right = stats::pnorm(A*m$a-t(t(B*C)*data$x))
   denx = stats::dnorm(t(matrix(data$x,length(data$x),length(m$sd))),0,sqrt(varmat),log=TRUE)

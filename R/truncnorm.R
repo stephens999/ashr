@@ -34,18 +34,10 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   toobig[is.na(toobig)]=FALSE
   tmp[toobig] = max_ab[toobig]
 
-  sdzero = sd == 0
-  if(sum(sdzero) > 0) {
-  if(a[sdzero]<=mean[sdzero] & b[sdzero]>=mean[sdzero]){
-    tmp[sdzero] = mean[sdzero]
-  }
-  else if(a[sdzero] > mean[sdzero]){
-    tmp[sdzero] = a[sdzero]
-  }
-  else{
-    tmp[sdzero] = b[sdzero]
-  }
-  }
+  NAentry = is.na(tmp)
+  sdd = sd
+  sdd[NAentry] = 0
+  tmp = modify.sd0(tmp,a,b,mean,sdd)
   
   tmp
 }
@@ -55,6 +47,21 @@ is.equal = function(a,b){
   isequal = (a==b)
   isequal[is.na(isequal)]=FALSE
   return(isequal)
+}
+
+#elementwisely deal with entries with sd equals to 0
+modify.sd0 = function(temp,a,b,mean,sd){
+  dimen = dim(temp)
+  if(is.null(dimen)){
+    dimen = c(length(temp),1)
+  }
+  A = matrix(a,dimen[1],dimen[2])
+  B = matrix(b,dimen[1],dimen[2])
+  M = matrix(mean,dimen[1],dimen[2])
+  SD = matrix(sd,dimen[1],dimen[2])
+  sdzero = sd == 0
+  temp[sdzero] = ifelse(A[sdzero]<=M[sdzero] & B[sdzero]>=M[sdzero],M[sdzero],ifelse(A[sdzero] > M[sdzero],A[sdzero],B[sdzero]))
+  temp
 }
 
 #' More about the truncated normal

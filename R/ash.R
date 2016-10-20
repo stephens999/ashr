@@ -278,7 +278,7 @@ ash.workhorse = function(betahat,sebetahat,
     prior = setprior(prior,k,nullweight,null.comp)
     pi = initpi(k,length(data$x),null.comp)
     
-    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform"))) 
+    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","tnormal"))) 
       stop("Error: invalid type of mixcompdist")
     if(mixcompdist=="normal") g=normalmix(pi,rep(mode,k),mixsd)
     if(mixcompdist=="uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
@@ -409,8 +409,14 @@ compute_lfsr = function(NegativeProb,ZeroProb){
 #of the loglik for $\pi=(\pi_0,...,1-\pi_0,...)$ with respect to $\pi_0$ at $\pi_0=1$.
 gradient = function(matrix_lik){
   n = nrow(matrix_lik)
-  grad = n - colSums(matrix_lik/matrix_lik[,1])
+  grad = n - ColsumModified(matrix_lik)
   return(grad)
+}
+
+ColsumModified = function(matrix_l){
+  small = abs(matrix_l) < 10e-14
+  matrix_l[small] = matrix_l[small]+10e-14
+  colSums(matrix_l/matrix_l[,1])
 }
 
 #' Estimate mixture proportions of a mixture g given noisy (error-prone) data from that mixture.
