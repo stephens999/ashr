@@ -437,7 +437,7 @@ estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSq
   k=ncomp(g)
 
   matrix_llik = t(log_comp_dens_conv(g,data)) #an n by k matrix
-  matrix_llik = matrix_llik[!get_exclusions(data),] #remove any rows corresponding to excluded cases; saves time in situations where most data are missing
+  matrix_llik = matrix_llik[!get_exclusions(data),,drop=FALSE] #remove any rows corresponding to excluded cases; saves time in situations where most data are missing
   matrix_llik = matrix_llik - apply(matrix_llik,1, max) #avoid numerical issues by subtracting max of each row
   matrix_lik = exp(matrix_llik)
 
