@@ -22,8 +22,8 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   # ZMZ:  when a and b are both negative and far from 0, etruncnorm can't compute
   # the mean and variance. Also we should deal with 0/0 situation caused by sd = 0.
   tmp1=etruncnorm(alpha,beta,0,1)
-  isequal=is.equal(alpha,beta)
   
+  isequal=is.equal(alpha,beta)
   tmp1[isequal]=alpha[isequal]
   
   tmp= (-1)^flip * (mean+sd*tmp1)
@@ -33,11 +33,13 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   toobig = max_alphabeta<(-30)
   toobig[is.na(toobig)]=FALSE
   tmp[toobig] = max_ab[toobig]
-
-  NAentry = is.na(tmp)
-  sdd = sd
-  sdd[NAentry] = 0
-  tmp = modify.sd0(tmp,a,b,mean,sdd)
+  
+  NAentry = is.na(tmp) | sd==0
+  if(sum(NAentry)>0) {
+    sdd = sd
+    sdd[NAentry] = 0
+    tmp = modify.sd0(tmp,a,b,mean,sdd)
+  }
   
   tmp
 }
@@ -59,7 +61,7 @@ modify.sd0 = function(temp,a,b,mean,sd){
   B = matrix(b,dimen[1],dimen[2])
   M = matrix(mean,dimen[1],dimen[2])
   SD = matrix(sd,dimen[1],dimen[2])
-  sdzero = sd == 0
+  sdzero = which(sd == 0)
   temp[sdzero] = ifelse(A[sdzero]<=M[sdzero] & B[sdzero]>=M[sdzero],M[sdzero],ifelse(A[sdzero] > M[sdzero],A[sdzero],B[sdzero]))
   temp
 }

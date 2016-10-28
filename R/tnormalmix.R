@@ -147,8 +147,8 @@ comp_postmean.tnormalmix = function(m,data){
   B=1/outer(1/m$sd^2,1/data$s^2,FUN="+")
   ## try my_etruncnorm(1:3,2:4,matrix(0,3,4),matrix(1,3,4))
   result = my_etruncnorm(m$a,m$b,t(t(A)*data$x)+(1-A)*m$mean,sqrt(B))
-  subset = which(m$sd == 0)
-  result[subset,]=0
+  ismissing = (is.na(data$x) | is.na(data$s))
+  result[ismissing,]=m$mean #return prior mean when missing data
   return(result)
 }
 
