@@ -49,6 +49,25 @@ logF_lik = function(df1,df2){
        lpdfFUN = function(x){dlogf(x,df1=df1,df2=df2,log=TRUE)})
 }
 
+#' @title Likelihood object for Poisson error distribution
+#' @description Creates a likelihood object for ash for use with Poisson error distribution
+#' @param y Poisson observations
+#' 
+#' @examples 
+#'    beta = c(rnorm(1000,50,5)) # prior mode: 50
+#'    x = rpois(1000,beta) # simulate some data with Poisson error
+#'    ash(rep(0,length(x)),1,lik=pois_lik(x),mode="estimate")
+#' @export
+pois_lik = function(y){
+  list(name = "pois",
+       const = TRUE,
+       lcdfFUN = function(x){pgamma(abs(x),shape=y+1,rate=1,log.p=TRUE)},
+       lpdfFUN = function(x){dgamma(abs(x),shape=y+1,rate=1,log=TRUE)},
+       etruncFUN = function(a,b){my_etruncgamma(a,b,y+1,1)},
+       e2truncFUN = function(a,b){my_e2truncgamma(a,b,y+1,1)},
+       data=y)
+}
+
 # adds a default etruncFUN based on gen_etruncFUN, which uses numerical integration
 add_etruncFUN = function(lik){
   if(is.null(lik$etruncFUN)){

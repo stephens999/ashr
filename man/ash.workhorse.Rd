@@ -9,7 +9,8 @@ ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
   optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"), df = NULL,
   nullweight = 10, pointmass = TRUE, prior = c("nullbiased", "uniform",
   "unit"), mixsd = NULL, gridmult = sqrt(2), outputlevel = 2, g = NULL,
-  fixg = FALSE, mode = 0, alpha = 0, control = list(), lik = NULL)
+  fixg = FALSE, mode = 0, alpha = 0, grange = c(-Inf, Inf),
+  control = list(), lik = NULL)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -70,9 +71,13 @@ computations with the "true" g)}
 useful for computations under the "true" g in simulations}
 
 \item{mode}{either numeric (indicating mode of g) or string "estimate", 
-to indicate mode should be estimated.}
+to indicate mode should be estimated, or a two dimension numeric vector
+to indicate the interval to be searched for the mode.}
 
 \item{alpha}{numeric value of alpha parameter in the model}
+
+\item{grange}{two dimension numeric vector indicating the 
+left and right limit of the prior g. Default is c(-Inf, Inf).}
 
 \item{control}{A list of control parameters passed to optmethod}
 
