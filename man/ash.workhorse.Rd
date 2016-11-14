@@ -59,7 +59,7 @@ grids)}
 1=also PosteriorMean and PosteriorSD; 2= everything usually
 needed; 3=also include results of mixture fitting procedure
 (includes matrix of log-likelihoods used to fit mixture); 4=
-output additional things required by flash (flash_data)]. Otherwise the user can also specify 
+output additional things required by flash (flash_data)]. Otherwise the user can also specify
 the output they require in detail (see Examples)}
 
 \item{g}{the prior distribution for beta (usually estimated from
@@ -69,7 +69,7 @@ computations with the "true" g)}
 \item{fixg}{if TRUE, don't estimate g but use the specified g -
 useful for computations under the "true" g in simulations}
 
-\item{mode}{either numeric (indicating mode of g) or string "estimate", 
+\item{mode}{either numeric (indicating mode of g) or string "estimate",
 to indicate mode should be estimated.}
 
 \item{alpha}{numeric value of alpha parameter in the model}
@@ -119,7 +119,7 @@ names(beta.ash)
 head(beta.ash$result) #dataframe of results
 head(get_lfsr(beta.ash)) #get lfsr
 head(get_pm(beta.ash)) #get posterior mean
-graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4)) 
+graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4))
 
 CIMatrix=ashci(beta.ash,level=0.95) #note currently default is only compute CIs for lfsr<0.05
 print(CIMatrix)
@@ -129,7 +129,7 @@ beta.ash1 = ash(betahat, sebetahat, lik = normal_lik())
 beta.ash2 = ash(betahat, sebetahat, lik = t_lik(df=4))
 
 e = rnorm(100)+log(rf(100,df1=10,df2=10)) # simulated data with log(F) error
-e.ash = ash(e,1,lik=logF_lik(df1=10,df2=10)) 
+e.ash = ash(e,1,lik=logF_lik(df1=10,df2=10))
 
 
 # Specifying the output
