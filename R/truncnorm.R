@@ -34,14 +34,20 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   toobig[is.na(toobig)]=FALSE
   tmp[toobig] = max_ab[toobig]
   
-  NAentry = is.na(tmp) | sd==0
-  if(sum(NAentry)>0) {
-    sdd = sd
-    sdd[NAentry] = 0
-    tmp = modify.sd0(tmp,a,b,mean,sdd)
+  NAentry = is.na(tmp)
+  if(sum(NAentry)>0 | sum(sd==0)>0) {
+    sList = expand_args(tmp,sd)
+    sList[[2]][NAentry] = 0
+    sdd = sList[[2]]
+    BigList = expand_args(tmp,a,b,mean,sdd)
+    sdzero = which(BigList[[5]] == 0)
+    BigList[[1]][sdzero] = ifelse(BigList[[2]][sdzero]<=BigList[[4]][sdzero] & BigList[[3]][sdzero]>=BigList[[4]][sdzero],BigList[[4]][sdzero],ifelse(BigList[[2]][sdzero] > BigList[[4]][sdzero],BigList[[2]][sdzero],BigList[[3]][sdzero]))
+    result = matrix(BigList[[1]],length(a),ifelse(is.null(dim(tmp)),1,dim(tmp)[2]))
+    return(result)
   }
-  
-  tmp
+  else{
+    return(tmp)
+  }
 }
 
 #tests for equality, with NA defined to be FALSE
@@ -51,19 +57,10 @@ is.equal = function(a,b){
   return(isequal)
 }
 
-#elementwisely deal with entries with sd equals to 0
-modify.sd0 = function(temp,a,b,mean,sd){
-  dimen = dim(temp)
-  if(is.null(dimen)){
-    dimen = c(length(temp),1)
-  }
-  A = matrix(a,dimen[1],dimen[2])
-  B = matrix(b,dimen[1],dimen[2])
-  M = matrix(mean,dimen[1],dimen[2])
-  SD = matrix(sd,dimen[1],dimen[2])
-  sdzero = which(sd == 0)
-  temp[sdzero] = ifelse(A[sdzero]<=M[sdzero] & B[sdzero]>=M[sdzero],M[sdzero],ifelse(A[sdzero] > M[sdzero],A[sdzero],B[sdzero]))
-  temp
+expand_args <- function(...){
+  dots <- list(...)
+  max_length <- max(sapply(dots, length))
+  lapply(dots, rep, length.out = max_length)
 }
 
 #' More about the truncated normal

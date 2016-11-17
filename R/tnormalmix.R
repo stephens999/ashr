@@ -143,12 +143,12 @@ comp_postmean.tnormalmix = function(m,data){
   }
   k=length(m$pi)
   n=length(data$x)
-  A=outer(m$sd^2,data$s^2,FUN="/")/(outer(m$sd^2,data$s^2,FUN="/")+1)
+  A=1/(outer(m$sd^2,data$s^2,FUN="/")+1)
   B=1/outer(1/m$sd^2,1/data$s^2,FUN="+")
   ## try my_etruncnorm(1:3,2:4,matrix(0,3,4),matrix(1,3,4))
-  result = my_etruncnorm(m$a,m$b,t(t(A)*data$x)+(1-A)*m$mean,sqrt(B))
+  result = my_etruncnorm(m$a,m$b,A*m$mean+t(t(1-A)*data$x),sqrt(B))
   ismissing = (is.na(data$x) | is.na(data$s))
-  result[ismissing,]=m$mean #return prior mean when missing data
+  result[,ismissing]=m$mean #return prior mean when missing data
   return(result)
 }
 
@@ -158,9 +158,11 @@ comp_postsd.tnormalmix = function(m,data){
   }
   k=length(m$pi)
   n=length(data$x)
-  A=outer(m$sd^2,data$s^2,FUN="/")/(outer(m$sd^2,data$s^2,FUN="/")+1)
-  B=1/outer(1/m$sd^2,1/data$s^2,FUN="+") 
-  return(sqrt(my_vtruncnorm(m$a,m$b,t(t(A)*data$x)+(1-A)*m$mean,sqrt(B))))
+  A=1/(outer(m$sd^2,data$s^2,FUN="/")+1)
+  B=1/outer(1/m$sd^2,1/data$s^2,FUN="+")
+  result = sqrt(my_vtruncnorm(m$a,m$b,t(A*m$mean+t(t(1-A)*data$x)),t(sqrt(B))))
+  result = t(result)
+  return(result)
 }
 
 comp_postmean2.tnormalmix = function(m,data){
