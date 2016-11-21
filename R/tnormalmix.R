@@ -34,7 +34,7 @@ comp_dens_conv.tnormalmix = function(m,data){
   if(!is_normal(data$lik)){
     stop("Error: truncated normal mixture for non-normal likelihood is not yet implemented")
   }
-  if(length(data$s)==1){data$s=rep(data$s,length(x))}
+  if(length(data$s)==1){data$s=rep(data$s,length(data$x))}
   A = sqrt(outer(1/m$sd^2,1/data$s^2,FUN="+"))
   B = 1/sqrt(outer(m$sd^2,data$s^2,FUN="+"))
   C = outer(m$sd,data$s,"/")
@@ -118,11 +118,11 @@ comp_cdf_post.tnormalmix = function(m,c,data){
     X=1/(outer(data$s^2,m$sd[subset]^2,FUN="/")+1)
     Y=1/outer(1/data$s^2,1/m$sd[subset]^2,FUN="+")
     A=matrix(m$a[subset],nrow=sum(subset),ncol=n)
-    pna=stats::pnorm(t(A),X*data$x+t(t(1-X)*m$mean),sqrt(Y))
+    pna=stats::pnorm(t(A),X*data$x+t(t(1-X)*m$mean[subset]),sqrt(Y))
     C=matrix(c,nrow=sum(subset),ncol=n)
-    pnc=stats::pnorm(t(C),X*data$x+t(t(1-X)*m$mean),sqrt(Y))
+    pnc=stats::pnorm(t(C),X*data$x+t(t(1-X)*m$mean[subset]),sqrt(Y))
     B=matrix(m$b[subset],nrow=sum(subset),ncol=n)
-    pnb=stats::pnorm(t(B),X*data$x+t(t(1-X)*m$mean),sqrt(Y))
+    pnb=stats::pnorm(t(B),X*data$x+t(t(1-X)*m$mean[subset]),sqrt(Y))
   }
   tmp[subset,]=t((pnc-pna)/(pnb-pna))
   subset=(m$a==m$b)
@@ -147,8 +147,8 @@ comp_postmean.tnormalmix = function(m,data){
   B=1/outer(1/m$sd^2,1/data$s^2,FUN="+")
   ## try my_etruncnorm(1:3,2:4,matrix(0,3,4),matrix(1,3,4))
   result = my_etruncnorm(m$a,m$b,A*m$mean+t(t(1-A)*data$x),sqrt(B))
-  ismissing = (is.na(data$x) | is.na(data$s))
-  result[,ismissing]=m$mean #return prior mean when missing data
+  ismissing = which(is.na(data$x) | is.na(data$s))
+  if(length(ismissing)>0){result[,ismissing]=m$mean} 
   return(result)
 }
 
