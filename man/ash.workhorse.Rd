@@ -5,11 +5,12 @@
 \title{Detailed Adaptive Shrinkage function}
 \usage{
 ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
-  mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform"),
-  optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"), df = NULL,
-  nullweight = 10, pointmass = TRUE, prior = c("nullbiased", "uniform",
-  "unit"), mixsd = NULL, gridmult = sqrt(2), outputlevel = 2, g = NULL,
-  fixg = FALSE, mode = 0, alpha = 0, control = list(), lik = NULL)
+  mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform",
+  "tnormal"), optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"),
+  df = NULL, nullweight = 10, pointmass = TRUE, prior = c("nullbiased",
+  "uniform", "unit"), mixsd = NULL, gridmult = sqrt(2), outputlevel = 2,
+  g = NULL, fixg = FALSE, mode = 0, alpha = 0, control = list(),
+  lik = NULL)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}

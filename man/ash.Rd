@@ -5,7 +5,7 @@
 \title{Main Adaptive Shrinkage function}
 \usage{
 ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal",
-  "+uniform", "-uniform"), df = NULL, ...)
+  "+uniform", "-uniform", "tnormal"), df = NULL, ...)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}

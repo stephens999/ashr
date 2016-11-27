@@ -57,7 +57,7 @@ log_comp_dens_conv.tnormalmix = function(m,data) {
   }
   #### use previous function directly
   #return(log(compdens_conv.tnormalmix(m,x,s,v)))
-  if(length(data$s)==1){data$s=rep(data$s,length(x))}
+  if(length(data$s)==1){data$s=rep(data$s,length(data$x))}
   A = sqrt(outer(1/m$sd^2,1/data$s^2,FUN="+"))
   B = 1/sqrt(outer(m$sd^2,data$s^2,FUN="+"))
   C = outer(m$sd,data$s,"/")
