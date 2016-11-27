@@ -22,8 +22,8 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   # ZMZ:  when a and b are both negative and far from 0, etruncnorm can't compute
   # the mean and variance. Also we should deal with 0/0 situation caused by sd = 0.
   tmp1=etruncnorm(alpha,beta,0,1)
-  isequal=is.equal(alpha,beta)
   
+  isequal=is.equal(alpha,beta)
   tmp1[isequal]=alpha[isequal]
   
   tmp= (-1)^flip * (mean+sd*tmp1)
@@ -33,13 +33,26 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   toobig = max_alphabeta<(-30)
   toobig[is.na(toobig)]=FALSE
   tmp[toobig] = max_ab[toobig]
-
-  NAentry = is.na(tmp)
-  sdd = sd
-  sdd[NAentry] = 0
-  tmp = modify.sd0(tmp,a,b,mean,sdd)
   
-  tmp
+  NAentry = is.na(tmp)
+  if(sum(NAentry)>0 | sum(sd==0)>0) {
+    sList = expand_args(tmp,sd)
+    sList[[2]][NAentry] = 0
+    sdd = sList[[2]]
+    BigList = expand_args(tmp,a,b,mean,sdd)
+    sdzero = which(BigList[[5]] == 0)
+    BigList[[1]][sdzero] = ifelse(
+      BigList[[2]][sdzero]<=BigList[[4]][sdzero] 
+      & BigList[[3]][sdzero]>=BigList[[4]][sdzero],
+      BigList[[4]][sdzero],
+      ifelse(BigList[[2]][sdzero] > BigList[[4]][sdzero],
+        BigList[[2]][sdzero],BigList[[3]][sdzero]))
+    result = matrix(BigList[[1]],length(a),ifelse(is.null(dim(tmp)),1,dim(tmp)[2]))
+    return(as.numeric(result))
+  }
+  else{
+    return(tmp)
+  }
 }
 
 #tests for equality, with NA defined to be FALSE
@@ -62,6 +75,13 @@ modify.sd0 = function(temp,a,b,mean,sd){
   sdzero = which(sd == 0)
   temp[sdzero] = ifelse(A[sdzero]<=M[sdzero] & B[sdzero]>=M[sdzero],M[sdzero],ifelse(A[sdzero] > M[sdzero],A[sdzero],B[sdzero]))
   temp
+}
+
+
+expand_args <- function(...){
+  dots <- list(...)
+  max_length <- max(sapply(dots, length))
+  lapply(dots, rep, length.out = max_length)
 }
 
 #' More about the truncated normal

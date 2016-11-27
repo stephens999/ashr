@@ -69,7 +69,7 @@
 #' betan.ash=ash(betahat, sebetahat,mode=5)
 #' graphics::plot(betahat, betan.ash$result$PosteriorMean)
 #' summary(betan.ash)
-ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),df=NULL,...){
+ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform","tnormal"),df=NULL,...){
   return(utils::modifyList(ash.workhorse(betahat,sebetahat,mixcompdist=mixcompdist,df=df,...),list(call=match.call())))
 }
 
@@ -204,7 +204,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
 ash.workhorse = function(betahat,sebetahat,
                          method = c("fdr","shrink"),
-                         mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),
+                         mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform","tnormal"),
                          optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
                          df=NULL,
                          nullweight=10,
@@ -287,7 +287,7 @@ ash.workhorse = function(betahat,sebetahat,
     prior = setprior(prior,k,nullweight,null.comp)
     pi = initpi(k,length(data$x),null.comp)
 
-    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform")))
+    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","tnormal"))) 
       stop("Error: invalid type of mixcompdist")
     if(mixcompdist=="normal") g=normalmix(pi,rep(mode,k),mixsd)
     if(mixcompdist=="uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
@@ -301,6 +301,19 @@ ash.workhorse = function(betahat,sebetahat,
       } else { #define two sets of components, but don't duplicate null component
         null.comp=which.min(mixsd)
         g = unimix(c(pi,pi[-null.comp])/2,c(mode-mixsd,rep(mode,k-1)),c(rep(mode,k),mode+mixsd[-null.comp]))
+        prior = c(prior,prior[-null.comp])
+        pi = c(pi,pi[-null.comp])
+      }
+    }
+    if(mixcompdist=="tnormal"){
+      if(min(mixsd)>0){
+        g = tnormalmix(c(pi,pi)/2,rep(mode,2*k),c(mixsd,mixsd),c(rep(-Inf,k),rep(0,k)),c(rep(0,k),rep(Inf,k)))
+        prior = rep(prior, 2)
+        pi = rep(pi, 2)
+      }
+      else{
+        null.comp=which.min(mixsd)
+        g = tnormalmix(c(pi,pi[-null.comp])/2,rep(mode,2*k-1),c(mixsd,mixsd[-null.comp]),c(rep(-Inf,k),rep(0,k-1)),c(rep(0,k),rep(Inf,k-1)))
         prior = c(prior,prior[-null.comp])
         pi = c(pi,pi[-null.comp])
       }
@@ -405,8 +418,14 @@ compute_lfsr = function(NegativeProb,ZeroProb){
 #of the loglik for $\pi=(\pi_0,...,1-\pi_0,...)$ with respect to $\pi_0$ at $\pi_0=1$.
 gradient = function(matrix_lik){
   n = nrow(matrix_lik)
-  grad = n - colSums(matrix_lik/matrix_lik[,1])
+  grad = n - ColsumModified(matrix_lik)
   return(grad)
+}
+
+ColsumModified = function(matrix_l){
+  small = abs(matrix_l) < 10e-14
+  matrix_l[small] = matrix_l[small]+10e-14
+  colSums(matrix_l/matrix_l[,1])
 }
 
 #' Estimate mixture proportions of a mixture g given noisy (error-prone) data from that mixture.
