@@ -11,11 +11,11 @@ test_that("some test about my_etrucnorm function", {
   real = matrix(real,3,4)
   m = matrix(m,3,4)
   sd = matrix(sd,3,4)
-  expect_equal(as.numeric(real),my_etruncnorm(a,b,m,sd))
+  expect_equal(real,my_etruncnorm(a,b,m,sd))
   a=c(0,0)
   b=c(1,2)
   m = rbind(c(0,2,4),c(0,0,0))
   sd = 0
   real = rbind(c(0,1,1),c(0,0,0))
-  expect_equal(as.numeric(real),my_etruncnorm(a,b,m,sd))
+  expect_equal(real,my_etruncnorm(a,b,m,sd))
 })

@@ -52,6 +52,21 @@ test_that("comp_postsd for tnormal gives same results as comp_postsd for normal 
   expect_equal(comp_postmean2(gn,data),comp_postmean2(gtn,data))
 })
 
+test_that("my_etruncnorm deals correctly with matrices", {
+  a=c(0,0)
+  b=c(1,2)
+  m = rbind(c(0,2,4),c(0,0,0))
+  sd = 0
+  expect_equal(my_etruncnorm(a,b,m,sd),xxx)
+})
+
+test_that("my_etruncnorm deals correctly with matrices with NA", {
+  a = rbind(c(NA,NA),c(1,2))
+  b = rbind(c(NA,NA),c(3,4))
+  expect_equal(my_etruncnorm(a,b),xxx)
+})
+
+
 # test_that("the my_etruncnorm in tnormal postmean calculation won't report error", {
 #   beta = c(rep(0,100),rtruncnorm(100,a=5,b=10))
 #   sebetahat = abs(rnorm(200,0,1))
