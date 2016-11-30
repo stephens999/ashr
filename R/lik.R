@@ -39,14 +39,18 @@ t_lik = function(df){
 #' @param df2 second degree of freedom parameter of F distribution
 #' 
 #' @examples 
-#'    e = rnorm(1000) + log(rf(1000,df1=10,df2=10)) # simulate some data with log(F) error
+#'    e = rnorm(100) + log(rf(100,df1=10,df2=10)) # simulate some data with log(F) error
 #'    ash(e,1,lik=logF_lik(df1=10,df2=10))
 #' @export
 logF_lik = function(df1,df2){
   list(name = "logF",
        const = (length(unique(df1))==1) & (length(unique(df2))==1),
        lcdfFUN = function(x){plogf(x,df1=df1,df2=df2,log.p=TRUE)},
-       lpdfFUN = function(x){dlogf(x,df1=df1,df2=df2,log=TRUE)})
+       lpdfFUN = function(x){dlogf(x,df1=df1,df2=df2,log=TRUE)},
+       etruncFUN = function(a,b){
+         matrix(mapply(my_etrunclogf,c(a),c(b),df1,df2),ncol=dim(a)[2])
+         }
+       )
 }
 
 #' @title Likelihood object for Poisson error distribution
@@ -54,19 +58,76 @@ logF_lik = function(df1,df2){
 #' @param y Poisson observations
 #' 
 #' @examples 
-#'    beta = c(rnorm(1000,50,5)) # prior mode: 50
-#'    x = rpois(1000,beta) # simulate some data with Poisson error
-#'    ash(rep(0,length(x)),1,lik=pois_lik(x),mode="estimate")
+#'    beta = c(rnorm(100,50,5)) # prior mode: 50
+#'    x = rpois(100,beta) # simulate Poisson observations
+#'    ash(rep(0,length(x)),1,lik=pois_lik(x))
 #' @export
 pois_lik = function(y){
   list(name = "pois",
        const = TRUE,
        lcdfFUN = function(x){pgamma(abs(x),shape=y+1,rate=1,log.p=TRUE)},
        lpdfFUN = function(x){dgamma(abs(x),shape=y+1,rate=1,log=TRUE)},
-       etruncFUN = function(a,b){my_etruncgamma(a,b,y+1,1)},
-       e2truncFUN = function(a,b){my_e2truncgamma(a,b,y+1,1)},
+       etruncFUN = function(a,b){-my_etruncgamma(-b,-a,y+1,1)},
+       e2truncFUN = function(a,b){my_e2truncgamma(-b,-a,y+1,1)},
        data=y)
 }
+
+#' @title Likelihood object for Binomial error distribution
+#' @description Creates a likelihood object for ash for use with Binomial error distribution
+#' @param y Binomial observations
+#' @param n Binomial number of trials
+#' 
+#' @examples 
+#'    p = rbeta(100,2,2) # prior mode: 0.5
+#'    n = rpois(100,10)
+#'    y = rbinom(100,n,p) # simulate Binomial observations
+#'    ash(rep(0,length(y)),1,lik=binom_lik(y,n))
+#' @export
+binom_lik = function(y,n){
+  list(name = "binom",
+       const = TRUE,
+       lcdfFUN = function(x){pbeta(abs(x),shape1=y+1,shape2=n-y+1,log.p=TRUE)-log(n+1)},
+       lpdfFUN = function(x){dbeta(abs(x),shape1=y+1,shape2=n-y+1,log=TRUE)-log(n+1)},
+       etruncFUN = function(a,b){-my_etruncbeta(-b,-a,y+1,n-y+1)},
+       e2truncFUN = function(a,b){my_e2truncbeta(-b,-a,y+1,n-y+1)},
+       data=list(y=y,n=n))
+}
+
+#' @title Likelihood object for normal mixture error distribution
+#' @description Creates a likelihood object for ash for use with normal mixture error distribution
+#' 
+#' @examples 
+#'    e = rnorm(100,0,0.8) 
+#'    e[seq(1,100,by=2)] = rnorm(50,0,1.5) # generate e~0.5*N(0,0.8^2)+0.5*N(0,1.5^2)
+#'    betahat = rnorm(100)+e
+#'    ash(betahat, 1, lik=normalmix_lik(c(0.5,0.5),c(0.8,1.5)))
+#' @export
+normalmix_lik= function(pilik,sdlik){
+  list(name="normalmix",
+       const = (length(pilik)==length(sdlik)), #used to indicate whether the likelihood function is constant for all observations (some parts of ash only work in this case)
+       lcdfFUN = function(x){
+         cdfF = function(sdlik,x){stats::pnorm(x,mean=0,sd=sdlik)}
+         if (length(pilik)==length(sdlik)){sdlik=matrix(sdlik,nrow=1)}
+         sdlik = split(sdlik, rep(1:ncol(sdlik), each = nrow(sdlik)))
+         log(Reduce("+",mapply('*', lapply(sdlik,cdfF,x=x), pilik, SIMPLIFY=FALSE)))},
+       lpdfFUN = function(x){
+         pdfF = function(sdlik,x){stats::dnorm(x,mean=0,sd=sdlik)}
+         if (length(pilik)==length(sdlik)){sdlik=matrix(sdlik,nrow=1)}
+         sdlik = split(sdlik, rep(1:ncol(sdlik), each = nrow(sdlik)))
+         log(Reduce("+",mapply('*', lapply(sdlik,pdfF,x=x), pilik, SIMPLIFY=FALSE)))},
+       etruncFUN = function(a,b){
+         etrunc = function(sdlik,alpha,beta){my_etruncnorm(alpha,beta,mean=0,sd=sdlik)}
+         if (length(pilik)==length(sdlik)){sdlik=matrix(sdlik,nrow=1)}
+         sdlik = split(sdlik, rep(1:ncol(sdlik), each = nrow(sdlik)))
+         Reduce("+",mapply('*', lapply(sdlik,etrunc,alpha=a,beta=b), pilik, SIMPLIFY=FALSE))},
+       e2truncFUN = function(a,b){
+         etrunc = function(sdlik,alpha,beta){my_e2truncnorm(alpha,beta,mean=0,sd=sdlik)}
+         if (length(pilik)==length(sdlik)){sdlik=matrix(sdlik,nrow=1)}
+         sdlik = split(sdlik, rep(1:ncol(sdlik), each = nrow(sdlik)))
+         Reduce("+",mapply('*', lapply(sdlik,etrunc,alpha=a,beta=b), pilik, SIMPLIFY=FALSE))}
+  )
+}
+
 
 # adds a default etruncFUN based on gen_etruncFUN, which uses numerical integration
 add_etruncFUN = function(lik){

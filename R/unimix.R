@@ -67,7 +67,7 @@ log_comp_dens_conv.unimix = function(m,data){
   lpa = do.call(lik$lcdfFUN, list(outer(data$x,a,FUN="-")/data$s))
   lpb = do.call(lik$lcdfFUN, list(outer(data$x,b,FUN="-")/data$s))
   
-  if (sum(lpa-lpb)<0){
+  if (sum(lpa-lpb,na.rm=TRUE)<0){
     tmp = lpa
     lpa = lpb
     lpb = tmp
@@ -120,10 +120,15 @@ comp_postmean.unimix = function(m,data){
 
   lik = data$lik
   
-  alpha = outer(-x, m$a,FUN="+")/s
-  beta = outer(-x, m$b, FUN="+")/s
- 
-  tmp = x + s*do.call(lik$etruncFUN, list(alpha,beta))
+  alpha = outer(x, -m$b,FUN="+")/s
+  beta = outer(x, -m$a, FUN="+")/s
+  
+  tmp = x-s*do.call(lik$etruncFUN, list(alpha,beta))
+  
+  # alpha = outer(-x, m$a,FUN="+")/s
+  # beta = outer(-x, m$b, FUN="+")/s
+  # 
+  # tmp = x + s*do.call(lik$etruncFUN, list(alpha,beta))
  
   ismissing = is.na(x) | is.na(s)
   tmp[ismissing,]= (m$a+m$b)/2

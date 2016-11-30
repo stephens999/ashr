@@ -13,8 +13,8 @@ pois_lik(y)
 Creates a likelihood object for ash for use with Poisson error distribution
 }
 \examples{
-   beta = c(rnorm(1000,50,5)) # prior mode: 50
-   x = rpois(1000,beta) # simulate some data with Poisson error
-   ash(rep(0,length(x)),1,lik=pois_lik(x),mode="estimate")
+   beta = c(rnorm(100,50,5)) # prior mode: 50
+   x = rpois(100,beta) # simulate Poisson observations
+   ash(rep(0,length(x)),1,lik=pois_lik(x))
 }
 

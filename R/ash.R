@@ -236,11 +236,17 @@ ash.workhorse = function(betahat,sebetahat,
     if (method == "fdr"){pointmass =TRUE; prior= "nullbiased"}
   }
   
-  # pois likelihood has non-negative g
+  # poisson likelihood has non-negative g
   # do not put big weight on null component
   # automatically estimate the mode if not specified
-  if(lik$name=="pois"){
+  if(sum(lik$name=="pois")){
     grange = c(max(0,min(grange)), max(grange))
+    if(missing(nullweight)){nullweight = 1}
+    if(missing(mode)){mode = "estimate"}
+  }
+  # binomial likelihood has g restricted on [0,1]
+  if(sum(lik$name=="binom")){
+    grange = c(max(0,min(grange)), min(1,max(grange)))
     if(missing(nullweight)){nullweight = 1}
     if(missing(mode)){mode = "estimate"}
   }
@@ -254,9 +260,12 @@ ash.workhorse = function(betahat,sebetahat,
     mode = ifelse(is.numeric(mode),mode,NA)
     
     # set range to search the mode
-    if (lik$name=="pois"){
+    if (sum(lik$name=="pois")){
       args$modemin = min(mode, min(lik$data),na.rm = TRUE)
       args$modemax = max(mode, max(lik$data),na.rm = TRUE)
+    }else if(sum(lik$name=="binom")){
+      args$modemin = min(grange)
+      args$modemax = max(grange)
     }else{
       args$modemin = min(mode, min(betahat),na.rm = TRUE)
       args$modemax = max(mode, max(betahat),na.rm = TRUE)
