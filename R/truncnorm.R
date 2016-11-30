@@ -33,6 +33,7 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   toobig = max_alphabeta<(-30)
   toobig[is.na(toobig)]=FALSE
   tmp[toobig] = max_ab[toobig]
+
   
   NAentry = is.na(tmp)
   if(sum(NAentry)>0 | sum(sd==0)>0) {
@@ -48,6 +49,7 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   else{
     return(tmp)
   }
+
 }
 
 #tests for equality, with NA defined to be FALSE
@@ -61,6 +63,7 @@ expand_args <- function(...){
   dots <- list(...)
   max_length <- max(sapply(dots, length))
   lapply(dots, rep, length.out = max_length)
+
 }
 
 #' More about the truncated normal

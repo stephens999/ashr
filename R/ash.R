@@ -107,7 +107,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #'     betahat/sebetahat, default is NULL(Gaussian)
 #' @param nullweight scalar, the weight put on the prior under
 #'     "nullbiased" specification, see \code{prior}
-#' @param mode either numeric (indicating mode of g) or string "estimate", 
+#' @param mode either numeric (indicating mode of g) or string "estimate",
 #'      to indicate mode should be estimated.
 #' @param pointmass logical, indicating whether to use a point mass at
 #'     zero as one of components for a mixture distribution
@@ -124,7 +124,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #'     1=also PosteriorMean and PosteriorSD; 2= everything usually
 #'     needed; 3=also include results of mixture fitting procedure
 #'     (includes matrix of log-likelihoods used to fit mixture); 4=
-#'     output additional things required by flash (flash_data)]. Otherwise the user can also specify 
+#'     output additional things required by flash (flash_data)]. Otherwise the user can also specify
 #'     the output they require in detail (see Examples)
 #' @param g the prior distribution for beta (usually estimated from
 #'     the data; this is used primarily in simulated data to do
@@ -134,7 +134,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' @param alpha numeric value of alpha parameter in the model
 #' @param control A list of control parameters passed to optmethod
 #' @param lik contains details of the likelihood used; for general ash
-#' 
+#'
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
 #' \item{fitted_g}{fitted mixture, either a normalmix or unimix}
 #' \item{loglik}{log P(D|mle(pi))}
@@ -165,8 +165,10 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' betahat = rnorm(200,beta,sebetahat)
 #' beta.ash = ash(betahat, sebetahat)
 #' names(beta.ash)
-#' head(beta.ash$result)
-#' graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4)) #get_pm obtains PosteriorMean from ash object 
+#' head(beta.ash$result) #dataframe of results
+#' head(get_lfsr(beta.ash)) #get lfsr
+#' head(get_pm(beta.ash)) #get posterior mean
+#' graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4))
 #'
 #' CIMatrix=ashci(beta.ash,level=0.95) #note currently default is only compute CIs for lfsr<0.05
 #' print(CIMatrix)
@@ -174,14 +176,14 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' #Running ash with different error models
 #' beta.ash1 = ash(betahat, sebetahat, lik = normal_lik())
 #' beta.ash2 = ash(betahat, sebetahat, lik = t_lik(df=4))
-#' 
+#'
 #' e = rnorm(100)+log(rf(100,df1=10,df2=10)) # simulated data with log(F) error
-#' e.ash = ash(e,1,lik=logF_lik(df1=10,df2=10)) 
-#' 
-#' 
+#' e.ash = ash(e,1,lik=logF_lik(df1=10,df2=10))
+#'
+#'
 #' # Specifying the output
 #' beta.ash = ash(betahat, sebetahat, output = c("fitted_g","logLR","lfsr"))
-#' 
+#'
 #' #Illustrating the non-zero mode feature
 #' betahat=betahat+5
 #' beta.ash = ash(betahat, sebetahat)
@@ -189,7 +191,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' betan.ash=ash(betahat, sebetahat,mode=5)
 #' graphics::plot(betahat, betan.ash$result$PosteriorMean)
 #' summary(betan.ash)
-#' 
+#'
 #'
 #' #Running ash with a pre-specified g, rather than estimating it
 #' beta = c(rep(0,100),rnorm(100))
@@ -217,7 +219,7 @@ ash.workhorse = function(betahat,sebetahat,
                          control=list(),
                          lik=NULL
 ){
-  
+
   if(!missing(pointmass) & !missing(method))
     stop("Specify either method or pointmass, not both")
   if(!missing(prior) & !missing(method))
@@ -229,7 +231,14 @@ ash.workhorse = function(betahat,sebetahat,
     if (method == "shrink"){pointmass =FALSE; prior="uniform"}
     if (method == "fdr"){pointmass =TRUE; prior= "nullbiased"}
   }
-  
+
+  ## Check to see if is Inf, then switch to NULL.
+  if (!is.null(df)) {
+    if (df == Inf) {
+      df <- NULL
+    }
+  }
+
   if(mode=="estimate"){ #just pass everything through to ash.estmode for non-zero-mode
     args <- as.list(environment())
     args$mode = NULL
@@ -238,15 +247,15 @@ ash.workhorse = function(betahat,sebetahat,
     args$g = NULL # avoid specifying g as well as mode
     #args = as.list( match.call() )
     mode = do.call(ash.estmode,args)}
-  
-  
+
+
   ##1.Handling Input Parameters
   mixcompdist = match.arg(mixcompdist)
   optmethod   = match.arg(optmethod)
   prior       = match.arg(prior)
- 
-  # Set optimization method, and defaults for optimization control
-  optmethod = set_optmethod(optmethod)  
+
+  # Set optimization method
+  optmethod = set_optmethod(optmethod)
   check_args(mixcompdist,df,prior,optmethod,gridmult,sebetahat,betahat)
   if(is.null(lik)){ #set likelihood based on defaults if missing
     if(is.null(df)){
@@ -256,14 +265,14 @@ ash.workhorse = function(betahat,sebetahat,
   check_lik(lik) # minimal check that it obeys requirements
   lik = add_etruncFUN(lik) #if missing, add a function to compute mean of truncated distribution
   data = set_data(betahat, sebetahat, lik, alpha)
-  
+
   ##2. Generating mixture distribution g
 
   if(fixg & missing(g)){stop("if fixg=TRUE then you must specify g!")}
 
   if(!is.null(g)){
     k=ncomp(g)
-    null.comp=1 #null.comp not actually used 
+    null.comp=1 #null.comp not actually used
     prior = setprior(prior,k,nullweight,null.comp)
   } else {
     if(is.null(mixsd)){
@@ -278,7 +287,7 @@ ash.workhorse = function(betahat,sebetahat,
     prior = setprior(prior,k,nullweight,null.comp)
     pi = initpi(k,length(data$x),null.comp)
     
-    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","tnormal"))) 
+    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","tnormal")))
       stop("Error: invalid type of mixcompdist")
     if(mixcompdist=="normal") g=normalmix(pi,rep(mode,k),mixsd)
     if(mixcompdist=="uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
@@ -334,7 +343,7 @@ ash.workhorse = function(betahat,sebetahat,
   if("fit_details" %in% output){val = c(val,list(fit_details = pi.fit))}
   if("flash_data" %in% output){val = c(val, list(flash_data=calc_flash_data(ghat,data)))}
 
-  # Compute the result component of value - 
+  # Compute the result component of value -
   # result is a dataframe containing lfsr, etc
   # resfns is a list of functions used to produce columns of that dataframe
   resfns = set_resfns(output)
@@ -343,7 +352,7 @@ ash.workhorse = function(betahat,sebetahat,
     if(!is.null(df)){result$df = df}
     result = cbind(result,as.data.frame(lapply(resfns,do.call,list(g=pi.fit$g,data=data))))
     val = c(val, list(result=result))
-  } 
+  }
 
   ##5. Returning the val
 
@@ -420,22 +429,22 @@ ColsumModified = function(matrix_l){
 }
 
 #' Estimate mixture proportions of a mixture g given noisy (error-prone) data from that mixture.
-#' 
+#'
 #' @details This is used by the ash function. Most users won't need to call this directly, but is
 #' exported for use by some other related packages.
 #'
 #' @param data list to be passed to log_comp_dens_conv; details depend on model
 #' @param g an object representing a mixture distribution (eg normalmix for mixture of normals;
 #'  unimix for mixture of uniforms). The component parameters of g (eg the means and variances) specify the
-#'  components whose mixture proportions are to be estimated. The mixture proportions of g are the parameters to be estimated; 
-#'  the values passed in may be used to initialize the optimization (depending on the optmethod used) 
-#' @param prior numeric vector indicating parameters of "Dirichlet prior" 
-#'     on mixture proportions 
+#'  components whose mixture proportions are to be estimated. The mixture proportions of g are the parameters to be estimated;
+#'  the values passed in may be used to initialize the optimization (depending on the optmethod used)
+#' @param prior numeric vector indicating parameters of "Dirichlet prior"
+#'     on mixture proportions
 #' @param optmethod name of function to use to do optimization
-#' @param control list of control parameters to be passed to optmethod, 
+#' @param control list of control parameters to be passed to optmethod,
 #' typically affecting things like convergence tolerance
-#' @return list, including the final loglikelihood, the null loglikelihood, 
-#' an n by k likelihood matrix with (j,k)th element equal to \eqn{f_k(x_j)}, 
+#' @return list, including the final loglikelihood, the null loglikelihood,
+#' an n by k likelihood matrix with (j,k)th element equal to \eqn{f_k(x_j)},
 #' the fit
 #' and results of optmethod
 #' @export
@@ -445,9 +454,9 @@ estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSq
   pi_init = g$pi
   if(optmethod=="mixVBEM"){pi_init=NULL}  #for some reason pi_init doesn't work with mixVBEM
   k=ncomp(g)
-  
+
   matrix_llik = t(log_comp_dens_conv(g,data)) #an n by k matrix
-  matrix_llik = matrix_llik[!get_exclusions(data),] #remove any rows corresponding to excluded cases; saves time in situations where most data are missing
+  matrix_llik = matrix_llik[!get_exclusions(data),,drop=FALSE] #remove any rows corresponding to excluded cases; saves time in situations where most data are missing
   matrix_llik = matrix_llik - apply(matrix_llik,1, max) #avoid numerical issues by subtracting max of each row
   matrix_lik = exp(matrix_llik)
 
@@ -598,7 +607,7 @@ autoselect.mixsd = function(data,mult,mode){
   exclude = get_exclusions(data)
   betahat = betahat[!exclude]
   sebetahat = sebetahat[!exclude]
-  
+
   sigmaamin = min(sebetahat)/10 #so that the minimum is small compared with measurement precision
   if(all(betahat^2<=sebetahat^2)){
     sigmaamax = 8*sigmaamin #to deal with the occassional odd case where this could happen; 8 is arbitrary
