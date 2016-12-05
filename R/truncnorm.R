@@ -43,8 +43,10 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
     BigList = expand_args(tmp,a,b,mean,sdd)
     sdzero = which(BigList[[5]] == 0)
     BigList[[1]][sdzero] = ifelse(BigList[[2]][sdzero]<=BigList[[4]][sdzero] & BigList[[3]][sdzero]>=BigList[[4]][sdzero],BigList[[4]][sdzero],ifelse(BigList[[2]][sdzero] > BigList[[4]][sdzero],BigList[[2]][sdzero],BigList[[3]][sdzero]))
-    result = matrix(BigList[[1]],length(a),ifelse(is.null(dim(tmp)),1,dim(tmp)[2]))
-    return(as.numeric(result))
+    result = matrix(BigList[[1]],ifelse(is.null(dim(tmp)),length(tmp),dim(tmp)[1]),ifelse(is.null(dim(tmp)),1,dim(tmp)[2]))
+    result = as.matrix(result)
+    if(min(dim(result))==1){return(as.numeric(result))}
+    return(result)
   }
   else{
     return(tmp)
