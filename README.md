@@ -24,8 +24,8 @@ provided some [Mac-specific](rmosek-mac.md) and
 The main function in the ashr package is `ash`. To get minimal help:
 
 ```R
-> library(ashr)
-> ?ash
+library(ashr)
+?ash
 ```
 
 ## More background
