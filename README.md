@@ -5,8 +5,9 @@
 
 This repository contains an R package for performing "Adaptive Shrinkage."
 
-To install the ashr package first you need to install devtools
-```
+To install the ashr package first you need to install devtools:
+
+```R
 install.packages("devtools")
 library(devtools)
 install_github("stephens999/ashr")
@@ -21,7 +22,8 @@ provided some [Mac-specific](rmosek-mac.md) and
 ## Running Adaptive Shrinkage
 
 The main function in the ashr package is `ash`. To get minimal help:
-```
+
+```R
 > library(ashr)
 > ?ash
 ```
@@ -41,7 +43,6 @@ than being pre-specified. Second, the amount of shrinkage undergone by
 each $\hat\beta_j$ will depend on the standard error $s_j$:
 measurements with high standard error will undergo more shrinkage than
 measurements with low standard error.
-
 
 ### Methods Outline
 
