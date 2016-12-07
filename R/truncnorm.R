@@ -38,7 +38,8 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   # truncnorm expectation outcome is NA. For example
   # when sd=0, or when the mean lies outside the given
   # interval with extremely small sd, etc. This part 
-  # deals with all these problems.
+  # deals with all these problems. The concrete example
+  # can be found in test_myetruncnorm.R file.
   # Also we need the function to be adaptive to 
   # various forms of input: scaler, vector, matrix.
   # To unify all these possibility we need to wrap
