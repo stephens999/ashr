@@ -34,7 +34,15 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   toobig[is.na(toobig)]=FALSE
   tmp[toobig] = max_ab[toobig]
 
-  
+  # muzhe: this part consider many cases when 
+  # truncnorm expectation outcome is NA. For example
+  # when sd=0, or when the mean lies outside the given
+  # interval with extremely small sd, etc. This part 
+  # deals with all these problems.
+  # Also we need the function to be adaptive to 
+  # various forms of input: scaler, vector, matrix.
+  # To unify all these possibility we need to wrap
+  # things up. That's what expand_args function does.
   NAentry = is.na(tmp)
   if(sum(NAentry)>0 | sum(sd==0)>0) {
     sList = expand_args(tmp,sd)
