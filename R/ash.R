@@ -69,10 +69,14 @@
 #' betan.ash=ash(betahat, sebetahat,mode=5)
 #' graphics::plot(betahat, betan.ash$result$PosteriorMean)
 #' summary(betan.ash)
-ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),df=NULL,...){
-  return(utils::modifyList(ash.workhorse(betahat,sebetahat,mixcompdist=mixcompdist,df=df,...),list(call=match.call())))
-}
+ash <- function (betahat, sebetahat,
+                 mixcompdist = c("uniform","halfuniform","normal","+uniform",
+                                 "-uniform"),
+                 df = NULL,...)
 
+  # TO DO: Explain here what this does. It certainly isn't clear!
+  modifyList(ash.workhorse(betahat,sebetahat,mixcompdist,df = df,...),
+             list(call = match.call()))
 
 #' @title Detailed Adaptive Shrinkage function
 #'
@@ -180,7 +184,6 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' e = rnorm(100)+log(rf(100,df1=10,df2=10)) # simulated data with log(F) error
 #' e.ash = ash(e,1,lik=logF_lik(df1=10,df2=10))
 #'
-#'
 #' # Specifying the output
 #' beta.ash = ash(betahat, sebetahat, output = c("fitted_g","logLR","lfsr"))
 #'
@@ -192,7 +195,6 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' graphics::plot(betahat, betan.ash$result$PosteriorMean)
 #' summary(betan.ash)
 #'
-#'
 #' #Running ash with a pre-specified g, rather than estimating it
 #' beta = c(rep(0,100),rnorm(100))
 #' sebetahat = abs(rnorm(200,0,1))
@@ -202,23 +204,15 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' ## for each component from this g, and ii) initialize pi to the value
 #' ## from this g.
 #' beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
-ash.workhorse = function(betahat,sebetahat,
-                         method = c("fdr","shrink"),
-                         mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),
-                         optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
-                         df=NULL,
-                         nullweight=10,
-                         pointmass = TRUE,
-                         prior=c("nullbiased","uniform","unit"),
-                         mixsd=NULL, gridmult=sqrt(2),
-                         outputlevel=2,
-                         g=NULL,
-                         fixg=FALSE,
-                         mode=0,
-                         alpha=0,
-                         control=list(),
-                         lik=NULL
-){
+ash.workhorse <-
+    function(betahat, sebetahat, method = c("fdr","shrink"),
+             mixcompdist = c("uniform","halfuniform","normal","+uniform",
+                             "-uniform"),
+             optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
+             df = NULL,nullweight = 10,pointmass = TRUE,
+             prior = c("nullbiased","uniform","unit"),mixsd = NULL,
+             gridmult = sqrt(2),outputlevel = 2,g = NULL,fixg = FALSE,
+             mode = 0,alpha = 0,control = list(),lik = NULL) {
 
   if(!missing(pointmass) & !missing(method))
     stop("Specify either method or pointmass, not both")
