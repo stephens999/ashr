@@ -74,7 +74,8 @@ ash <- function (betahat, sebetahat,
                                  "-uniform"),
                  df = NULL,...)
 
-  # TO DO: Explain here what this does. It certainly isn't clear!
+  # TO DO: Explain here what this does. It certainly isn't clear
+  # (thanks in part to R's strangeness)!
   modifyList(ash.workhorse(betahat,sebetahat,mixcompdist,df = df,...),
              list(call = match.call()))
 
@@ -283,11 +284,11 @@ ash.workhorse <-
 
     if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform")))
       stop("Error: invalid type of mixcompdist")
-    if(mixcompdist=="normal") g=normalmix(pi,rep(mode,k),mixsd)
-    if(mixcompdist=="uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
-    if(mixcompdist=="+uniform") g = unimix(pi,rep(mode,k),mode+mixsd)
-    if(mixcompdist=="-uniform") g = unimix(pi,mode-mixsd,rep(mode,k))
-    if(mixcompdist=="halfuniform"){
+    if(mixcompdist == "normal") g=normalmix(pi,rep(mode,k),mixsd)
+    if(mixcompdist == "uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
+    if(mixcompdist == "+uniform") g = unimix(pi,rep(mode,k),mode+mixsd)
+    if(mixcompdist == "-uniform") g = unimix(pi,mode-mixsd,rep(mode,k))
+    if(mixcompdist == "halfuniform"){
       if(min(mixsd)>0){ #simply reflect the components
         g = unimix(c(pi,pi)/2,c(mode-mixsd,rep(mode,k)),c(rep(mode,k),mode+mixsd))
         prior = rep(prior, 2)
