@@ -3,6 +3,13 @@ Notes on preparing ashr package for submission to CRAN
 
 Useful links:
 * https://cran.r-project.org/banner.shtml#submitting
+* https://cran.r-project.org/doc/manuals/r-release/R-exts.html
+
+Notes for final CRAN submission:
+* Tested with latest release of R.
+* Should I be the maintainer, or Matthew?
 
 to do:
-* 
+
+* Make sure `R CMD check --ascran ashr_2.0.4.tar.gz` does not return
+  any errors or warnings.
