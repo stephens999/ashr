@@ -11,6 +11,5 @@ Notes for final CRAN submission:
 * Should I be the maintainer, or Matthew?
 
 to do:
-
-* Make sure `R CMD check --ascran ashr_2.0.4.tar.gz` does not return
-  any errors or warnings.
+* Add Travis-CI to cran branch.
+* Add codecov to cran branch.
