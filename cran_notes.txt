@@ -10,6 +10,4 @@ Notes for final CRAN submission:
   warnings and 0 notes.
 * Should I be the maintainer, or Matthew?
 
-to do:
-* Add Travis-CI to cran branch.
-* Add codecov to cran branch.
+
