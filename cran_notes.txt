@@ -6,7 +6,8 @@ Useful links:
 * https://cran.r-project.org/doc/manuals/r-release/R-exts.html
 
 Notes for final CRAN submission:
-* Tested with latest release of R.
+* Tested with latest release of R; R CMD CHECK returns 0 errors, 0
+  warnings and 0 notes.
 * Should I be the maintainer, or Matthew?
 
 to do:
