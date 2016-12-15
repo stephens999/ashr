@@ -1,0 +1,8 @@
+Notes on preparing ashr package for submission to CRAN
+------------------------------------------------------
+
+Useful links:
+* https://cran.r-project.org/banner.shtml#submitting
+
+to do:
+* 
