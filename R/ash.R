@@ -76,8 +76,9 @@ ash <- function (betahat, sebetahat,
 
   # TO DO: Explain here what this does. It certainly isn't clear
   # (thanks in part to R's strangeness)!
-  modifyList(ash.workhorse(betahat,sebetahat,mixcompdist,df = df,...),
-             list(call = match.call()))
+  utils::modifyList(ash.workhorse(betahat,sebetahat,
+                                  mixcompdist = mixcompdist,df = df,...),
+                    list(call = match.call()))
 
 #' @title Detailed Adaptive Shrinkage function
 #'
