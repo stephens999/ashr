@@ -1,3 +1,4 @@
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/ashr)](https://cran.r-project.org/package=ashr)
 [![Build Status](https://travis-ci.org/stephens999/ashr.svg)](https://travis-ci.org/stephens999/ashr)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/stephens999/ashr?branch=master&svg=true)](https://ci.appveyor.com/project/stephens999/ashr)
 [![Coverage Status](https://coveralls.io/repos/github/stephens999/ashr/badge.svg?branch=master)](https://coveralls.io/github/stephens999/ashr?branch=master)
