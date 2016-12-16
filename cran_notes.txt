@@ -10,7 +10,5 @@ Notes for final CRAN submission:
   warnings and 0 notes.
 * Should I be the maintainer, or Matthew?
 * Should we merge Muzhe's changes first?
+* Completed winbuilder tests at https://win-builder.r-project.org.
 
-to do:
-* Reduce running time for ashr/tests to <5 seconds.
-* Run win-builder on ashr package.
