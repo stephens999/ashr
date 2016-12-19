@@ -423,8 +423,8 @@ gradient = function(matrix_lik){
 }
 
 ColsumModified = function(matrix_l){
-  small = abs(matrix_l) < 10e-14
-  matrix_l[small] = matrix_l[small]+10e-14
+  small = abs(matrix_l) < 10e-100
+  matrix_l[small] = matrix_l[small]+10e-100
   colSums(matrix_l/matrix_l[,1])
 }
 
