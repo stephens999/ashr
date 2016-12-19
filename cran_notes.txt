@@ -8,7 +8,6 @@ Useful links:
 Notes for final CRAN submission:
 * Tested with latest release of R; R CMD CHECK returns 0 errors, 0
   warnings and 0 notes.
-* Should I be the maintainer, or Matthew?
-* Should we merge Muzhe's changes first?
+* Should we merge Muzhe's changes first? No.
 * Completed winbuilder tests at https://win-builder.r-project.org.
 
