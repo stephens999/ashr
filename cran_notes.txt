@@ -10,4 +10,3 @@ Notes for final CRAN submission:
   warnings and 0 notes.
 * Should we merge Muzhe's changes first? No.
 * Completed winbuilder tests at https://win-builder.r-project.org.
-

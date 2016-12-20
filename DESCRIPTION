@@ -4,7 +4,7 @@ Author: Matthew Stephens, Chaoxing Dai, Mengyin Lu, David Gerard, Nan Xiao, Pete
 Version: 2.0.5
 Date: 2016-12-15
 Title: Methods for Adaptive Shrinkage, using Empirical Bayes
-Description: The main function in the ashr package is \code{\link{ash}}, which should be examined for more details. For simplicity only the most commonly used options are documented under \code{\link{ash}}. For expert or interested users the documentation for function \code{\link{ash.workhorse}} provides documentation on all implemented options. These functions are based on the methods proposed in M. Stephens, 2016, "False discovery rates: a new deal", <DOI:10.1093/biostatistics/kxw041>.
+Description: The main function in the ashr package is 'ash()', which should be examined for more details. For simplicity only the most commonly used options are documented under 'ash()'. For expert or interested users the documentation for function 'ash.workhorse()' provides documentation on all implemented options. These functions are based on the methods proposed in M. Stephens, 2016, "False discovery rates: a new deal", <DOI:10.1093/biostatistics/kxw041>.
 Depends: R (>= 3.1.0)
 Imports: assertthat, truncnorm, SQUAREM, doParallel, pscl, Rcpp (>= 0.10.5), foreach, etrunct
 LinkingTo: Rcpp
