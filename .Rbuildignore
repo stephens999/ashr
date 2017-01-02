@@ -3,3 +3,4 @@
 ^\.Rproj\.user$
 ^appveyor\.yml$
 ^codecov\.yml$
+cran_notes.txt

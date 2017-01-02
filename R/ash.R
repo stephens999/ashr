@@ -71,10 +71,15 @@
 #' betan.ash=ash(betahat, sebetahat,mode=5)
 #' graphics::plot(betahat,get_pm(betan.ash))
 #' summary(betan.ash)
-ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform","halfnormal"),df=NULL,...){
-  return(utils::modifyList(ash.workhorse(betahat,sebetahat,mixcompdist=mixcompdist,df=df,...),list(call=match.call())))
-}
-
+ash <- function (betahat, sebetahat,
+                 mixcompdist = c("uniform","halfuniform","normal","+uniform",
+                                 "-uniform","halfnormal"),
+                 df = NULL,...)
+  # TO DO: Explain here what this does. It certainly isn't clear
+  # (thanks in part to R's strangeness)!
+  utils::modifyList(ash.workhorse(betahat,sebetahat,
+                                  mixcompdist = mixcompdist,df = df,...),
+                    list(call = match.call()))
 
 #' @title Detailed Adaptive Shrinkage function
 #'
@@ -183,7 +188,6 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' e = rnorm(100)+log(rf(100,df1=10,df2=10)) # simulated data with log(F) error
 #' e.ash = ash(e,1,lik=logF_lik(df1=10,df2=10))
 #'
-#'
 #' # Specifying the output
 #' beta.ash = ash(betahat, sebetahat, output = c("fitted_g","logLR","lfsr"))
 #'
@@ -195,7 +199,6 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' graphics::plot(betahat, betan.ash$result$PosteriorMean)
 #' summary(betan.ash)
 #'
-#'
 #' #Running ash with a pre-specified g, rather than estimating it
 #' beta = c(rep(0,100),rnorm(100))
 #' sebetahat = abs(rnorm(200,0,1))
@@ -205,23 +208,15 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' ## for each component from this g, and ii) initialize pi to the value
 #' ## from this g.
 #' beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
-ash.workhorse = function(betahat,sebetahat,
-                         method = c("fdr","shrink"),
-                         mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform","halfnormal"),
-                         optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
-                         df=NULL,
-                         nullweight=10,
-                         pointmass = TRUE,
-                         prior=c("nullbiased","uniform","unit"),
-                         mixsd=NULL, gridmult=sqrt(2),
-                         outputlevel=2,
-                         g=NULL,
-                         fixg=FALSE,
-                         mode=0,
-                         alpha=0,
-                         control=list(),
-                         lik=NULL
-){
+ash.workhorse <-
+    function(betahat, sebetahat, method = c("fdr","shrink"),
+             mixcompdist = c("uniform","halfuniform","normal","+uniform",
+                             "-uniform","halfnormal"),
+             optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
+             df = NULL,nullweight = 10,pointmass = TRUE,
+             prior = c("nullbiased","uniform","unit"),mixsd = NULL,
+             gridmult = sqrt(2),outputlevel = 2,g = NULL,fixg = FALSE,
+             mode = 0,alpha = 0,control = list(),lik = NULL) {
 
   if(!missing(pointmass) & !missing(method))
     stop("Specify either method or pointmass, not both")
@@ -292,11 +287,11 @@ ash.workhorse = function(betahat,sebetahat,
     
     if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","halfnormal")))
       stop("Error: invalid type of mixcompdist")
-    if(mixcompdist=="normal") g=normalmix(pi,rep(mode,k),mixsd)
-    if(mixcompdist=="uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
-    if(mixcompdist=="+uniform") g = unimix(pi,rep(mode,k),mode+mixsd)
-    if(mixcompdist=="-uniform") g = unimix(pi,mode-mixsd,rep(mode,k))
-    if(mixcompdist=="halfuniform"){
+    if(mixcompdist == "normal") g=normalmix(pi,rep(mode,k),mixsd)
+    if(mixcompdist == "uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
+    if(mixcompdist == "+uniform") g = unimix(pi,rep(mode,k),mode+mixsd)
+    if(mixcompdist == "-uniform") g = unimix(pi,mode-mixsd,rep(mode,k))
+    if(mixcompdist == "halfuniform"){
       if(min(mixsd)>0){ #simply reflect the components
         g = unimix(c(pi,pi)/2,c(mode-mixsd,rep(mode,k)),c(rep(mode,k),mode+mixsd))
         prior = rep(prior, 2)
