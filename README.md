@@ -21,6 +21,7 @@ provided some [Mac-specific](rmosek-mac.md) and
 ## Running Adaptive Shrinkage
 
 The main function in the ashr package is `ash`. To get minimal help:
+
 ```
 > library(ashr)
 > ?ash
