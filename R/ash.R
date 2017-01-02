@@ -16,11 +16,11 @@
 #' @param betahat a p vector of estimates
 #' @param sebetahat a p vector of corresponding standard errors
 #' @param mixcompdist distribution of components in mixture
-#'     ("uniform","halfuniform" or "normal"; "+uniform" or
+#'     ("uniform","halfuniform" or "normal"; "halfnormal", "+uniform" or
 #'     "-uniform"), the default is "uniform". If you believe your
-#'     effects may be asymmetric, use "halfuniform". If you want to
+#'     effects may be asymmetric, use "halfuniform" or "halfnormal". If you want to
 #'     allow only positive/negative effects use "+uniform"/"-uniform".
-#'     The use of "normal" is permitted only if df=NULL.
+#'     The use of "normal" and "halfnormal" is permitted only if df=NULL.
 #' @param df appropriate degrees of freedom for (t) distribution of
 #'     betahat/sebetahat, default is NULL which is actually treated as
 #'     infinity (Gaussian)
@@ -57,7 +57,9 @@
 #' beta.ash = ash(betahat, sebetahat)
 #' names(beta.ash)
 #' head(beta.ash$result) # the main dataframe of results
-#' graphics::plot(betahat,beta.ash$result$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
+#' head(get_pm(beta.ash)) # get_pm returns posterior mean
+#' head(get_lfsr(beta.ash)) # get_lfsr returns the local false sign rate
+#' graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4))
 #'
 #' CIMatrix=ashci(beta.ash,level=0.95)
 #' print(CIMatrix)
@@ -65,11 +67,11 @@
 #' #Illustrating the non-zero mode feature
 #' betahat=betahat+5
 #' beta.ash = ash(betahat, sebetahat)
-#' graphics::plot(betahat,beta.ash$result$PosteriorMean)
+#' graphics::plot(betahat,get_pm(beta.ash))
 #' betan.ash=ash(betahat, sebetahat,mode=5)
-#' graphics::plot(betahat, betan.ash$result$PosteriorMean)
+#' graphics::plot(betahat,get_pm(betan.ash))
 #' summary(betan.ash)
-ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform","tnormal"),df=NULL,...){
+ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform","halfnormal"),df=NULL,...){
   return(utils::modifyList(ash.workhorse(betahat,sebetahat,mixcompdist=mixcompdist,df=df,...),list(call=match.call())))
 }
 
@@ -94,11 +96,12 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #'     combinations of parameters: "shrinkage" sets pointmass=FALSE
 #'     and prior="uniform"; "fdr" sets pointmass=TRUE and
 #'     prior="nullbiased".
-#' @param mixcompdist distribution of components in mixture (
-#'     "uniform","halfuniform","normal" or "+uniform"), the default
-#'     value is "uniform" use "halfuniform" to allow for assymetric g,
-#'     and "+uniform"/"-uniform" to constrain g to be
-#'     positive/negative.
+#' @param mixcompdist distribution of components in mixture
+#'     ("uniform","halfuniform" or "normal"; "halfnormal", "+uniform" or
+#'     "-uniform"), the default is "uniform". If you believe your
+#'     effects may be asymmetric, use "halfuniform" or "halfnormal". If you want to
+#'     allow only positive/negative effects use "+uniform"/"-uniform".
+#'     The use of "normal" and "halfnormal" is permitted only if df=NULL.
 #' @param optmethod specifies the function implementing an optimization method. Default is
 #'     "mixIP", an interior point method, if REBayes is installed;
 #'     otherwise an EM algorithm is used. The interior point method is
@@ -204,7 +207,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
 ash.workhorse = function(betahat,sebetahat,
                          method = c("fdr","shrink"),
-                         mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform","tnormal"),
+                         mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform","halfnormal"),
                          optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
                          df=NULL,
                          nullweight=10,
@@ -287,7 +290,7 @@ ash.workhorse = function(betahat,sebetahat,
     prior = setprior(prior,k,nullweight,null.comp)
     pi = initpi(k,length(data$x),null.comp)
     
-    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","tnormal")))
+    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","halfnormal")))
       stop("Error: invalid type of mixcompdist")
     if(mixcompdist=="normal") g=normalmix(pi,rep(mode,k),mixsd)
     if(mixcompdist=="uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
@@ -305,7 +308,7 @@ ash.workhorse = function(betahat,sebetahat,
         pi = c(pi,pi[-null.comp])
       }
     }
-    if(mixcompdist=="tnormal"){
+    if(mixcompdist=="halfnormal"){
       if(min(mixsd)>0){
         g = tnormalmix(c(pi,pi)/2,rep(mode,2*k),c(mixsd,mixsd),c(rep(-Inf,k),rep(0,k)),c(rep(0,k),rep(Inf,k)))
         prior = rep(prior, 2)

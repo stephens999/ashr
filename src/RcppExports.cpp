@@ -19,3 +19,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// timesTwo
+NumericVector timesTwo(NumericVector x);
+RcppExport SEXP ashr_timesTwo(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(timesTwo(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// timesThree
+double timesThree(double x);
+RcppExport SEXP ashr_timesThree(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(timesThree(x));
+    return rcpp_result_gen;
+END_RCPP
+}

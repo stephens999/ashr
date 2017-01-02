@@ -5,7 +5,7 @@
 \title{Main Adaptive Shrinkage function}
 \usage{
 ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal",
-  "+uniform", "-uniform"), df = NULL, ...)
+  "+uniform", "-uniform", "halfnormal"), df = NULL, ...)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -13,11 +13,11 @@ ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal",
 \item{sebetahat}{a p vector of corresponding standard errors}
 
 \item{mixcompdist}{distribution of components in mixture
-("uniform","halfuniform" or "normal"; "+uniform" or
+("uniform","halfuniform" or "normal"; "halfnormal", "+uniform" or
 "-uniform"), the default is "uniform". If you believe your
-effects may be asymmetric, use "halfuniform". If you want to
+effects may be asymmetric, use "halfuniform" or "halfnormal". If you want to
 allow only positive/negative effects use "+uniform"/"-uniform".
-The use of "normal" is permitted only if df=NULL.}
+The use of "normal" and "halfnormal" is permitted only if df=NULL.}
 
 \item{df}{appropriate degrees of freedom for (t) distribution of
 betahat/sebetahat, default is NULL which is actually treated as
@@ -65,7 +65,9 @@ betahat = rnorm(200,beta,sebetahat)
 beta.ash = ash(betahat, sebetahat)
 names(beta.ash)
 head(beta.ash$result) # the main dataframe of results
-graphics::plot(betahat,beta.ash$result$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
+head(get_pm(beta.ash)) # get_pm returns posterior mean
+head(get_lfsr(beta.ash)) # get_lfsr returns the local false sign rate
+graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4))
 
 CIMatrix=ashci(beta.ash,level=0.95)
 print(CIMatrix)
@@ -73,9 +75,9 @@ print(CIMatrix)
 #Illustrating the non-zero mode feature
 betahat=betahat+5
 beta.ash = ash(betahat, sebetahat)
-graphics::plot(betahat,beta.ash$result$PosteriorMean)
+graphics::plot(betahat,get_pm(beta.ash))
 betan.ash=ash(betahat, sebetahat,mode=5)
-graphics::plot(betahat, betan.ash$result$PosteriorMean)
+graphics::plot(betahat,get_pm(betan.ash))
 summary(betan.ash)
 }
 \seealso{

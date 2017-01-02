@@ -5,11 +5,12 @@
 \title{Detailed Adaptive Shrinkage function}
 \usage{
 ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
-  mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform"),
-  optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"), df = NULL,
-  nullweight = 10, pointmass = TRUE, prior = c("nullbiased", "uniform",
-  "unit"), mixsd = NULL, gridmult = sqrt(2), outputlevel = 2, g = NULL,
-  fixg = FALSE, mode = 0, alpha = 0, control = list(), lik = NULL)
+  mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform",
+  "halfnormal"), optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"),
+  df = NULL, nullweight = 10, pointmass = TRUE, prior = c("nullbiased",
+  "uniform", "unit"), mixsd = NULL, gridmult = sqrt(2), outputlevel = 2,
+  g = NULL, fixg = FALSE, mode = 0, alpha = 0, control = list(),
+  lik = NULL)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -23,11 +24,12 @@ combinations of parameters: "shrinkage" sets pointmass=FALSE
 and prior="uniform"; "fdr" sets pointmass=TRUE and
 prior="nullbiased".}
 
-\item{mixcompdist}{distribution of components in mixture (
-"uniform","halfuniform","normal" or "+uniform"), the default
-value is "uniform" use "halfuniform" to allow for assymetric g,
-and "+uniform"/"-uniform" to constrain g to be
-positive/negative.}
+\item{mixcompdist}{distribution of components in mixture
+("uniform","halfuniform" or "normal"; "halfnormal", "+uniform" or
+"-uniform"), the default is "uniform". If you believe your
+effects may be asymmetric, use "halfuniform" or "halfnormal". If you want to
+allow only positive/negative effects use "+uniform"/"-uniform".
+The use of "normal" and "halfnormal" is permitted only if df=NULL.}
 
 \item{optmethod}{specifies the function implementing an optimization method. Default is
 "mixIP", an interior point method, if REBayes is installed;
