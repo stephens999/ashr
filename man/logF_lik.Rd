@@ -15,7 +15,7 @@ logF_lik(df1, df2)
 Creates a likelihood object for ash for use with logF error distribution
 }
 \examples{
-   e = rnorm(100) + log(rf(100,df1=10,df2=10)) # simulate some data with log(F) error
+   e = rnorm(1000) + log(rf(1000,df1=10,df2=10)) # simulate some data with log(F) error
    ash(e,1,lik=logF_lik(df1=10,df2=10))
 }
 

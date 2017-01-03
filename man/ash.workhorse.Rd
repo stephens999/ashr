@@ -133,7 +133,6 @@ beta.ash2 = ash(betahat, sebetahat, lik = t_lik(df=4))
 e = rnorm(100)+log(rf(100,df1=10,df2=10)) # simulated data with log(F) error
 e.ash = ash(e,1,lik=logF_lik(df1=10,df2=10))
 
-
 # Specifying the output
 beta.ash = ash(betahat, sebetahat, output = c("fitted_g","logLR","lfsr"))
 
@@ -144,7 +143,6 @@ graphics::plot(betahat,beta.ash$result$PosteriorMean)
 betan.ash=ash(betahat, sebetahat,mode=5)
 graphics::plot(betahat, betan.ash$result$PosteriorMean)
 summary(betan.ash)
-
 
 #Running ash with a pre-specified g, rather than estimating it
 beta = c(rep(0,100),rnorm(100))
