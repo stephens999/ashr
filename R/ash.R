@@ -115,8 +115,9 @@ ash <- function (betahat, sebetahat,
 #'     betahat/sebetahat, default is NULL(Gaussian)
 #' @param nullweight scalar, the weight put on the prior under
 #'     "nullbiased" specification, see \code{prior}
-#' @param mode either numeric (indicating mode of g) or string "estimate",
-#'      to indicate mode should be estimated.
+#' @param mode either numeric (indicating mode of g) or string "estimate", 
+#'      to indicate mode should be estimated, or a two dimension numeric vector
+#'      to indicate the interval to be searched for the mode. 
 #' @param pointmass logical, indicating whether to use a point mass at
 #'     zero as one of components for a mixture distribution
 #' @param prior string, or numeric vector indicating Dirichlet prior
@@ -140,6 +141,8 @@ ash <- function (betahat, sebetahat,
 #' @param fixg if TRUE, don't estimate g but use the specified g -
 #'     useful for computations under the "true" g in simulations
 #' @param alpha numeric value of alpha parameter in the model
+#' @param grange two dimension numeric vector indicating the 
+#'     left and right limit of the prior g. Default is c(-Inf, Inf).
 #' @param control A list of control parameters passed to optmethod
 #' @param lik contains details of the likelihood used; for general ash
 #'
@@ -216,7 +219,7 @@ ash.workhorse <-
              df = NULL,nullweight = 10,pointmass = TRUE,
              prior = c("nullbiased","uniform","unit"),mixsd = NULL,
              gridmult = sqrt(2),outputlevel = 2,g = NULL,fixg = FALSE,
-             mode = 0,alpha = 0,control = list(),lik = NULL) {
+             mode = 0,alpha = 0,grange = c(-Inf,Inf),control = list(),lik = NULL) {
 
   if(!missing(pointmass) & !missing(method))
     stop("Specify either method or pointmass, not both")
@@ -236,16 +239,42 @@ ash.workhorse <-
       df <- NULL
     }
   }
-
-  if(mode=="estimate"){ #just pass everything through to ash.estmode for non-zero-mode
+  # poisson likelihood has non-negative g
+  # do not put big weight on null component
+  # automatically estimate the mode if not specified
+  if(sum(lik$name=="pois")){
+    grange = c(max(0,min(grange)), max(grange))
+    if(missing(nullweight)){nullweight = 1}
+    if(missing(mode)){mode = "estimate"}
+  }
+  # binomial likelihood has g restricted on [0,1]
+  if(sum(lik$name=="binom")){
+    grange = c(max(0,min(grange)), min(1,max(grange)))
+    if(missing(nullweight)){nullweight = 1}
+    if(missing(mode)){mode = "estimate"}
+  }
+  
+  if(sum(mode=="estimate") | length(mode)==2){ #just pass everything through to ash.estmode for non-zero-mode
     args <- as.list(environment())
     args$mode = NULL
     args$outputlevel = NULL
     args$method=NULL # avoid specifying method as well as prior/pointmass
     args$g = NULL # avoid specifying g as well as mode
+    mode = ifelse(is.numeric(mode),mode,NA)
+    
+    # set range to search the mode
+    if (sum(lik$name=="pois")){
+      args$modemin = min(mode, min(lik$data),na.rm = TRUE)
+      args$modemax = max(mode, max(lik$data),na.rm = TRUE)
+    }else if(sum(lik$name=="binom")){
+      args$modemin = min(grange)
+      args$modemax = max(grange)
+    }else{
+      args$modemin = min(mode, min(betahat),na.rm = TRUE)
+      args$modemax = max(mode, max(betahat),na.rm = TRUE)
+    }
     #args = as.list( match.call() )
     mode = do.call(ash.estmode,args)}
-
 
   ##1.Handling Input Parameters
   mixcompdist = match.arg(mixcompdist)
@@ -273,8 +302,10 @@ ash.workhorse <-
     null.comp=1 #null.comp not actually used
     prior = setprior(prior,k,nullweight,null.comp)
   } else {
+    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform"))) 
+      stop("Error: invalid type of mixcompdist")
     if(is.null(mixsd)){
-      mixsd = autoselect.mixsd(data,gridmult,mode)
+      mixsd = autoselect.mixsd(data,gridmult,mode,grange,mixcompdist)
     }
     if(pointmass){
       mixsd = c(0,mixsd)
@@ -292,15 +323,23 @@ ash.workhorse <-
     if(mixcompdist == "+uniform") g = unimix(pi,rep(mode,k),mode+mixsd)
     if(mixcompdist == "-uniform") g = unimix(pi,mode-mixsd,rep(mode,k))
     if(mixcompdist == "halfuniform"){
+
       if(min(mixsd)>0){ #simply reflect the components
-        g = unimix(c(pi,pi)/2,c(mode-mixsd,rep(mode,k)),c(rep(mode,k),mode+mixsd))
-        prior = rep(prior, 2)
-        pi = rep(pi, 2)
+        pi = c(pi[mode-mixsd>=min(grange)],pi[mode+mixsd<=max(grange)])
+        pi = pi/sum(pi)
+        g = unimix(pi,c((mode-mixsd)[mode-mixsd>=min(grange)],rep(mode,sum(mode+mixsd<=max(grange)))),
+                   c(rep(mode,sum(mode-mixsd>=min(grange))),(mode+mixsd)[mode+mixsd<=max(grange)]))
+        prior = c(prior[mode-mixsd>=min(grange)], prior[mode+mixsd<=max(grange)])
       } else { #define two sets of components, but don't duplicate null component
         null.comp=which.min(mixsd)
-        g = unimix(c(pi,pi[-null.comp])/2,c(mode-mixsd,rep(mode,k-1)),c(rep(mode,k),mode+mixsd[-null.comp]))
-        prior = c(prior,prior[-null.comp])
-        pi = c(pi,pi[-null.comp])
+        tmp = (mode+mixsd)[-null.comp]
+        pi = c(pi[mode-mixsd>=min(grange)],(pi[-null.comp])[tmp<=max(grange)])
+        pi = pi/sum(pi)
+        g = unimix(pi,
+                   c((mode-mixsd)[mode-mixsd>=min(grange)],rep(mode,sum(tmp<=max(grange)))),
+                   c(rep(mode,sum(mode-mixsd>=min(grange))),tmp[tmp<=max(grange)]))
+        prior = c(prior[mode-mixsd>=min(grange)],(prior[-null.comp])[tmp<=max(grange)])
+        #pi = c(pi,pi[-null.comp])
       }
     }
     if(mixcompdist=="halfnormal"){
@@ -599,7 +638,8 @@ qval.from.lfdr = function(lfdr){
 # that should be used, based on the values of betahat and sebetahat
 # mode is the location about which inference is going to be centered
 # mult is the multiplier by which the sds differ across the grid
-autoselect.mixsd = function(data,mult,mode){
+# grange is the user-specified range of mixsd
+autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
   betahat = data$x - mode
   sebetahat = data$s
   exclude = get_exclusions(data)
@@ -612,6 +652,14 @@ autoselect.mixsd = function(data,mult,mode){
   }else{
     sigmaamax = 2*sqrt(max(betahat^2-sebetahat^2)) #this computes a rough largest value you'd want to use, based on idea that sigmaamax^2 + sebetahat^2 should be at least betahat^2
   }
+  
+  if(mixcompdist=="halfuniform"){
+    sigmaamax = min(max(abs(grange-mode)), sigmaamax)
+  }else{
+    sigmaamax = min(min(abs(grange-mode)), sigmaamax)
+  }
+  
+  
   if(mult==0){
     return(c(0,sigmaamax/2))
   }else{
