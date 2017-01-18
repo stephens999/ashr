@@ -1,28 +1,16 @@
 Package: ashr
 Maintainer: Matthew Stephens <mstephens@uchicago.edu>
-Author: Matthew Stephens, Chaoxing Dai, Mengyin Lu, David Gerard, Nan Xiao
-Version: 2.0.1
-License: GPL-3
+Author: Matthew Stephens, Chaoxing Dai, Mengyin Lu, David Gerard, Nan Xiao, Peter Carbonetto
+Version: 2.1
+Date: 2017-01-02
 Title: Methods for Adaptive Shrinkage, using Empirical Bayes
-Description: The main function in the ashr package is \code{\link{ash}}, which
-    should be examined for more details. For simplicity only the most commonly-
-    used options are documented under \code{\link{ash}}. For expert or interested
-    users the documentation for function \code{\link{ash.workhorse}} provides
-    documentation on all implemented options.
-Imports:
-    assertthat,
-    truncnorm,
-    SQUAREM,
-    doParallel,
-    pscl,
-    Rcpp (>= 0.10.5),
-    foreach,
-    etrunct
+Description: The R package 'ashr' implements an Empirical Bayes approach for large-scale hypothesis testing and false discovery rate (FDR) estimation based on the methods proposed in M. Stephens, 2016, "False discovery rates: a new deal", <DOI:10.1093/biostatistics/kxw041>. These methods can be applied whenever two sets of summary statistics---estimated effects and standard errors---are available, just as 'qvalue' can be applied to previously computed p-values. Two main interfaces are provided: ash(), which is more user-friendly; and ash.workhorse(), which has more options and is geared toward advanced users.
+Depends: R (>= 3.1.0)
+Imports: assertthat, truncnorm, SQUAREM, doParallel, pscl, Rcpp (>= 0.10.5), foreach, etrunct
 LinkingTo: Rcpp
-Suggests:
-    REBayes,
-    testthat,
-    roxygen2,
-    covr
-URL: "http://github.com/stephens999/ashr
+Suggests: testthat, roxygen2, covr
+Enhances: REBayes, Rmosek
+License: GPL (>=3)
+NeedsCompilation: no
+URL: http://github.com/stephens999/ashr
 RoxygenNote: 5.0.1

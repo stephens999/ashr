@@ -16,11 +16,11 @@
 #' @param betahat a p vector of estimates
 #' @param sebetahat a p vector of corresponding standard errors
 #' @param mixcompdist distribution of components in mixture
-#'     ("uniform","halfuniform" or "normal"; "+uniform" or
+#'     ("uniform","halfuniform" or "normal"; "halfnormal", "+uniform" or
 #'     "-uniform"), the default is "uniform". If you believe your
-#'     effects may be asymmetric, use "halfuniform". If you want to
+#'     effects may be asymmetric, use "halfuniform" or "halfnormal". If you want to
 #'     allow only positive/negative effects use "+uniform"/"-uniform".
-#'     The use of "normal" is permitted only if df=NULL.
+#'     The use of "normal" and "halfnormal" is permitted only if df=NULL.
 #' @param df appropriate degrees of freedom for (t) distribution of
 #'     betahat/sebetahat, default is NULL which is actually treated as
 #'     infinity (Gaussian)
@@ -57,7 +57,9 @@
 #' beta.ash = ash(betahat, sebetahat)
 #' names(beta.ash)
 #' head(beta.ash$result) # the main dataframe of results
-#' graphics::plot(betahat,beta.ash$result$PosteriorMean,xlim=c(-4,4),ylim=c(-4,4))
+#' head(get_pm(beta.ash)) # get_pm returns posterior mean
+#' head(get_lfsr(beta.ash)) # get_lfsr returns the local false sign rate
+#' graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4))
 #'
 #' CIMatrix=ashci(beta.ash,level=0.95)
 #' print(CIMatrix)
@@ -65,14 +67,19 @@
 #' #Illustrating the non-zero mode feature
 #' betahat=betahat+5
 #' beta.ash = ash(betahat, sebetahat)
-#' graphics::plot(betahat,beta.ash$result$PosteriorMean)
+#' graphics::plot(betahat,get_pm(beta.ash))
 #' betan.ash=ash(betahat, sebetahat,mode=5)
-#' graphics::plot(betahat, betan.ash$result$PosteriorMean)
+#' graphics::plot(betahat,get_pm(betan.ash))
 #' summary(betan.ash)
-ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),df=NULL,...){
-  return(utils::modifyList(ash.workhorse(betahat,sebetahat,mixcompdist=mixcompdist,df=df,...),list(call=match.call())))
-}
-
+ash <- function (betahat, sebetahat,
+                 mixcompdist = c("uniform","halfuniform","normal","+uniform",
+                                 "-uniform","halfnormal"),
+                 df = NULL,...)
+  # TO DO: Explain here what this does. It certainly isn't clear
+  # (thanks in part to R's strangeness)!
+  utils::modifyList(ash.workhorse(betahat,sebetahat,
+                                  mixcompdist = mixcompdist,df = df,...),
+                    list(call = match.call()))
 
 #' @title Detailed Adaptive Shrinkage function
 #'
@@ -94,11 +101,12 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #'     combinations of parameters: "shrinkage" sets pointmass=FALSE
 #'     and prior="uniform"; "fdr" sets pointmass=TRUE and
 #'     prior="nullbiased".
-#' @param mixcompdist distribution of components in mixture (
-#'     "uniform","halfuniform","normal" or "+uniform"), the default
-#'     value is "uniform" use "halfuniform" to allow for assymetric g,
-#'     and "+uniform"/"-uniform" to constrain g to be
-#'     positive/negative.
+#' @param mixcompdist distribution of components in mixture
+#'     ("uniform","halfuniform" or "normal"; "halfnormal", "+uniform" or
+#'     "-uniform"), the default is "uniform". If you believe your
+#'     effects may be asymmetric, use "halfuniform" or "halfnormal". If you want to
+#'     allow only positive/negative effects use "+uniform"/"-uniform".
+#'     The use of "normal" and "halfnormal" is permitted only if df=NULL.
 #' @param optmethod specifies the function implementing an optimization method. Default is
 #'     "mixIP", an interior point method, if REBayes is installed;
 #'     otherwise an EM algorithm is used. The interior point method is
@@ -125,7 +133,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #'     1=also PosteriorMean and PosteriorSD; 2= everything usually
 #'     needed; 3=also include results of mixture fitting procedure
 #'     (includes matrix of log-likelihoods used to fit mixture); 4=
-#'     output additional things required by flash (flash_data)]. Otherwise the user can also specify 
+#'     output additional things required by flash (flash_data)]. Otherwise the user can also specify
 #'     the output they require in detail (see Examples)
 #' @param g the prior distribution for beta (usually estimated from
 #'     the data; this is used primarily in simulated data to do
@@ -137,7 +145,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #'     left and right limit of the prior g. Default is c(-Inf, Inf).
 #' @param control A list of control parameters passed to optmethod
 #' @param lik contains details of the likelihood used; for general ash
-#' 
+#'
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
 #' \item{fitted_g}{fitted mixture, either a normalmix or unimix}
 #' \item{loglik}{log P(D|mle(pi))}
@@ -171,7 +179,7 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' head(beta.ash$result) #dataframe of results
 #' head(get_lfsr(beta.ash)) #get lfsr
 #' head(get_pm(beta.ash)) #get posterior mean
-#' graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4)) 
+#' graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4))
 #'
 #' CIMatrix=ashci(beta.ash,level=0.95) #note currently default is only compute CIs for lfsr<0.05
 #' print(CIMatrix)
@@ -179,14 +187,13 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' #Running ash with different error models
 #' beta.ash1 = ash(betahat, sebetahat, lik = normal_lik())
 #' beta.ash2 = ash(betahat, sebetahat, lik = t_lik(df=4))
-#' 
+#'
 #' e = rnorm(100)+log(rf(100,df1=10,df2=10)) # simulated data with log(F) error
-#' e.ash = ash(e,1,lik=logF_lik(df1=10,df2=10)) 
-#' 
-#' 
+#' e.ash = ash(e,1,lik=logF_lik(df1=10,df2=10))
+#'
 #' # Specifying the output
 #' beta.ash = ash(betahat, sebetahat, output = c("fitted_g","logLR","lfsr"))
-#' 
+#'
 #' #Illustrating the non-zero mode feature
 #' betahat=betahat+5
 #' beta.ash = ash(betahat, sebetahat)
@@ -194,7 +201,6 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' betan.ash=ash(betahat, sebetahat,mode=5)
 #' graphics::plot(betahat, betan.ash$result$PosteriorMean)
 #' summary(betan.ash)
-#' 
 #'
 #' #Running ash with a pre-specified g, rather than estimating it
 #' beta = c(rep(0,100),rnorm(100))
@@ -205,25 +211,16 @@ ash = function(betahat,sebetahat,mixcompdist = c("uniform","halfuniform","normal
 #' ## for each component from this g, and ii) initialize pi to the value
 #' ## from this g.
 #' beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
-ash.workhorse = function(betahat,sebetahat,
-                         method = c("fdr","shrink"),
-                         mixcompdist = c("uniform","halfuniform","normal","+uniform","-uniform"),
-                         optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
-                         df=NULL,
-                         nullweight=10,
-                         pointmass = TRUE,
-                         prior=c("nullbiased","uniform","unit"),
-                         mixsd=NULL, gridmult=sqrt(2),
-                         outputlevel=2,
-                         g=NULL,
-                         fixg=FALSE,
-                         mode=0,
-                         alpha=0,
-                         grange=c(-Inf,Inf),
-                         control=list(),
-                         lik=NULL
-){
-  
+ash.workhorse <-
+    function(betahat, sebetahat, method = c("fdr","shrink"),
+             mixcompdist = c("uniform","halfuniform","normal","+uniform",
+                             "-uniform","halfnormal"),
+             optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
+             df = NULL,nullweight = 10,pointmass = TRUE,
+             prior = c("nullbiased","uniform","unit"),mixsd = NULL,
+             gridmult = sqrt(2),outputlevel = 2,g = NULL,fixg = FALSE,
+             mode = 0,alpha = 0,grange = c(-Inf,Inf),control = list(),lik = NULL) {
+
   if(!missing(pointmass) & !missing(method))
     stop("Specify either method or pointmass, not both")
   if(!missing(prior) & !missing(method))
@@ -235,7 +232,13 @@ ash.workhorse = function(betahat,sebetahat,
     if (method == "shrink"){pointmass =FALSE; prior="uniform"}
     if (method == "fdr"){pointmass =TRUE; prior= "nullbiased"}
   }
-  
+
+  ## Check to see if is Inf, then switch to NULL.
+  if (!is.null(df)) {
+    if (df == Inf) {
+      df <- NULL
+    }
+  }
   # poisson likelihood has non-negative g
   # do not put big weight on null component
   # automatically estimate the mode if not specified
@@ -272,17 +275,14 @@ ash.workhorse = function(betahat,sebetahat,
     }
     #args = as.list( match.call() )
     mode = do.call(ash.estmode,args)}
-  
-  
-  
-  
+
   ##1.Handling Input Parameters
   mixcompdist = match.arg(mixcompdist)
   optmethod   = match.arg(optmethod)
   prior       = match.arg(prior)
- 
+
   # Set optimization method
-  optmethod = set_optmethod(optmethod)  
+  optmethod = set_optmethod(optmethod)
   check_args(mixcompdist,df,prior,optmethod,gridmult,sebetahat,betahat)
   if(is.null(lik)){ #set likelihood based on defaults if missing
     if(is.null(df)){
@@ -292,14 +292,14 @@ ash.workhorse = function(betahat,sebetahat,
   check_lik(lik) # minimal check that it obeys requirements
   lik = add_etruncFUN(lik) #if missing, add a function to compute mean of truncated distribution
   data = set_data(betahat, sebetahat, lik, alpha)
-  
+
   ##2. Generating mixture distribution g
 
   if(fixg & missing(g)){stop("if fixg=TRUE then you must specify g!")}
 
   if(!is.null(g)){
     k=ncomp(g)
-    null.comp=1 #null.comp not actually used 
+    null.comp=1 #null.comp not actually used
     prior = setprior(prior,k,nullweight,null.comp)
   } else {
     if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform"))) 
@@ -316,11 +316,14 @@ ash.workhorse = function(betahat,sebetahat,
     prior = setprior(prior,k,nullweight,null.comp)
     pi = initpi(k,length(data$x),null.comp)
     
-    if(mixcompdist=="normal") g=normalmix(pi,rep(mode,k),mixsd)
-    if(mixcompdist=="uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
-    if(mixcompdist=="+uniform") g = unimix(pi,rep(mode,k),mode+mixsd)
-    if(mixcompdist=="-uniform") g = unimix(pi,mode-mixsd,rep(mode,k))
-    if(mixcompdist=="halfuniform"){
+    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","halfnormal")))
+      stop("Error: invalid type of mixcompdist")
+    if(mixcompdist == "normal") g=normalmix(pi,rep(mode,k),mixsd)
+    if(mixcompdist == "uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
+    if(mixcompdist == "+uniform") g = unimix(pi,rep(mode,k),mode+mixsd)
+    if(mixcompdist == "-uniform") g = unimix(pi,mode-mixsd,rep(mode,k))
+    if(mixcompdist == "halfuniform"){
+
       if(min(mixsd)>0){ #simply reflect the components
         pi = c(pi[mode-mixsd>=min(grange)],pi[mode+mixsd<=max(grange)])
         pi = pi/sum(pi)
@@ -337,6 +340,19 @@ ash.workhorse = function(betahat,sebetahat,
                    c(rep(mode,sum(mode-mixsd>=min(grange))),tmp[tmp<=max(grange)]))
         prior = c(prior[mode-mixsd>=min(grange)],(prior[-null.comp])[tmp<=max(grange)])
         #pi = c(pi,pi[-null.comp])
+      }
+    }
+    if(mixcompdist=="halfnormal"){
+      if(min(mixsd)>0){
+        g = tnormalmix(c(pi,pi)/2,rep(mode,2*k),c(mixsd,mixsd),c(rep(-Inf,k),rep(0,k)),c(rep(0,k),rep(Inf,k)))
+        prior = rep(prior, 2)
+        pi = rep(pi, 2)
+      }
+      else{
+        null.comp=which.min(mixsd)
+        g = tnormalmix(c(pi,pi[-null.comp])/2,rep(mode,2*k-1),c(mixsd,mixsd[-null.comp]),c(rep(-Inf,k),rep(0,k-1)),c(rep(0,k),rep(Inf,k-1)))
+        prior = c(prior,prior[-null.comp])
+        pi = c(pi,pi[-null.comp])
       }
     }
   }
@@ -364,7 +380,7 @@ ash.workhorse = function(betahat,sebetahat,
   if("fit_details" %in% output){val = c(val,list(fit_details = pi.fit))}
   if("flash_data" %in% output){val = c(val, list(flash_data=calc_flash_data(ghat,data)))}
 
-  # Compute the result component of value - 
+  # Compute the result component of value -
   # result is a dataframe containing lfsr, etc
   # resfns is a list of functions used to produce columns of that dataframe
   resfns = set_resfns(output)
@@ -373,7 +389,7 @@ ash.workhorse = function(betahat,sebetahat,
     if(!is.null(df)){result$df = df}
     result = cbind(result,as.data.frame(lapply(resfns,do.call,list(g=pi.fit$g,data=data))))
     val = c(val, list(result=result))
-  } 
+  }
 
   ##5. Returning the val
 
@@ -439,27 +455,33 @@ compute_lfsr = function(NegativeProb,ZeroProb){
 #of the loglik for $\pi=(\pi_0,...,1-\pi_0,...)$ with respect to $\pi_0$ at $\pi_0=1$.
 gradient = function(matrix_lik){
   n = nrow(matrix_lik)
-  grad = n - colSums(matrix_lik/matrix_lik[,1])
+  grad = n - ColsumModified(matrix_lik)
   return(grad)
 }
 
+ColsumModified = function(matrix_l){
+  small = abs(matrix_l) < 10e-100
+  matrix_l[small] = matrix_l[small]+10e-100
+  colSums(matrix_l/matrix_l[,1])
+}
+
 #' Estimate mixture proportions of a mixture g given noisy (error-prone) data from that mixture.
-#' 
+#'
 #' @details This is used by the ash function. Most users won't need to call this directly, but is
 #' exported for use by some other related packages.
 #'
 #' @param data list to be passed to log_comp_dens_conv; details depend on model
 #' @param g an object representing a mixture distribution (eg normalmix for mixture of normals;
 #'  unimix for mixture of uniforms). The component parameters of g (eg the means and variances) specify the
-#'  components whose mixture proportions are to be estimated. The mixture proportions of g are the parameters to be estimated; 
-#'  the values passed in may be used to initialize the optimization (depending on the optmethod used) 
-#' @param prior numeric vector indicating parameters of "Dirichlet prior" 
-#'     on mixture proportions 
+#'  components whose mixture proportions are to be estimated. The mixture proportions of g are the parameters to be estimated;
+#'  the values passed in may be used to initialize the optimization (depending on the optmethod used)
+#' @param prior numeric vector indicating parameters of "Dirichlet prior"
+#'     on mixture proportions
 #' @param optmethod name of function to use to do optimization
-#' @param control list of control parameters to be passed to optmethod, 
+#' @param control list of control parameters to be passed to optmethod,
 #' typically affecting things like convergence tolerance
-#' @return list, including the final loglikelihood, the null loglikelihood, 
-#' an n by k likelihood matrix with (j,k)th element equal to \eqn{f_k(x_j)}, 
+#' @return list, including the final loglikelihood, the null loglikelihood,
+#' an n by k likelihood matrix with (j,k)th element equal to \eqn{f_k(x_j)},
 #' the fit
 #' and results of optmethod
 #' @export
@@ -469,9 +491,9 @@ estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSq
   pi_init = g$pi
   if(optmethod=="mixVBEM"){pi_init=NULL}  #for some reason pi_init doesn't work with mixVBEM
   k=ncomp(g)
-  
+
   matrix_llik = t(log_comp_dens_conv(g,data)) #an n by k matrix
-  matrix_llik = matrix_llik[!get_exclusions(data),] #remove any rows corresponding to excluded cases; saves time in situations where most data are missing
+  matrix_llik = matrix_llik[!get_exclusions(data),,drop=FALSE] #remove any rows corresponding to excluded cases; saves time in situations where most data are missing
   matrix_llik = matrix_llik - apply(matrix_llik,1, max) #avoid numerical issues by subtracting max of each row
   matrix_lik = exp(matrix_llik)
 
@@ -623,7 +645,7 @@ autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
   exclude = get_exclusions(data)
   betahat = betahat[!exclude]
   sebetahat = sebetahat[!exclude]
-  
+
   sigmaamin = min(sebetahat)/10 #so that the minimum is small compared with measurement precision
   if(all(betahat^2<=sebetahat^2)){
     sigmaamax = 8*sigmaamin #to deal with the occassional odd case where this could happen; 8 is arbitrary

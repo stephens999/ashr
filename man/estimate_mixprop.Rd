@@ -12,20 +12,20 @@ estimate_mixprop(data, g, prior, optmethod = c("mixEM", "mixVBEM",
 
 \item{g}{an object representing a mixture distribution (eg normalmix for mixture of normals;
 unimix for mixture of uniforms). The component parameters of g (eg the means and variances) specify the
-components whose mixture proportions are to be estimated. The mixture proportions of g are the parameters to be estimated; 
+components whose mixture proportions are to be estimated. The mixture proportions of g are the parameters to be estimated;
 the values passed in may be used to initialize the optimization (depending on the optmethod used)}
 
-\item{prior}{numeric vector indicating parameters of "Dirichlet prior" 
+\item{prior}{numeric vector indicating parameters of "Dirichlet prior"
 on mixture proportions}
 
 \item{optmethod}{name of function to use to do optimization}
 
-\item{control}{list of control parameters to be passed to optmethod, 
+\item{control}{list of control parameters to be passed to optmethod,
 typically affecting things like convergence tolerance}
 }
 \value{
-list, including the final loglikelihood, the null loglikelihood, 
-an n by k likelihood matrix with (j,k)th element equal to \eqn{f_k(x_j)}, 
+list, including the final loglikelihood, the null loglikelihood,
+an n by k likelihood matrix with (j,k)th element equal to \eqn{f_k(x_j)},
 the fit
 and results of optmethod
 }
