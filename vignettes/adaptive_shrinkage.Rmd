@@ -1,58 +1,177 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
-date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+title: "Illustration of Adaptive Shrinkage"
+author: "Matthew Stephens"
+date: "2017-01-19"
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{Illustration of Adaptive Shrinkage}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+The goal here is to illustrate the "adaptive" nature of the adaptive
+shrinkage. The shrinkage is adaptive in two senses. First, the amount
+of shrinkage depends on the distribution $g$ of the true effects,
+which is learned from the data: when $g$ is very peaked about zero
+then ash learns this and deduces that signals should be more strongly
+shrunk towards zero than when $g$ is less peaked about zero.  Second,
+the amount of shrinkage of each observation depends on its standard
+error: the smaller the standard error, the more informative the data,
+and so the less shrinkage that occurs. From an Empirical Bayesian
+perspective both of these points are entirely natural: the posterior
+depends on both the prior and the likelihood; the prior, $g$, is
+learned from the data, and the likelihood incorporates the standard
+error of each observation.
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+First, we load the necessary libraries.
 
-## Vignette Info
-
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r load_packages}
+library(ashr)
+library(ggplot2)
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+We simulate from two scenarios: in the first scenario, the effects are more
+peaked about zero (**sim.spiky**); in the second scenario, the effects are
+less peaked at zero (**sim.bignormal**). A summary of the two data sets is
+printed at the end of this chunk.
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+```{r initialize, collapse=TRUE}
+set.seed(100)
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+# Simulates data sets for experiments below.
+rnormmix_datamaker = function (args) {
+  
+  # generate the proportion of true nulls randomly.
+  pi0 = runif(1,args$min_pi0,args$max_pi0) 
+  k   = ncomp(args$g)
+  
+  #randomly draw a component
+  comp   = sample(1:k,args$nsamp,mixprop(args$g),replace = TRUE) 
+  isnull = (runif(args$nsamp,0,1) < pi0)
+  beta   = ifelse(isnull,0,rnorm(args$nsamp,comp_mean(args$g)[comp],
+                                 comp_sd(args$g)[comp]))
+  sebetahat = args$betahatsd
+  betahat   = beta + rnorm(args$nsamp,0,sebetahat)
+  meta      = list(g1 = args$g,beta = beta,pi0 = pi0)
+  input     = list(betahat = betahat,sebetahat = sebetahat,df = NULL)
+  return(list(meta = meta,input = input))
+}
 
-## More Examples
+NSAMP = 1000
+s     = 1/rgamma(NSAMP,5,5)
 
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+sim.spiky =
+  rnormmix_datamaker(args = list(g = normalmix(c(0.4,0.2,0.2,0.2),
+                                               c(0,0,0,0),
+                                               c(0.25,0.5,1,2)),
+                                  min_pi0   = 0,
+                                  max_pi0   = 0,
+                                  nsamp     = NSAMP,
+                                  betahatsd = s))
 
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+sim.bignormal =
+  rnormmix_datamaker(args = list(g         = normalmix(1,0,4),
+                                 min_pi0   = 0,
+                                 max_pi0   = 0,
+                                 nsamp     = NSAMP,
+                                 betahatsd = s))
+
+cat("Summary of observed beta-hats:\n")
+print(rbind(spiky     = quantile(sim.spiky$input$betahat,seq(0,1,0.1)),
+            bignormal = quantile(sim.bignormal$input$betahat,seq(0,1,0.1))),
+      digits = 3)
 ```
 
-Also a quote using `>`:
+Now we run ash on both data sets.
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+```{r run_ash}
+beta.spiky.ash     = ash(sim.spiky$input$betahat,s)
+beta.bignormal.ash = ash(sim.bignormal$input$betahat,s)
+```
+
+Next we plot the shrunken estimates against the observed values, colored
+according to the (square root of) precision: precise estimates being colored
+red, and less precise estimates being blue. Two key features of the plots
+illustrate the ideas of adaptive shrinkage: i) the estimates under the spiky
+scenario are shrunk more strongly, illustrating that shrinkage adapts to the
+underlying distribution of beta; ii) in both cases, estimates with large
+standard error (blue) are shrunk more than estimates with small standard
+error (red) illustrating that shrinkage adapts to measurement precision.
+
+```{r plot_shrunk_vs_obs, fig.align="center"}
+make_df_for_ashplot =
+  function (sim1, sim2, ash1, ash2, name1 = "spiky", name2 = "big-normal") {
+    n = length(sim1$input$betahat)
+    x = c(get_lfsr(ash1),get_lfsr(ash2))
+    return(data.frame(betahat  = c(sim1$input$betahat,sim2$input$betahat),
+                      beta_est = c(get_pm(ash1),get_pm(ash2)),
+                      lfsr     = x,
+                      s        = c(sim1$input$sebetahat,sim2$input$sebetahat),
+                      scenario = c(rep(name1,n),rep(name2,n)),
+                      signif   = x < 0.05))
+  }
+
+ashplot = function(df,xlab="Observed beta-hat",ylab="Shrunken beta estimate")
+  ggplot(df,aes(x = betahat,y = beta_est,color = 1/s)) +
+    xlab(xlab) + ylab(ylab) + geom_point() +
+    facet_grid(.~scenario) +
+    geom_abline(intercept = 0,slope = 1,linetype = "dotted") +
+    scale_colour_gradient2(midpoint = median(1/s),low = "blue",
+                           mid = "white",high = "red",space = "Lab") +
+    coord_fixed(ratio = 1)
+
+df = make_df_for_ashplot(sim.spiky,sim.bignormal,beta.spiky.ash,
+                         beta.bignormal.ash)
+print(ashplot(df))
+```
+
+A related consequence is that significance of each observation is no longer
+monotonic with $p$ value.
+
+```{r plot_pvalues, fig.align="center", warning=FALSE}
+pval_plot = function (df)
+  ggplot(df,aes(x = pnorm(-abs(betahat/s)),y = lfsr,color = log(s))) +
+  geom_point() + facet_grid(.~scenario) + xlim(c(0,0.025)) +
+  xlab("p value") + ylab("lfsr") +
+  scale_colour_gradient2(midpoint = 0,low = "red",
+                         mid = "white",high = "blue")
+
+print(pval_plot(df))
+```
+
+Let's see how these are affected by changing the modelling assumptions so that
+the *standardized* beta are exchangeable (rather than the beta being 
+exchangeable).
+
+```{r run_ash_ET, fig.align="center", warning=FALSE}
+beta.bignormal.ash.ET =
+  ash(sim.bignormal$input$betahat,s,alpha = 1,mixcompdist = "normal")
+beta.spiky.ash.ET =
+  ash(sim.spiky$input$betahat,s,alpha = 1,mixcompdist = "normal")
+df.ET = make_df_for_ashplot(sim.spiky,sim.bignormal,beta.spiky.ash.ET,
+                            beta.bignormal.ash.ET)
+ashplot(df.ET,ylab = "Shrunken beta estimate (ET model)")
+pval_plot(df.ET)
+```
+
+This is a "volcano plot" showing effect size against p value. The blue points
+are "significant" in that they have lfsr < 0.05.
+
+```{r volcano, fig.align="center", warning=FALSE}
+print(ggplot(df,aes(x = betahat,y = -log10(2*pnorm(-abs(betahat/s))),
+                    col = signif)) +
+  geom_point(alpha = 1,size = 1.75) + facet_grid(.~scenario) +
+  theme(legend.position = "none") + xlim(c(-10,10)) + ylim(c(0,15)) +
+  xlab("Effect (beta)") + ylab("-log10 p-value"))
+```
+
+In this case the significance by lfsr is not quite the same as cutting off
+at a given p value (you can see that the decision boundary is not quite the
+same as drawing a horizontal line), but also not that different, presumably
+because the standard errors, although varying across observations, do not
+vary greatly.
+
+## Session information.
+
+```{r info}
+print(sessionInfo())
+```
