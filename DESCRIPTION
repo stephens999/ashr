@@ -8,9 +8,10 @@ Description: The R package 'ashr' implements an Empirical Bayes approach for lar
 Depends: R (>= 3.1.0)
 Imports: assertthat, truncnorm, SQUAREM, doParallel, pscl, Rcpp (>= 0.10.5), foreach, etrunct
 LinkingTo: Rcpp
-Suggests: testthat, roxygen2, covr
+Suggests: testthat, roxygen2, covr, knitr, rmarkdown
 Enhances: REBayes, Rmosek
 License: GPL (>=3)
 NeedsCompilation: no
 URL: http://github.com/stephens999/ashr
 RoxygenNote: 5.0.1
+VignetteBuilder: knitr
