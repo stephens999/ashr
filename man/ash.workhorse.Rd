@@ -5,21 +5,12 @@
 \title{Detailed Adaptive Shrinkage function}
 \usage{
 ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
-<<<<<<< HEAD
-  mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform"),
-  optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"), df = NULL,
-  nullweight = 10, pointmass = TRUE, prior = c("nullbiased", "uniform",
-  "unit"), mixsd = NULL, gridmult = sqrt(2), outputlevel = 2, g = NULL,
-  fixg = FALSE, mode = 0, alpha = 0, grange = c(-Inf, Inf),
-  control = list(), lik = NULL)
-=======
   mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform",
   "halfnormal"), optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"),
   df = NULL, nullweight = 10, pointmass = TRUE, prior = c("nullbiased",
   "uniform", "unit"), mixsd = NULL, gridmult = sqrt(2), outputlevel = 2,
-  g = NULL, fixg = FALSE, mode = 0, alpha = 0, control = list(),
-  lik = NULL)
->>>>>>> master-matthew
+  g = NULL, fixg = FALSE, mode = 0, alpha = 0, grange = c(-Inf, Inf),
+  control = list(), lik = NULL)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -80,14 +71,9 @@ computations with the "true" g)}
 \item{fixg}{if TRUE, don't estimate g but use the specified g -
 useful for computations under the "true" g in simulations}
 
-<<<<<<< HEAD
 \item{mode}{either numeric (indicating mode of g) or string "estimate", 
 to indicate mode should be estimated, or a two dimension numeric vector
 to indicate the interval to be searched for the mode.}
-=======
-\item{mode}{either numeric (indicating mode of g) or string "estimate",
-to indicate mode should be estimated.}
->>>>>>> master-matthew
 
 \item{alpha}{numeric value of alpha parameter in the model}
 
@@ -96,7 +82,13 @@ left and right limit of the prior g. Default is c(-Inf, Inf).}
 
 \item{control}{A list of control parameters passed to optmethod}
 
-\item{lik}{contains details of the likelihood used; for general ash}
+\item{lik}{contains details of the likelihood used; for general
+ash. Currently, the following choices are allowed: normal (see
+function normal_lik(); binomial likelihood (see function
+binomial_lik); likelihood based on logF error distribution
+(see function logF_lik); mixture of normals likelihood (see
+function normalmix_lik); and Poisson likelihood (see function
+pois_lik).#'}
 }
 \value{
 ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
