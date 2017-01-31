@@ -9,7 +9,7 @@ test_that("binom_lik fitted g is close to true g",{
   
   # Check if the estimated mixture proportion for components delta(0.5) and U(0.1,0.9)
   # is close to the true mixture proportion (0.5,0.5)
-  expect_equal(ash.pois.out$fitted_g$pi, c(0.5,0.5), tolerance = 0.05)
+  expect_equal(ash.binom.out$fitted_g$pi, c(0.5,0.5), tolerance = 0.05)
 })
 
 test_that("binom_lik fitted g is close to true g",{
@@ -36,7 +36,7 @@ test_that("binom_lik with big n gives similar answers to normal likelihood",{
   
   # Fit the ash model with two different likelihood densities: (1) the
   # normal distribution with (s.e.) to be match the standard deviations of 
-  # Binomial distribution, and (2) the Poisson distribution
+  # Binomial distribution, and (2) the Binomial distribution
   ash.binom.out = ash(rep(0,length(x)),1,lik=binom_lik(x,n))
   ash.norm.out = ash(x/n, sqrt(p*(1-p)/n), mode="estimate", prior="uniform")
   
