@@ -372,7 +372,7 @@ ash.workhorse <-
   } else {
     pi.fit = list(g=g)
   }
-
+  
   ##4. Computing the return values
 
   val = list() # val will hold the return value

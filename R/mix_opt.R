@@ -25,6 +25,10 @@
 #'  
 #' @export
 mixIP = function(matrix_lik, prior, pi_init = NULL, control = list()){
+
+  # This is the smallest value allowed for the mixture weights.
+  min.f <- 0
+    
   if(!requireNamespace("REBayes",quietly=TRUE)){stop("mixIP requires installation of package REBayes")}
   control = set_control_mixIP(control)
   n = nrow(matrix_lik)
@@ -36,6 +40,12 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list()){
   w = w[w!=0]
   #w = rep(1,n+k)
   res = REBayes::KWDual(A, rep(1,k), normalize(w), control=control)
+
+  # Fix any mixture weights that are less than the minimum allowed value.
+  i        <- which(res$f < min.f)
+  res$f[i] <- min.f
+  res$f    <- normalize(res$f)
+  
   return(list(pihat = normalize(res$f), niter = NULL, converged=(res$status=="OPTIMAL"), control=control))
 }
 
