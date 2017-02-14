@@ -511,16 +511,6 @@ estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSq
     fit = list(converged=TRUE,pihat=c(1,rep(0,k-1)),optmethod="gradient_check")
   }
 
-  ## check if IP method returns negative mixing proportions. If so, run EM.
-  if (optmethod == "mixIP" & (min(fit$pihat) < -10 ^ -12)) {
-      message("Interior point method returned negative mixing proportions.\n Switching to EM optimization.")
-      optmethod <- "mixEM"
-      control = list() #use defaults for mixEM in this
-      fit = do.call(optmethod, args = list(matrix_lik = matrix_lik,
-                                           prior = prior, pi_init = pi_init,
-                                           control = control))
-  }
-
   if(!fit$converged){
       warning("Optimization failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
   }
