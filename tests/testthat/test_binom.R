@@ -72,7 +72,7 @@ test_that("binom_lik (logit link) fitted g is close to true g",{
   p = 1/(1+exp(-logitp))
   n = rep(100,1000)
   x = rbinom(1000,n,p) # Binomial observations
-  ash.binom.out = ash(rep(0,length(x)),1,lik=binom_lik1(x,n,link="logit"),mode="estimate")
+  ash.binom.out = ash(rep(0,length(x)),1,lik=binom_lik(x,n,link="logit"),mode="estimate")
   
   # Check if the estimated mode is close to the true mode
   expect_equal(ash.binom.out$fitted_g$a[1], truemode, tolerance = 0.05, scale=x)
