@@ -248,15 +248,19 @@ ash.workhorse <-
   # do not put big weight on null component
   # automatically estimate the mode if not specified
   if(sum(lik$name=="pois")){
-    grange = c(max(0,min(grange)), max(grange))
+    if (lik$data$link=="identity"){
+      grange = c(max(0,min(grange)), max(grange))
+    }
     if(missing(nullweight)){nullweight = 1}
-    if(missing(mode)){mode = "estimate"}
+    if(missing(mode) & missing(g)){mode = "estimate"}
   }
-  # binomial likelihood has g restricted on [0,1]
+  # binomial likelihood (identity link) has g restricted on [0,1]
   if(sum(lik$name=="binom")){
-    grange = c(max(0,min(grange)), min(1,max(grange)))
+    if (lik$data$link=="identity"){
+      grange = c(max(0,min(grange)), min(1,max(grange)))
+    }
     if(missing(nullweight)){nullweight = 1}
-    if(missing(mode)){mode = "estimate"}
+    if(missing(mode) & missing(g)){mode = "estimate"}
   }
   
   if(sum(mode=="estimate") | length(mode)==2){ #just pass everything through to ash.estmode for non-zero-mode
@@ -269,11 +273,23 @@ ash.workhorse <-
     
     # set range to search the mode
     if (sum(lik$name=="pois")){
-      args$modemin = min(mode, min(lik$data),na.rm = TRUE)
-      args$modemax = max(mode, max(lik$data),na.rm = TRUE)
+      if (lik$data$link=="identity"){
+        args$modemin = min(mode, min(lik$data$y),na.rm = TRUE)
+        args$modemax = max(mode, max(lik$data$y),na.rm = TRUE)
+      }else if (lik$data$link=="log"){
+        args$modemin = min(log(lik$data$y+0.01))
+        args$modemax = max(log(lik$data$y+0.01))
+      }
     }else if(sum(lik$name=="binom")){
-      args$modemin = min(grange)
-      args$modemax = max(grange)
+      if (lik$data$link=="identity"){
+        args$modemin = min(grange)
+        args$modemax = max(grange)
+      }else if (lik$data$link=="logit"){
+        logitp = log((lik$data$y+0.01)/(lik$data$n+0.02)/(1-(lik$data$y+0.01)/(lik$data$n+0.02)))
+        args$modemin = min(logitp)
+        args$modemax = max(logitp)
+      }
+      
     }else{
       args$modemin = min(mode, min(betahat),na.rm = TRUE)
       args$modemax = max(mode, max(betahat),na.rm = TRUE)
@@ -323,10 +339,33 @@ ash.workhorse <-
     
     if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","halfnormal")))
       stop("Error: invalid type of mixcompdist")
-    if(mixcompdist == "normal") g=normalmix(pi,rep(mode,k),mixsd)
-    if(mixcompdist == "uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
-    if(mixcompdist == "+uniform") g = unimix(pi,rep(mode,k),mode+mixsd)
-    if(mixcompdist == "-uniform") g = unimix(pi,mode-mixsd,rep(mode,k))
+    
+    if(mixcompdist == "normal") {
+      pi = pi[mode-mixsd>=min(grange) & mode+mixsd<=max(grange)]
+      pi = pi/sum(pi)
+      g = normalmix(pi,rep(mode,sum(mode-mixsd>=min(grange) & mode+mixsd<=max(grange))),
+                    mixsd[mode-mixsd>=min(grange) & mode+mixsd<=max(grange)])
+      prior = prior[mode-mixsd>=min(grange) & mode+mixsd<=max(grange)]
+    }
+    if(mixcompdist == "uniform") {
+      pi = pi[mode-mixsd>=min(grange) & mode+mixsd<=max(grange)]
+      pi = pi/sum(pi)
+      g = unimix(pi,(mode - mixsd)[mode-mixsd>=min(grange) & mode+mixsd<=max(grange)],
+                 (mode + mixsd)[mode-mixsd>=min(grange) & mode+mixsd<=max(grange)])
+      prior = prior[mode-mixsd>=min(grange) & mode+mixsd<=max(grange)]
+    }
+    if(mixcompdist == "+uniform") {
+      pi = pi[mode+mixsd<=max(grange)]
+      pi = pi/sum(pi)
+      g = unimix(pi,rep(mode,sum(mode+mixsd<=max(grange))),(mode+mixsd)[mode+mixsd<=max(grange)])
+      prior = prior[mode+mixsd<=max(grange)]
+    }
+    if(mixcompdist == "-uniform") {
+      pi = pi[mode-mixsd>=min(grange)]
+      pi = pi/sum(pi)
+      g = unimix(pi,(mode-mixsd)[mode-mixsd>=min(grange)],rep(mode,sum(mode-mixsd>=min(grange))))
+      prior = prior[mode-mixsd>=min(grange)]
+    }
     if(mixcompdist == "halfuniform"){
 
       if(min(mixsd)>0){ #simply reflect the components

@@ -1,4 +1,4 @@
-test_that("binom_lik fitted g is close to true g",{
+test_that("binom_lik (identity link) fitted g is close to true g",{
   # Simulate a Binomial dataset
   set.seed(1)
   trueg = unimix(c(0.5,0.5),c(0.5,0.1),c(0.5,0.9)) # true prior g: 0.5*U(0.1,0.9)+0.5*delta(0.5)
@@ -12,7 +12,7 @@ test_that("binom_lik fitted g is close to true g",{
   expect_equal(ash.binom.out$fitted_g$pi, c(0.5,0.5), tolerance = 0.05)
 })
 
-test_that("binom_lik fitted g is close to true g",{
+test_that("binom_lik (identity link) fitted g is close to true g",{
   # Simulate a Binomial dataset
   set.seed(1)
   truemode = 0.3
@@ -22,12 +22,11 @@ test_that("binom_lik fitted g is close to true g",{
   x = rbinom(1000,n,p) # Binomial observations
   ash.binom.out = ash(rep(0,length(x)),1,lik=binom_lik(x,n),mode="estimate")
   
-  # Check if the estimated mixture proportion for components delta(0.5) and U(0.1,0.9)
-  # is close to the true mixture proportion (0.5,0.5)
+  # Check if the estimated mode is close to the true mode 0.3
   expect_equal(ash.binom.out$fitted_g$a[1], truemode, tolerance = 0.05, scale=x)
 })
 
-test_that("binom_lik with big n gives similar answers to normal likelihood",{
+test_that("binom_lik (identity link) with big n gives similar answers to normal likelihood",{
   # Simulate a Binomial data set with n=200
   set.seed(1)
   p = c(rep(0.3,500), runif(500,0.1,0.5)) # generate p
@@ -47,4 +46,34 @@ test_that("binom_lik with big n gives similar answers to normal likelihood",{
   expect_equal(ash.norm.out$result$PosteriorMean,
                ash.binom.out$result$PosteriorMean,
                tolerance = 0.05, scale=x)
+})
+
+test_that("binom_lik (logit link) fitted g is close to true g",{
+  # Simulate a Binomial dataset
+  set.seed(1)
+  trueg = unimix(c(0.5,0.5),c(0,-3),c(0,3)) 
+  logitp = c(rep(0,500), runif(500,-3,3))
+  p = 1/(1+exp(-logitp))
+  n = rep(1000,1000)
+  x = rbinom(1000,n,p) # Binomial observations
+  ash.binom.out = ash(rep(0,length(x)),1,lik=binom_lik(x,n,link="logit"),
+                      g=trueg,prior="uniform")
+  
+  # Check if the estimated mixture proportion for components delta(0.5) and U(-3,3)
+  # is close to the true mixture proportion (0.5,0.5)
+  expect_equal(ash.binom.out$fitted_g$pi, c(0.5,0.5), tolerance = 0.05)
+})
+
+test_that("binom_lik (logit link) fitted g is close to true g",{
+  # Simulate a Binomial dataset
+  set.seed(1)
+  truemode = 0
+  logitp = c(rep(0,800), runif(200,-3,3))
+  p = 1/(1+exp(-logitp))
+  n = rep(100,1000)
+  x = rbinom(1000,n,p) # Binomial observations
+  ash.binom.out = ash(rep(0,length(x)),1,lik=binom_lik1(x,n,link="logit"),mode="estimate")
+  
+  # Check if the estimated mode is close to the true mode
+  expect_equal(ash.binom.out$fitted_g$a[1], truemode, tolerance = 0.05, scale=x)
 })

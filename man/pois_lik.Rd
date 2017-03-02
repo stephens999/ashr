@@ -4,10 +4,13 @@
 \alias{pois_lik}
 \title{Likelihood object for Poisson error distribution}
 \usage{
-pois_lik(y)
+pois_lik(y, link = c("identity", "log"))
 }
 \arguments{
 \item{y}{Poisson observations}
+
+\item{link}{Link function. The "identity" link directly puts unimodal prior on Poisson
+intensities lambda, and "log" link puts unimodal prior on log(lambda).}
 }
 \description{
 Creates a likelihood object for ash for use with Poisson error distribution

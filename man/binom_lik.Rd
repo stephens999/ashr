@@ -4,12 +4,15 @@
 \alias{binom_lik}
 \title{Likelihood object for Binomial error distribution}
 \usage{
-binom_lik(y, n)
+binom_lik(y, n, link = c("identity", "logit"))
 }
 \arguments{
 \item{y}{Binomial observations}
 
 \item{n}{Binomial number of trials}
+
+\item{link}{Link function. The "identity" link directly puts unimodal prior on Binomial success
+probabilities p, and "logit" link puts unimodal prior on logit(p).}
 }
 \description{
 Creates a likelihood object for ash for use with Binomial error distribution
