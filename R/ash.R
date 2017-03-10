@@ -310,7 +310,7 @@ ash.workhorse <-
       lik = normal_lik()
     } else {lik = t_lik(df)}
   }
-  check_lik(lik) # minimal check that it obeys requirements
+  check_lik(lik, betahat, sebetahat, df, mixcompdist) # minimal check that it obeys requirements
   lik = add_etruncFUN(lik) #if missing, add a function to compute mean of truncated distribution
   data = set_data(betahat, sebetahat, lik, alpha)
 
@@ -340,34 +340,12 @@ ash.workhorse <-
     if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","halfnormal")))
       stop("Error: invalid type of mixcompdist")
     
-    if(mixcompdist == "normal") {
-      pi = pi[mode-mixsd>=min(grange) & mode+mixsd<=max(grange)]
-      pi = pi/sum(pi)
-      g = normalmix(pi,rep(mode,sum(mode-mixsd>=min(grange) & mode+mixsd<=max(grange))),
-                    mixsd[mode-mixsd>=min(grange) & mode+mixsd<=max(grange)])
-      prior = prior[mode-mixsd>=min(grange) & mode+mixsd<=max(grange)]
-    }
-    if(mixcompdist == "uniform") {
-      pi = pi[mode-mixsd>=min(grange) & mode+mixsd<=max(grange)]
-      pi = pi/sum(pi)
-      g = unimix(pi,(mode - mixsd)[mode-mixsd>=min(grange) & mode+mixsd<=max(grange)],
-                 (mode + mixsd)[mode-mixsd>=min(grange) & mode+mixsd<=max(grange)])
-      prior = prior[mode-mixsd>=min(grange) & mode+mixsd<=max(grange)]
-    }
-    if(mixcompdist == "+uniform") {
-      pi = pi[mode+mixsd<=max(grange)]
-      pi = pi/sum(pi)
-      g = unimix(pi,rep(mode,sum(mode+mixsd<=max(grange))),(mode+mixsd)[mode+mixsd<=max(grange)])
-      prior = prior[mode+mixsd<=max(grange)]
-    }
-    if(mixcompdist == "-uniform") {
-      pi = pi[mode-mixsd>=min(grange)]
-      pi = pi/sum(pi)
-      g = unimix(pi,(mode-mixsd)[mode-mixsd>=min(grange)],rep(mode,sum(mode-mixsd>=min(grange))))
-      prior = prior[mode-mixsd>=min(grange)]
-    }
+    if(mixcompdist == "normal") g=normalmix(pi,rep(mode,k),mixsd)
+    if(mixcompdist == "uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
+    if(mixcompdist == "+uniform") g = unimix(pi,rep(mode,k),mode+mixsd)
+    if(mixcompdist == "-uniform") g = unimix(pi,mode-mixsd,rep(mode,k))
     if(mixcompdist == "halfuniform"){
-
+      
       if(min(mixsd)>0){ #simply reflect the components
         pi = c(pi[mode-mixsd>=min(grange)],pi[mode+mixsd<=max(grange)])
         pi = pi/sum(pi)
@@ -386,6 +364,12 @@ ash.workhorse <-
         #pi = c(pi,pi[-null.comp])
       }
     }
+    
+    # constrain g within grange
+    gconstrain = constrain_mix(g, prior, grange, mixcompdist)
+    g = gconstrain$g
+    prior = gconstrain$prior
+    
     if(mixcompdist=="halfnormal"){
       if(min(mixsd)>0){
         g = tnormalmix(c(pi,pi)/2,rep(mode,2*k),c(mixsd,mixsd),c(rep(-Inf,k),rep(0,k)),c(rep(0,k),rep(Inf,k)))
@@ -702,6 +686,32 @@ autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
   }
 }
 
+# constrain g within grange
+# g: unimix or normalmix prior
+# prior: k vector
+# grange: two dimension numeric vector indicating the left and right limit of the prior g
+constrain_mix = function(g, prior, grange, mixcompdist){
+  if(mixcompdist == "normal") {
+    # normal mixture prior always lies on (-Inf, Inf), so ignore grange specifications
+    if (max(grange)<Inf | min(grange)>-Inf){
+      warning("Can't constrain grange for the normal mixture prior case")
+    }
+  }
+  
+  if(mixcompdist %in% c("uniform","+uniform","-uniform","halfuniform")) {
+    # only keep the uniform mixture components that are within grange
+    # (if the lower bound of uniform distribution is greater than specified grange min,
+    # and the upper bound of uniform distribution is smaller than specified grange max)
+    compidx = (g$a>=min(grange) & g$b<=max(grange))
+    pi = pi[compidx]
+    pi = pi/sum(pi)
+    g = unimix(pi,g$a[compidx],g$b[compidx])
+    
+    # also keep the corresponding mixture components for prior
+    prior = prior[compidx]
+  }
+  return(list(g=g, prior=prior))
+}
 
 
 #return the KL-divergence between 2 dirichlet distributions

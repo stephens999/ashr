@@ -55,39 +55,51 @@ logF_lik = function(df1,df2){
 
 #' @title Likelihood object for Poisson error distribution
 #' @description Creates a likelihood object for ash for use with Poisson error distribution
-#' @param y Poisson observations
+#' @details Suppose we have Poisson observations \code{y} where \eqn{y_i\sim Poisson(c_i\lambda_i)}. 
+#'    We either put an unimodal prior g on the (scaled) intensities \eqn{\lambda_i\sim g} 
+#'    (by specifying \code{link="identity"}) or on the log intensities 
+#'    \eqn{logit(\lambda_i)\sim g} (by specifying \code{link="log"}). Either way, 
+#'    ASH with this Poisson likelihood function will compute the posterior mean of the 
+#'    intensities \eqn{\lambda_i}.
+#' @param y Poisson observations.
+#' @param scale Scale factor for Poisson observations: y~Pois(scale*lambda).
 #' @param link Link function. The "identity" link directly puts unimodal prior on Poisson
 #'  intensities lambda, and "log" link puts unimodal prior on log(lambda).
 #' 
 #' @examples 
 #'    beta = c(rnorm(100,50,5)) # prior mode: 50
-#'    x = rpois(100,beta) # simulate Poisson observations
-#'    ash(rep(0,length(x)),1,lik=pois_lik(x))
+#'    y = rpois(100,beta) # simulate Poisson observations
+#'    ash(rep(0,length(y)),1,lik=pois_lik(y))
 #' @export
-pois_lik = function(y, link=c("identity","log")){
+pois_lik = function(y, scale=1, link=c("identity","log")){
   link = match.arg(link)
   if (link=="identity"){
     list(name = "pois",
          const = TRUE,
-         lcdfFUN = function(x){pgamma(abs(x),shape=y+1,rate=1,log.p=TRUE)},
-         lpdfFUN = function(x){dgamma(abs(x),shape=y+1,rate=1,log=TRUE)},
-         etruncFUN = function(a,b){-my_etruncgamma(-b,-a,y+1,1)},
-         e2truncFUN = function(a,b){my_e2truncgamma(-b,-a,y+1,1)},
+         lcdfFUN = function(x){pgamma(abs(x),shape=y+1,rate=scale,log.p=TRUE)+y*log(scale)},
+         lpdfFUN = function(x){dgamma(abs(x),shape=y+1,rate=scale,log=TRUE)+y*log(scale)},
+         etruncFUN = function(a,b){-my_etruncgamma(-b,-a,y+1,scale)},
+         e2truncFUN = function(a,b){my_e2truncgamma(-b,-a,y+1,scale)},
          data=list(y=y,link=link))
   }else if (link=="log"){
     y1 = y+1e-5 # add pseudocount
     list(name = "pois",
          const = TRUE,
-         lcdfFUN = function(x){pgamma(exp(-x),shape=y1,rate=1,log.p=TRUE)-log(y1)},
-         lpdfFUN = function(x){dgamma(exp(-x),shape=y1,rate=1,log=TRUE)-log(y1)},
-         etruncFUN = function(a,b){-my_etruncgamma(exp(-b),exp(-a),y1,1)},
-         e2truncFUN = function(a,b){my_e2truncgamma(exp(-b),exp(-a),y1,1)},
+         lcdfFUN = function(x){pgamma(exp(-x),shape=y1,rate=scale,log.p=TRUE)-log(y1)+y*log(scale)},
+         lpdfFUN = function(x){dgamma(exp(-x),shape=y1,rate=scale,log=TRUE)-log(y1)+y*log(scale)},
+         etruncFUN = function(a,b){-my_etruncgamma(exp(-b),exp(-a),y1,scale)},
+         e2truncFUN = function(a,b){my_e2truncgamma(exp(-b),exp(-a),y1,scale)},
          data=list(y=y,link=link))
   }
 }
 
 #' @title Likelihood object for Binomial error distribution
 #' @description Creates a likelihood object for ash for use with Binomial error distribution
+#' @details Suppose we have Binomial observations \code{y} where \eqn{y_i\sim Bin(n_i,\p_i)}. 
+#'    We either put an unimodal prior g on the success probabilities \eqn{p_i\sim g} (by specifying 
+#'    \code{link="identity"}) or on the logit success probabilities \eqn{logit(p_i)\sim g} 
+#'    (by specifying \code{link="logit"}). Either way, ASH with this Binomial likelihood function 
+#'    will compute the posterior mean of the success probabilities \eqn{p_i}.
 #' @param y Binomial observations
 #' @param n Binomial number of trials
 #' @param link Link function. The "identity" link directly puts unimodal prior on Binomial success

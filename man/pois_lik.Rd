@@ -15,9 +15,16 @@ intensities lambda, and "log" link puts unimodal prior on log(lambda).}
 \description{
 Creates a likelihood object for ash for use with Poisson error distribution
 }
+\details{
+Suppose we have Poisson observations \code{y} where \eqn{y_i\sim Poisson(\p_i)}. 
+   We either put an unimodal prior on the intensities \eqn{p_i\sim g} (by specifying 
+   \code{link="identity"}) or on the logit intensities \eqn{logit(p_i)\sim g} (by specifying
+   \code{link="logit"}). Either way, ASH with this Poisson likelihood function will compute 
+   the posterior mean of the intensities \eqn{p_i}.
+}
 \examples{
    beta = c(rnorm(100,50,5)) # prior mode: 50
-   x = rpois(100,beta) # simulate Poisson observations
-   ash(rep(0,length(x)),1,lik=pois_lik(x))
+   y = rpois(100,beta) # simulate Poisson observations
+   ash(rep(0,length(y)),1,lik=pois_lik(y))
 }
 
