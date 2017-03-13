@@ -369,9 +369,10 @@ ash.workhorse <-
     }
     
     # constrain g within grange
-    gconstrain = constrain_mix(g, prior, grange, mixcompdist)
+    gconstrain = constrain_mix(g, pi, prior, grange, mixcompdist)
     g = gconstrain$g
     prior = gconstrain$prior
+    pi = gconstrain$pi
     
     if(mixcompdist=="halfnormal"){
       if(min(mixsd)>0){
@@ -693,7 +694,7 @@ autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
 # g: unimix or normalmix prior
 # prior: k vector
 # grange: two dimension numeric vector indicating the left and right limit of the prior g
-constrain_mix = function(g, prior, grange, mixcompdist){
+constrain_mix = function(g, pi, prior, grange, mixcompdist){
   if(mixcompdist == "normal") {
     # normal mixture prior always lies on (-Inf, Inf), so ignore grange specifications
     if (max(grange)<Inf | min(grange)>-Inf){
@@ -713,7 +714,7 @@ constrain_mix = function(g, prior, grange, mixcompdist){
     # also keep the corresponding mixture components for prior
     prior = prior[compidx]
   }
-  return(list(g=g, prior=prior))
+  return(list(g=g, prior=prior, pi=pi))
 }
 
 

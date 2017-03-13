@@ -17,6 +17,13 @@ probabilities p, and "logit" link puts unimodal prior on logit(p).}
 \description{
 Creates a likelihood object for ash for use with Binomial error distribution
 }
+\details{
+Suppose we have Binomial observations \code{y} where \eqn{y_i\sim Bin(n_i,\p_i)}. 
+   We either put an unimodal prior g on the success probabilities \eqn{p_i\sim g} (by specifying 
+   \code{link="identity"}) or on the logit success probabilities \eqn{logit(p_i)\sim g} 
+   (by specifying \code{link="logit"}). Either way, ASH with this Binomial likelihood function 
+   will compute the posterior mean of the success probabilities \eqn{p_i}.
+}
 \examples{
    p = rbeta(100,2,2) # prior mode: 0.5
    n = rpois(100,10)

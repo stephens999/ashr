@@ -137,6 +137,10 @@ binom_lik = function(y,n,link=c("identity","logit")){
 
 #' @title Likelihood object for normal mixture error distribution
 #' @description Creates a likelihood object for ash for use with normal mixture error distribution
+#' @param pilik a k vector of mixture proportions (k is the number of mixture components), 
+#'    or an n*k matrix that the j'th row the is mixture proportions for betahat_j
+#' @param sdlik a k vector of component-wise standard deviations, 
+#'    or an n*k matrix that the j'th row the is component-wise standard deviations for betahat_j
 #' 
 #' @examples 
 #'    e = rnorm(100,0,0.8) 

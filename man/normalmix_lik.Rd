@@ -6,6 +6,13 @@
 \usage{
 normalmix_lik(pilik, sdlik)
 }
+\arguments{
+\item{pilik}{a k vector of mixture proportions (k is the number of mixture components), 
+or an n*k matrix that the j'th row the is mixture proportions for betahat_j}
+
+\item{sdlik}{a k vector of component-wise standard deviations, 
+or an n*k matrix that the j'th row the is component-wise standard deviations for betahat_j}
+}
 \description{
 Creates a likelihood object for ash for use with normal mixture error distribution
 }

@@ -21,7 +21,7 @@ test_that("ash with automatic truncfun gives similar answers to default", {
   set.seed(10); z=rnorm(10,0,4);
   a1 = ash(z,1)
   
-  testlik = list(lcdfFUN = function(x){pnorm(x,log=TRUE)},
+  testlik = list(name="norm",lcdfFUN = function(x){pnorm(x,log=TRUE)},
        lpdfFUN = function(x){dnorm(x,log=TRUE)})
   a2 = ash(z,1,lik=testlik)
   expect_equal(a1$PosteriorMean,a2$PosteriorMean)
