@@ -244,10 +244,18 @@ ash.workhorse <-
       df <- NULL
     }
   }
+  
+  # set likelihood based on defaults if missing
+  if(is.null(lik)){ 
+    if(is.null(df)){
+      lik = normal_lik()
+    } else {lik = t_lik(df)}
+  }
+  
   # poisson likelihood has non-negative g
   # do not put big weight on null component
   # automatically estimate the mode if not specified
-  if(sum(lik$name=="pois")){
+  if(lik$name=="pois"){
     if (lik$data$link=="identity"){
       grange = c(max(0,min(grange)), max(grange))
     }
@@ -255,7 +263,7 @@ ash.workhorse <-
     if(missing(mode) & missing(g)){mode = "estimate"}
   }
   # binomial likelihood (identity link) has g restricted on [0,1]
-  if(sum(lik$name=="binom")){
+  if(lik$name=="binom"){
     if (lik$data$link=="identity"){
       grange = c(max(0,min(grange)), min(1,max(grange)))
     }
@@ -272,7 +280,7 @@ ash.workhorse <-
     mode = ifelse(is.numeric(mode),mode,NA)
     
     # set range to search the mode
-    if (sum(lik$name=="pois")){
+    if (lik$name=="pois"){
       if (lik$data$link=="identity"){
         args$modemin = min(mode, min(lik$data$y),na.rm = TRUE)
         args$modemax = max(mode, max(lik$data$y),na.rm = TRUE)
@@ -280,7 +288,7 @@ ash.workhorse <-
         args$modemin = min(log(lik$data$y+0.01))
         args$modemax = max(log(lik$data$y+0.01))
       }
-    }else if(sum(lik$name=="binom")){
+    }else if(lik$name=="binom"){
       if (lik$data$link=="identity"){
         args$modemin = min(grange)
         args$modemax = max(grange)
@@ -305,11 +313,6 @@ ash.workhorse <-
   # Set optimization method
   optmethod = set_optmethod(optmethod)
   check_args(mixcompdist,df,prior,optmethod,gridmult,sebetahat,betahat)
-  if(is.null(lik)){ #set likelihood based on defaults if missing
-    if(is.null(df)){
-      lik = normal_lik()
-    } else {lik = t_lik(df)}
-  }
   check_lik(lik, betahat, sebetahat, df, mixcompdist) # minimal check that it obeys requirements
   lik = add_etruncFUN(lik) #if missing, add a function to compute mean of truncated distribution
   data = set_data(betahat, sebetahat, lik, alpha)
