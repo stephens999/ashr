@@ -4,17 +4,30 @@
 \alias{pois_lik}
 \title{Likelihood object for Poisson error distribution}
 \usage{
-pois_lik(y)
+pois_lik(y, scale = 1, link = c("identity", "log"))
 }
 \arguments{
-\item{y}{Poisson observations}
+\item{y}{Poisson observations.}
+
+\item{scale}{Scale factor for Poisson observations: y~Pois(scale*lambda).}
+
+\item{link}{Link function. The "identity" link directly puts unimodal prior on Poisson
+intensities lambda, and "log" link puts unimodal prior on log(lambda).}
 }
 \description{
 Creates a likelihood object for ash for use with Poisson error distribution
 }
+\details{
+Suppose we have Poisson observations \code{y} where \eqn{y_i\sim Poisson(c_i\lambda_i)}. 
+   We either put an unimodal prior g on the (scaled) intensities \eqn{\lambda_i\sim g} 
+   (by specifying \code{link="identity"}) or on the log intensities 
+   \eqn{logit(\lambda_i)\sim g} (by specifying \code{link="log"}). Either way, 
+   ASH with this Poisson likelihood function will compute the posterior mean of the 
+   intensities \eqn{\lambda_i}.
+}
 \examples{
    beta = c(rnorm(100,50,5)) # prior mode: 50
-   x = rpois(100,beta) # simulate Poisson observations
-   ash(rep(0,length(x)),1,lik=pois_lik(x))
+   y = rpois(100,beta) # simulate Poisson observations
+   ash(rep(0,length(y)),1,lik=pois_lik(y))
 }
 

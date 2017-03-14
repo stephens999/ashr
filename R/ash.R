@@ -244,19 +244,31 @@ ash.workhorse <-
       df <- NULL
     }
   }
+  
+  # set likelihood based on defaults if missing
+  if(is.null(lik)){ 
+    if(is.null(df)){
+      lik = normal_lik()
+    } else {lik = t_lik(df)}
+  }
+  
   # poisson likelihood has non-negative g
   # do not put big weight on null component
   # automatically estimate the mode if not specified
-  if(sum(lik$name=="pois")){
-    grange = c(max(0,min(grange)), max(grange))
+  if(lik$name=="pois"){
+    if (lik$data$link=="identity"){
+      grange = c(max(0,min(grange)), max(grange))
+    }
     if(missing(nullweight)){nullweight = 1}
-    if(missing(mode)){mode = "estimate"}
+    if(missing(mode) & missing(g)){mode = "estimate"}
   }
-  # binomial likelihood has g restricted on [0,1]
-  if(sum(lik$name=="binom")){
-    grange = c(max(0,min(grange)), min(1,max(grange)))
+  # binomial likelihood (identity link) has g restricted on [0,1]
+  if(lik$name=="binom"){
+    if (lik$data$link=="identity"){
+      grange = c(max(0,min(grange)), min(1,max(grange)))
+    }
     if(missing(nullweight)){nullweight = 1}
-    if(missing(mode)){mode = "estimate"}
+    if(missing(mode) & missing(g)){mode = "estimate"}
   }
   
   if(sum(mode=="estimate") | length(mode)==2){ #just pass everything through to ash.estmode for non-zero-mode
@@ -268,12 +280,24 @@ ash.workhorse <-
     mode = ifelse(is.numeric(mode),mode,NA)
     
     # set range to search the mode
-    if (sum(lik$name=="pois")){
-      args$modemin = min(mode, min(lik$data),na.rm = TRUE)
-      args$modemax = max(mode, max(lik$data),na.rm = TRUE)
-    }else if(sum(lik$name=="binom")){
-      args$modemin = min(grange)
-      args$modemax = max(grange)
+    if (lik$name=="pois"){
+      if (lik$data$link=="identity"){
+        args$modemin = min(mode, min(lik$data$y),na.rm = TRUE)
+        args$modemax = max(mode, max(lik$data$y),na.rm = TRUE)
+      }else if (lik$data$link=="log"){
+        args$modemin = min(log(lik$data$y+0.01))
+        args$modemax = max(log(lik$data$y+0.01))
+      }
+    }else if(lik$name=="binom"){
+      if (lik$data$link=="identity"){
+        args$modemin = min(grange)
+        args$modemax = max(grange)
+      }else if (lik$data$link=="logit"){
+        logitp = log((lik$data$y+0.01)/(lik$data$n+0.02)/(1-(lik$data$y+0.01)/(lik$data$n+0.02)))
+        args$modemin = min(logitp)
+        args$modemax = max(logitp)
+      }
+      
     }else{
       args$modemin = min(mode, min(betahat),na.rm = TRUE)
       args$modemax = max(mode, max(betahat),na.rm = TRUE)
@@ -289,12 +313,7 @@ ash.workhorse <-
   # Set optimization method
   optmethod = set_optmethod(optmethod)
   check_args(mixcompdist,df,prior,optmethod,gridmult,sebetahat,betahat)
-  if(is.null(lik)){ #set likelihood based on defaults if missing
-    if(is.null(df)){
-      lik = normal_lik()
-    } else {lik = t_lik(df)}
-  }
-  check_lik(lik) # minimal check that it obeys requirements
+  check_lik(lik, betahat, sebetahat, df, mixcompdist) # minimal check that it obeys requirements
   lik = add_etruncFUN(lik) #if missing, add a function to compute mean of truncated distribution
   data = set_data(betahat, sebetahat, lik, alpha)
 
@@ -323,12 +342,13 @@ ash.workhorse <-
     
     if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","halfnormal")))
       stop("Error: invalid type of mixcompdist")
+    
     if(mixcompdist == "normal") g=normalmix(pi,rep(mode,k),mixsd)
     if(mixcompdist == "uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
     if(mixcompdist == "+uniform") g = unimix(pi,rep(mode,k),mode+mixsd)
     if(mixcompdist == "-uniform") g = unimix(pi,mode-mixsd,rep(mode,k))
     if(mixcompdist == "halfuniform"){
-
+      
       if(min(mixsd)>0){ #simply reflect the components
         pi = c(pi[mode-mixsd>=min(grange)],pi[mode+mixsd<=max(grange)])
         pi = pi/sum(pi)
@@ -347,6 +367,13 @@ ash.workhorse <-
         #pi = c(pi,pi[-null.comp])
       }
     }
+    
+    # constrain g within grange
+    gconstrain = constrain_mix(g, pi, prior, grange, mixcompdist)
+    g = gconstrain$g
+    prior = gconstrain$prior
+    pi = gconstrain$pi
+    
     if(mixcompdist=="halfnormal"){
       if(min(mixsd)>0){
         g = tnormalmix(c(pi,pi)/2,rep(mode,2*k),c(mixsd,mixsd),c(rep(-Inf,k),rep(0,k)),c(rep(0,k),rep(Inf,k)))
@@ -663,6 +690,32 @@ autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
   }
 }
 
+# constrain g within grange
+# g: unimix or normalmix prior
+# prior: k vector
+# grange: two dimension numeric vector indicating the left and right limit of the prior g
+constrain_mix = function(g, pi, prior, grange, mixcompdist){
+  if(mixcompdist == "normal") {
+    # normal mixture prior always lies on (-Inf, Inf), so ignore grange specifications
+    if (max(grange)<Inf | min(grange)>-Inf){
+      warning("Can't constrain grange for the normal mixture prior case")
+    }
+  }
+  
+  if(mixcompdist %in% c("uniform","+uniform","-uniform","halfuniform")) {
+    # only keep the uniform mixture components that are within grange
+    # (if the lower bound of uniform distribution is greater than specified grange min,
+    # and the upper bound of uniform distribution is smaller than specified grange max)
+    compidx = (g$a>=min(grange) & g$b<=max(grange))
+    pi = pi[compidx]
+    pi = pi/sum(pi)
+    g = unimix(pi,g$a[compidx],g$b[compidx])
+    
+    # also keep the corresponding mixture components for prior
+    prior = prior[compidx]
+  }
+  return(list(g=g, prior=prior, pi=pi))
+}
 
 
 #return the KL-divergence between 2 dirichlet distributions
