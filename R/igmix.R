@@ -35,7 +35,7 @@ comp_dens.igmix = function(m,y,log=FALSE){
   k=ncomp(m)
   n=length(y)
   d = matrix(rep(y,rep(k,n)),nrow=k)
-  return(matrix(dgamma(1/d, shape=m$alpha, rate=outer(m$beta,1/y^2),log),nrow=k))
+  return(matrix(stats::dgamma(1/d, shape=m$alpha, rate=outer(m$beta,1/y^2),log),nrow=k))
 }
 
 #density of product of each component of a inverse-gamma mixture with Gamma(v/2,v/2) at s

@@ -76,8 +76,8 @@ lik_pois = function(y, scale=1, link=c("identity","log")){
   if (link=="identity"){
     list(name = "pois",
          const = TRUE,
-         lcdfFUN = function(x){pgamma(abs(x),shape=y+1,rate=scale,log.p=TRUE)+y*log(scale)},
-         lpdfFUN = function(x){dgamma(abs(x),shape=y+1,rate=scale,log=TRUE)+y*log(scale)},
+         lcdfFUN = function(x){stats::pgamma(abs(x),shape=y+1,rate=scale,log.p=TRUE)+y*log(scale)},
+         lpdfFUN = function(x){stats::dgamma(abs(x),shape=y+1,rate=scale,log=TRUE)+y*log(scale)},
          etruncFUN = function(a,b){-my_etruncgamma(-b,-a,y+1,scale)},
          e2truncFUN = function(a,b){my_e2truncgamma(-b,-a,y+1,scale)},
          data=list(y=y,link=link))
@@ -85,8 +85,8 @@ lik_pois = function(y, scale=1, link=c("identity","log")){
     y1 = y+1e-5 # add pseudocount
     list(name = "pois",
          const = TRUE,
-         lcdfFUN = function(x){pgamma(exp(-x),shape=y1,rate=scale,log.p=TRUE)-log(y1)+y*log(scale)},
-         lpdfFUN = function(x){dgamma(exp(-x),shape=y1,rate=scale,log=TRUE)-log(y1)+y*log(scale)},
+         lcdfFUN = function(x){stats::pgamma(exp(-x),shape=y1,rate=scale,log.p=TRUE)-log(y1)+y*log(scale)},
+         lpdfFUN = function(x){stats::dgamma(exp(-x),shape=y1,rate=scale,log=TRUE)-log(y1)+y*log(scale)},
          etruncFUN = function(a,b){-my_etruncgamma(exp(-b),exp(-a),y1,scale)},
          e2truncFUN = function(a,b){my_e2truncgamma(exp(-b),exp(-a),y1,scale)},
          data=list(y=y,link=link))
@@ -95,7 +95,7 @@ lik_pois = function(y, scale=1, link=c("identity","log")){
 
 #' @title Likelihood object for Binomial error distribution
 #' @description Creates a likelihood object for ash for use with Binomial error distribution
-#' @details Suppose we have Binomial observations \code{y} where \eqn{y_i\sim Bin(n_i,\p_i)}. 
+#' @details Suppose we have Binomial observations \code{y} where \eqn{y_i\sim Bin(n_i,p_i)}. 
 #'    We either put an unimodal prior g on the success probabilities \eqn{p_i\sim g} (by specifying 
 #'    \code{link="identity"}) or on the logit success probabilities \eqn{logit(p_i)\sim g} 
 #'    (by specifying \code{link="logit"}). Either way, ASH with this Binomial likelihood function 
@@ -116,8 +116,8 @@ lik_binom = function(y,n,link=c("identity","logit")){
   if (link=="identity"){
     list(name = "binom",
          const = TRUE,
-         lcdfFUN = function(x){pbeta(abs(x),shape1=y+1,shape2=n-y+1,log.p=TRUE)-log(n+1)},
-         lpdfFUN = function(x){dbeta(abs(x),shape1=y+1,shape2=n-y+1,log=TRUE)-log(n+1)},
+         lcdfFUN = function(x){stats::pbeta(abs(x),shape1=y+1,shape2=n-y+1,log.p=TRUE)-log(n+1)},
+         lpdfFUN = function(x){stats::dbeta(abs(x),shape1=y+1,shape2=n-y+1,log=TRUE)-log(n+1)},
          etruncFUN = function(a,b){-my_etruncbeta(-b,-a,y+1,n-y+1)},
          e2truncFUN = function(a,b){my_e2truncbeta(-b,-a,y+1,n-y+1)},
          data=list(y=y,n=n,link=link))
@@ -126,8 +126,8 @@ lik_binom = function(y,n,link=c("identity","logit")){
     n1 = n+2e-5
     list(name = "binom",
          const = TRUE,
-         lcdfFUN = function(x){pbeta(1/(1+exp(-x)),shape1=y1,shape2=n1-y1,log.p=TRUE)+log(n1/(y1*(n1-y1)))},
-         lpdfFUN = function(x){dbeta(1/(1+exp(-x)),shape1=y1,shape2=n1-y1,log=TRUE)+log(n1/(y1*(n1-y1)))},
+         lcdfFUN = function(x){stats::pbeta(1/(1+exp(-x)),shape1=y1,shape2=n1-y1,log.p=TRUE)+log(n1/(y1*(n1-y1)))},
+         lpdfFUN = function(x){stats::dbeta(1/(1+exp(-x)),shape1=y1,shape2=n1-y1,log=TRUE)+log(n1/(y1*(n1-y1)))},
          etruncFUN = function(a,b){-my_etruncbeta(-1/(1+exp(-b)),-1/(1+exp(-a)),y1,n1-y1)},
          e2truncFUN = function(a,b){my_e2truncbeta(-1/(1+exp(-b)),-1/(1+exp(-a)),y1,n1-y1)},
          data=list(y=y,n=n,link=link))
