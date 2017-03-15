@@ -11,7 +11,7 @@ test_that("logF error with df=(10,10) gives similar answers to normal error",{
   # draws from the log-F distribution.
   s            <- sd(log(rf(10000,df1 = 10,df2 = 10)))
   ash.norm.out <- ash(x,s)
-  ash.logF.out <- ash.workhorse(x,1,lik = logF_lik(df1 = 10,df2 = 10),
+  ash.logF.out <- ash.workhorse(x,1,lik = lik_logF(df1 = 10,df2 = 10),
                                 optmethod = "mixEM",control = list(tol = 1e-4))
 
   # Compare the posterior mean estimates from ash using the two

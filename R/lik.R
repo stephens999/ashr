@@ -40,9 +40,9 @@ lik_t = function(df){
 #' 
 #' @examples 
 #'    e = rnorm(100) + log(rf(100,df1=10,df2=10)) # simulate some data with log(F) error
-#'    ash(e,1,lik=logF_lik(df1=10,df2=10))
+#'    ash(e,1,lik=lik_logF(df1=10,df2=10))
 #' @export
-logF_lik = function(df1,df2){
+lik_logF = function(df1,df2){
   list(name = "logF",
        const = (length(unique(df1))==1) & (length(unique(df2))==1),
        lcdfFUN = function(x){plogf(x,df1=df1,df2=df2,log.p=TRUE)},
@@ -69,9 +69,9 @@ logF_lik = function(df1,df2){
 #' @examples 
 #'    beta = c(rnorm(100,50,5)) # prior mode: 50
 #'    y = rpois(100,beta) # simulate Poisson observations
-#'    ash(rep(0,length(y)),1,lik=pois_lik(y))
+#'    ash(rep(0,length(y)),1,lik=lik_pois(y))
 #' @export
-pois_lik = function(y, scale=1, link=c("identity","log")){
+lik_pois = function(y, scale=1, link=c("identity","log")){
   link = match.arg(link)
   if (link=="identity"){
     list(name = "pois",
