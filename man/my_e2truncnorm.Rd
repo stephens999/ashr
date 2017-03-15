@@ -18,4 +18,3 @@ my_e2truncnorm(a, b, mean = 0, sd = 1)
 \description{
 More about the truncated normal
 }
-

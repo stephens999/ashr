@@ -30,4 +30,3 @@ Estimates mixture proportions \eqn{\pi} by maximum likelihood, or by maximum a p
 convex optimization software. So REBayes must be installed to use this. Used by the ash main function; there is no need for a user to call this 
 function separately, but it is exported for convenience.
 }
-

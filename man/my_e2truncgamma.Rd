@@ -18,4 +18,3 @@ my_e2truncgamma(a, b, shape, rate)
 \description{
 Compute second moment of the truncated gamma.
 }
-

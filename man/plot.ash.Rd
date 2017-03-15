@@ -21,4 +21,3 @@ Plot the cdf of the underlying fitted distribution
 \details{
 None
 }
-

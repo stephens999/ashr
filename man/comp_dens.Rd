@@ -22,4 +22,3 @@ A k by n matrix of densities
 Generic function of calculating the component densities of the
     mixture
 }
-

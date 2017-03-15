@@ -29,4 +29,3 @@ ash.beta = ash(betahat,1,mixcompdist="normal")
 cdf0 = cdf_post(ash.beta$fitted_g,0,set_data(betahat,sebetahat))
 graphics::plot(cdf0,1-get_pp(ash.beta))
 }
-

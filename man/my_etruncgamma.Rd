@@ -18,4 +18,3 @@ my_etruncgamma(a, b, shape, rate)
 \description{
 Compute mean of the truncated gamma.
 }
-

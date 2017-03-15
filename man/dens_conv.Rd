@@ -15,4 +15,3 @@ dens_conv(m, data)
 compute density of mixture m convoluted with normal of
     sd (s) or student t with df v at locations x
 }
-

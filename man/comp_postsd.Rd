@@ -24,4 +24,3 @@ comp_postmean(get_fitted_g(ash.beta),data)
 comp_postsd(get_fitted_g(ash.beta),data)
 comp_postprob(get_fitted_g(ash.beta),data)
 }
-

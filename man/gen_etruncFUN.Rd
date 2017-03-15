@@ -15,4 +15,3 @@ gen_etruncFUN(lcdfFUN, lpdfFUN)
 Produce function to compute expectation of truncated 
    error distribution from log cdf and log pdf (using numerical integration)
 }
-

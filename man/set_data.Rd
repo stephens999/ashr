@@ -11,7 +11,7 @@ set_data(betahat, sebetahat, lik = NULL, alpha = 0)
 
 \item{sebetahat}{vector of standard errors}
 
-\item{lik}{a likelihood (see eg normal_lik())}
+\item{lik}{a likelihood (see e.g., lik_normal())}
 
 \item{alpha}{specifies value of alpha to use (model is for betahat/sebetahat^alpha | sebetahat)}
 }
@@ -26,4 +26,3 @@ The data object stores both the data, and details of the model to be used for th
 For example, in the generalized version of ash the cdf and pdf of the likelihood are
 stored here.
 }
-

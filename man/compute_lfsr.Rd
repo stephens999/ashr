@@ -19,4 +19,3 @@ The local false sign rate.
 \description{
 Function to compute the local false sign rate
 }
-

@@ -19,4 +19,3 @@ returns log-density of convolution of each component
     of a normal mixture with N(0,s^2) or s*t(v) at x. Note that
     convolution of two normals is normal, so it works that way
 }
-

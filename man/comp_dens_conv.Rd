@@ -17,4 +17,3 @@ a k by n matrix of densities
 \description{
 compute the density of data for each component of mixture when convolved with error distribution
 }
-

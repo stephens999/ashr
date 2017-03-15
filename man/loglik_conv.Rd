@@ -14,4 +14,3 @@ loglik_conv(m, data)
 \description{
 find log likelihood of data using convolution of mixture with error distribution
 }
-

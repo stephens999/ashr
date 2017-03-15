@@ -16,4 +16,3 @@ Return the vector of log-likelihoods of the data
     betahat, with standard errors betahatsd, for a given g() prior
     on beta, or an ash object containing that
 }
-

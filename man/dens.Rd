@@ -15,4 +15,3 @@ dens(x, y)
 \description{
 Find density at y, a generic function
 }
-

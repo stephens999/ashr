@@ -13,4 +13,3 @@ unimix() or igmix()}
 \description{
 The default version of \code{\link{ncomp}}.
 }
-

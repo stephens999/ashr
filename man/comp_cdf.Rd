@@ -20,4 +20,3 @@ it returns a vector of probabilities, with length equals to
 \description{
 Generic function of computing the cdf for each component
 }
-
