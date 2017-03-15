@@ -147,9 +147,9 @@ ash <- function (betahat, sebetahat,
 #' @param lik contains details of the likelihood used; for general
 #'     ash. Currently, the following choices are allowed: normal (see
 #'     function lik_normal(); binomial likelihood (see function
-#'     binomial_lik); likelihood based on logF error distribution
+#'     lik_binom); likelihood based on logF error distribution
 #'     (see function lik_logF); mixture of normals likelihood (see
-#'     function normalmix_lik); and Poisson likelihood (see function
+#'     function lik_normalmix); and Poisson likelihood (see function
 #'     lik_pois).#'
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
 #' \item{fitted_g}{fitted mixture, either a normalmix or unimix}

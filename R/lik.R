@@ -146,9 +146,9 @@ lik_binom = function(y,n,link=c("identity","logit")){
 #'    e = rnorm(100,0,0.8) 
 #'    e[seq(1,100,by=2)] = rnorm(50,0,1.5) # generate e~0.5*N(0,0.8^2)+0.5*N(0,1.5^2)
 #'    betahat = rnorm(100)+e
-#'    ash(betahat, 1, lik=normalmix_lik(c(0.5,0.5),c(0.8,1.5)))
+#'    ash(betahat, 1, lik=lik_normalmix(c(0.5,0.5),c(0.8,1.5)))
 #' @export
-normalmix_lik= function(pilik,sdlik){
+lik_normalmix = function(pilik,sdlik){
   list(name="normalmix",
        const = (length(pilik)==length(sdlik)), #used to indicate whether the likelihood function is constant for all observations (some parts of ash only work in this case)
        lcdfFUN = function(x){
