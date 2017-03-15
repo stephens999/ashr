@@ -21,9 +21,9 @@ lik_normal = function(){
 #' 
 #' @examples 
 #'    z = rnorm(100) + rt(100,df=4) # simulate some data with t error
-#'    ash(z,1,lik=t_lik(df=4))
+#'    ash(z,1,lik=lik_t(df=4))
 #' @export
-t_lik = function(df){
+lik_t = function(df){
   list(name = "t",
       const = (length(unique(df))==1),
       lcdfFUN = function(x){stats::pt(x,df=df,log=TRUE)},
@@ -109,9 +109,9 @@ pois_lik = function(y, scale=1, link=c("identity","log")){
 #'    p = rbeta(100,2,2) # prior mode: 0.5
 #'    n = rpois(100,10)
 #'    y = rbinom(100,n,p) # simulate Binomial observations
-#'    ash(rep(0,length(y)),1,lik=binom_lik(y,n))
+#'    ash(rep(0,length(y)),1,lik=lik_binom(y,n))
 #' @export
-binom_lik = function(y,n,link=c("identity","logit")){
+lik_binom = function(y,n,link=c("identity","logit")){
   link = match.arg(link)
   if (link=="identity"){
     list(name = "binom",

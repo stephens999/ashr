@@ -1,18 +1,18 @@
-test_that("binom_lik (identity link) fitted g is close to true g",{
+test_that("lik_binom (identity link) fitted g is close to true g",{
   # Simulate a Binomial dataset
   set.seed(1)
   trueg = unimix(c(0.5,0.5),c(0.5,0.1),c(0.5,0.9)) # true prior g: 0.5*U(0.1,0.9)+0.5*delta(0.5)
   p = c(rep(0.5,500), runif(500,0.1,0.9)) # generate p from g
   n = rep(100,1000)
   x = rbinom(1000,n,p) # Binomial observations
-  ash.binom.out = ash(rep(0,length(x)),1,lik=binom_lik(x,n),g=trueg)
+  ash.binom.out = ash(rep(0,length(x)),1,lik=lik_binom(x,n),g=trueg)
   
   # Check if the estimated mixture proportion for components delta(0.5) and U(0.1,0.9)
   # is close to the true mixture proportion (0.5,0.5)
   expect_equal(ash.binom.out$fitted_g$pi, c(0.5,0.5), tolerance = 0.05)
 })
 
-test_that("binom_lik (identity link) fitted g is close to true g",{
+test_that("lik_binom (identity link) fitted g is close to true g",{
   # Simulate a Binomial dataset
   set.seed(1)
   truemode = 0.3
@@ -20,13 +20,13 @@ test_that("binom_lik (identity link) fitted g is close to true g",{
   p = c(rep(0.3,500), runif(500,0.1,0.5)) # generate p from g
   n = rep(100,1000)
   x = rbinom(1000,n,p) # Binomial observations
-  ash.binom.out = ash(rep(0,length(x)),1,lik=binom_lik(x,n),mode="estimate")
+  ash.binom.out = ash(rep(0,length(x)),1,lik=lik_binom(x,n),mode="estimate")
   
   # Check if the estimated mode is close to the true mode 0.3
   expect_equal(ash.binom.out$fitted_g$a[1], truemode, tolerance = 0.05, scale=x)
 })
 
-test_that("binom_lik (identity link) with big n gives similar answers to normal likelihood",{
+test_that("lik_binom (identity link) with big n gives similar answers to normal likelihood",{
   # Simulate a Binomial data set with n=200
   set.seed(1)
   p = c(rep(0.3,500), runif(500,0.1,0.5)) # generate p
@@ -36,7 +36,7 @@ test_that("binom_lik (identity link) with big n gives similar answers to normal 
   # Fit the ash model with two different likelihood densities: (1) the
   # normal distribution with (s.e.) to be match the standard deviations of 
   # Binomial distribution, and (2) the Binomial distribution
-  ash.binom.out = ash(rep(0,length(x)),1,lik=binom_lik(x,n))
+  ash.binom.out = ash(rep(0,length(x)),1,lik=lik_binom(x,n))
   ash.norm.out = ash(x/n, sqrt(p*(1-p)/n), mode="estimate", prior="uniform")
   
   # Compare the posterior mean estimates from ash using the two
@@ -48,7 +48,7 @@ test_that("binom_lik (identity link) with big n gives similar answers to normal 
                tolerance = 0.05, scale=x)
 })
 
-test_that("binom_lik (logit link) fitted g is close to true g",{
+test_that("lik_binom (logit link) fitted g is close to true g",{
   # Simulate a Binomial dataset
   set.seed(1)
   trueg = unimix(c(0.5,0.5),c(0,-3),c(0,3)) 
@@ -56,7 +56,7 @@ test_that("binom_lik (logit link) fitted g is close to true g",{
   p = 1/(1+exp(-logitp))
   n = rep(1000,1000)
   x = rbinom(1000,n,p) # Binomial observations
-  ash.binom.out = ash(rep(0,length(x)),1,lik=binom_lik(x,n,link="logit"),
+  ash.binom.out = ash(rep(0,length(x)),1,lik=lik_binom(x,n,link="logit"),
                       g=trueg,prior="uniform")
   
   # Check if the estimated mixture proportion for components delta(0.5) and U(-3,3)
@@ -64,7 +64,7 @@ test_that("binom_lik (logit link) fitted g is close to true g",{
   expect_equal(ash.binom.out$fitted_g$pi, c(0.5,0.5), tolerance = 0.05)
 })
 
-test_that("binom_lik (logit link) fitted g is close to true g",{
+test_that("lik_binom (logit link) fitted g is close to true g",{
   # Simulate a Binomial dataset
   set.seed(1)
   truemode = 0
@@ -72,7 +72,7 @@ test_that("binom_lik (logit link) fitted g is close to true g",{
   p = 1/(1+exp(-logitp))
   n = rep(100,1000)
   x = rbinom(1000,n,p) # Binomial observations
-  ash.binom.out = ash(rep(0,length(x)),1,lik=binom_lik(x,n,link="logit"),mode="estimate")
+  ash.binom.out = ash(rep(0,length(x)),1,lik=lik_binom(x,n,link="logit"),mode="estimate")
   
   # Check if the estimated mode is close to the true mode
   expect_equal(ash.binom.out$fitted_g$a[1], truemode, tolerance = 0.05, scale=x)
