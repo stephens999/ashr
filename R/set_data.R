@@ -12,7 +12,7 @@
 #' 
 #' @param betahat vector of betahats
 #' @param sebetahat vector of standard errors
-#' @param lik a likelihood (see eg normal_lik())
+#' @param lik a likelihood (see e.g., lik_normal())
 #' @param alpha specifies value of alpha to use (model is for betahat/sebetahat^alpha | sebetahat)
 #' 
 #' @return data object (list) 
@@ -26,7 +26,7 @@ set_data = function(betahat, sebetahat, lik=NULL, alpha=0){
             alpha=alpha,
             s_orig = sebetahat)
 
-  if(is.null(lik)){lik = normal_lik()}
+  if(is.null(lik)){lik = lik_normal()}
   data$lik = lik
 
   return(data)

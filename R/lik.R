@@ -3,9 +3,9 @@
 #' 
 #' @examples 
 #'    z = rnorm(100) + rnorm(100) # simulate some data with normal error
-#'    ash(z,1,lik=normal_lik())
+#'    ash(z,1,lik=lik_normal())
 #' @export
-normal_lik= function(){
+lik_normal = function(){
   list(name="normal",
        const = TRUE, #used to indicate whether the likelihood function is constant for all observations (some parts of ash only work in this case)
        lcdfFUN = function(x){stats::pnorm(x,log=TRUE)},

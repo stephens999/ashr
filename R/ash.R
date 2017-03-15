@@ -146,7 +146,7 @@ ash <- function (betahat, sebetahat,
 #' @param control A list of control parameters passed to optmethod
 #' @param lik contains details of the likelihood used; for general
 #'     ash. Currently, the following choices are allowed: normal (see
-#'     function normal_lik(); binomial likelihood (see function
+#'     function lik_normal(); binomial likelihood (see function
 #'     binomial_lik); likelihood based on logF error distribution
 #'     (see function logF_lik); mixture of normals likelihood (see
 #'     function normalmix_lik); and Poisson likelihood (see function
@@ -190,8 +190,8 @@ ash <- function (betahat, sebetahat,
 #' print(CIMatrix)
 #'
 #' #Running ash with different error models
-#' beta.ash1 = ash(betahat, sebetahat, lik = normal_lik())
-#' beta.ash2 = ash(betahat, sebetahat, lik = t_lik(df=4))
+#' beta.ash1 = ash(betahat, sebetahat, lik = lik_normal())
+#' beta.ash2 = ash(betahat, sebetahat, lik = lik_t(df=4))
 #'
 #' e = rnorm(100)+log(rf(100,df1=10,df2=10)) # simulated data with log(F) error
 #' e.ash = ash(e,1,lik=logF_lik(df1=10,df2=10))
@@ -248,8 +248,8 @@ ash.workhorse <-
   # set likelihood based on defaults if missing
   if(is.null(lik)){ 
     if(is.null(df)){
-      lik = normal_lik()
-    } else {lik = t_lik(df)}
+      lik = lik_normal()
+    } else {lik = lik_t(df)}
   }
   
   # poisson likelihood has non-negative g

@@ -3,7 +3,7 @@ test_that("compdens_conv for tnormal gives same results as compdens_conv for nor
   gtn = tnormalmix(c(0.5,0.5),c(0,0),c(0.1,1),c(-Inf,-Inf),c(Inf,Inf))
   x=c(-10,2)
   s = c(1,2)
-  data = list(x=x,s=s,lik=normal_lik(),alpha=0)
+  data = list(x=x,s=s,lik=lik_normal(),alpha=0)
   expect_equal(comp_dens_conv(gn, data),comp_dens_conv(gtn,data))
 })
 
@@ -12,7 +12,7 @@ test_that("log_compdens_conv for tnormal gives reasonable results", {
   gtn = tnormalmix(c(0.5,0.5),c(0,0),c(0.1,1),c(-Inf,-Inf),c(Inf,Inf))
   x=c(-10,2)
   s = c(1,2)
-  data = list(x=x,s=s,lik=normal_lik(),alpha=0)
+  data = list(x=x,s=s,lik=lik_normal(),alpha=0)
   expect_equal(exp(log_comp_dens_conv(gtn,data)),comp_dens_conv(gtn,data))
 })
           
@@ -28,7 +28,7 @@ test_that("compcdf_post for tnormal gives same results as compcdf_post for norma
   gtn = tnormalmix(c(0.5,0.5),c(0,0),c(0.1,1),c(-Inf,-Inf),c(Inf,Inf))
   betahat = c(-1,-2,1,2)
   sebetahat = 1:4
-  data = list(x=betahat,s=sebetahat,lik=normal_lik(),alpha=0)
+  data = list(x=betahat,s=sebetahat,lik=lik_normal(),alpha=0)
   c = 0.5
   expect_equal(comp_cdf_post(gn,c,data),comp_cdf_post(gtn,c,data))
 })
@@ -38,7 +38,7 @@ test_that("comp_postmean for tnormal gives same results as comp_postmean for nor
   gtn = tnormalmix(c(0.5,0.5),c(0,1),c(0.1,1),c(-Inf,-Inf),c(Inf,Inf))
   betahat = c(-1,0.4,1.3,5)
   sebetahat = 1:4
-  data = list(x=betahat,s=sebetahat,lik=normal_lik(),alpha=0)
+  data = list(x=betahat,s=sebetahat,lik=lik_normal(),alpha=0)
   expect_equal(comp_postmean(gn,data),comp_postmean(gtn,data))
 })
 
@@ -47,7 +47,7 @@ test_that("comp_postsd for tnormal gives same results as comp_postsd for normal 
   gtn = tnormalmix(c(0.5,0.5),c(0,1),c(0.1,1),c(-Inf,-Inf),c(Inf,Inf))
   betahat = c(-1,0.4,1.3,5)
   sebetahat = 1:4
-  data = list(x=betahat,s=sebetahat,lik=normal_lik(),alpha=0)
+  data = list(x=betahat,s=sebetahat,lik=lik_normal(),alpha=0)
   expect_equal(comp_postsd(gn,data),comp_postsd(gtn,data))
   expect_equal(comp_postmean2(gn,data),comp_postmean2(gtn,data))
 })
