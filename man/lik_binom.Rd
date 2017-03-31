@@ -30,4 +30,3 @@ Suppose we have Binomial observations \code{y} where \eqn{y_i\sim Bin(n_i,p_i)}.
    y = rbinom(100,n,p) # simulate Binomial observations
    ash(rep(0,length(y)),1,lik=lik_binom(y,n))
 }
-

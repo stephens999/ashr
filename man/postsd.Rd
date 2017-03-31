@@ -14,4 +14,3 @@ postsd(m, data)
 \description{
 output posterior sd given prior mixture m and data
 }
-

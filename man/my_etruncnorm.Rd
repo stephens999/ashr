@@ -18,4 +18,3 @@ my_etruncnorm(a, b, mean = 0, sd = 1)
 \description{
 Compute expectation of truncated normal.
 }
-

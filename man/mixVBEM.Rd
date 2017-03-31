@@ -33,4 +33,3 @@ Estimates posterior on mixture proportions \eqn{\pi} by Variational Bayes,
 with a Dirichlet prior on \eqn{\pi}. 
 Algorithm adapted from Bishop (2009), Pattern Recognition and Machine Learning, Chapter 10.
 }
-

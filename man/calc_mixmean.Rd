@@ -16,4 +16,3 @@ it returns scalar, the mean of the mixture distribution.
 \description{
 Generic function of calculating the overall mean of the mixture
 }
-

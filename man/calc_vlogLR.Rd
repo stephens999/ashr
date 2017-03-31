@@ -17,4 +17,3 @@ Return the vector of log-likelihood ratios of the data
     on beta, or an ash object containing that, vs the null that g()
     is point mass on 0
 }
-

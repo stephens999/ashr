@@ -15,4 +15,3 @@ comp_postmean(m, data)
 output posterior mean for beta for each component of
     prior mixture m,given data
 }
-

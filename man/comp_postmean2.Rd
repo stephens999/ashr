@@ -15,4 +15,3 @@ comp_postmean2(m, data)
 output posterior mean-squared value given prior
     mixture m and data
 }
-

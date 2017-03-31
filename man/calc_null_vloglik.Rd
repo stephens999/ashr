@@ -13,4 +13,3 @@ calc_null_vloglik(data)
 \description{
 Return the vector of log-likelihoods of the data points under the null
 }
-

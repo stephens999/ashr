@@ -22,4 +22,3 @@ The q value for a given lfdr is an estimate of the (tail)
     findings. See Storey (2003), Annals of Statistics, for
     definition of q value.
 }
-

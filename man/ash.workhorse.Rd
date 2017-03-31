@@ -170,4 +170,3 @@ beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
 \code{\link{ashci}} for computation of credible intervals
     after getting the ash object return by \code{ash()}
 }
-

@@ -15,4 +15,3 @@ a vector of length k
 \description{
 returns mean of the normal mixture
 }
-

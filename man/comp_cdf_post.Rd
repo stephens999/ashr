@@ -28,4 +28,3 @@ sebetahat=rep(1,100)
 ash.beta = ash(betahat,1,mixcompdist="normal")
 comp_cdf_post(get_fitted_g(ash.beta),0,data=set_data(beta,sebetahat))
 }
-

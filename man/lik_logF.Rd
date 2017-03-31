@@ -18,4 +18,3 @@ Creates a likelihood object for ash for use with logF error distribution
    e = rnorm(100) + log(rf(100,df1=10,df2=10)) # simulate some data with log(F) error
    ash(e,1,lik=lik_logF(df1=10,df2=10))
 }
-

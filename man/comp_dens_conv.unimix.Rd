@@ -17,4 +17,3 @@ a k by n matrix
 \description{
 density of convolution of each component of a unif mixture
 }
-

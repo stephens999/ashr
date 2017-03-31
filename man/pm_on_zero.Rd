@@ -15,4 +15,3 @@ a boolean vector indicating which components are point mass on 0
 \description{
 Generic function to extract which components of mixture are point mass on 0
 }
-

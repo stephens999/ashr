@@ -36,4 +36,3 @@ Estimate mixture proportions of a mixture g given noisy (error-prone) data from 
 This is used by the ash function. Most users won't need to call this directly, but is
 exported for use by some other related packages.
 }
-

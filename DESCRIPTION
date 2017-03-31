@@ -40,5 +40,5 @@ Enhances: REBayes, Rmosek
 License: GPL (>=3)
 NeedsCompilation: no
 URL: http://github.com/stephens999/ashr
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 VignetteBuilder: knitr

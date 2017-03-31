@@ -16,4 +16,3 @@ my_etrunct(a, b, df)
 \description{
 Compute second moment of the truncated t. Uses results from O'Hagan, Biometrika, 1973
 }
-

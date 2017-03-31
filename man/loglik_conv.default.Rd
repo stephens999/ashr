@@ -14,4 +14,3 @@
 \description{
 The default version of \code{\link{loglik_conv}}.
 }
-

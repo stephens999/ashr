@@ -29,4 +29,3 @@ Estimates mixture proportions \eqn{\pi} by maximum likelihood, or by maximum a p
 (if a prior is specified).  Uses the SQUAREM package to accelerate convergence of EM. Used by the ash main function; there is no need for a user to call this 
 function separately, but it is exported for convenience.
 }
-
