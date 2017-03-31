@@ -92,6 +92,16 @@ calc_logLR = function(g,data){
   return(calc_loglik(g,data) - calc_null_loglik(data))
 }
 
+#' @title Compute vector of loglikelihood for data from ash fit
+#'
+#' @description Return the vector of log-likelihoods of the data
+#'     betahat, with standard errors betahatsd, for a given g() prior
+#'     on beta, or an ash object containing that
+#'
+#' @inheritParams calc_loglik
+#'
+#' @export
+#'
 calc_vloglik = function(g,data){
   if(class(g)=="ash"){
     if(g$data$alpha != data$alpha){
