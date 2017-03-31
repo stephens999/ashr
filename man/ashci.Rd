@@ -47,3 +47,4 @@ CImatrix=ashci(beta.ash,level=0.95)
 CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
 CImatrix2=ashci(beta.ash,level=0.95,lfsr_threshold=0.1)
 }
+

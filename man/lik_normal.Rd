@@ -13,3 +13,4 @@ Creates a likelihood object for ash for use with normal error distribution
    z = rnorm(100) + rnorm(100) # simulate some data with normal error
    ash(z,1,lik=lik_normal())
 }
+

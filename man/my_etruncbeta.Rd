@@ -16,3 +16,4 @@ my_etruncbeta(a, b, alpha, beta)
 \description{
 Compute mean of the truncated Beta.
 }
+

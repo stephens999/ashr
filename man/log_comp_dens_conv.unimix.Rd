@@ -17,3 +17,4 @@ a k by n matrix of densities
 \description{
 log density of convolution of each component of a unif mixture
 }
+

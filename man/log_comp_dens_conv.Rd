@@ -20,3 +20,4 @@ compute the log density of the components of the
     s or a scaled (se) student.t with df v, the density is
     evaluated at x
 }
+

@@ -16,3 +16,4 @@ my_e2truncbeta(a, b, alpha, beta)
 \description{
 Compute second moment of the truncated Beta.
 }
+

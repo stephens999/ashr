@@ -26,3 +26,4 @@ The data object stores both the data, and details of the model to be used for th
 For example, in the generalized version of ash the cdf and pdf of the likelihood are
 stored here.
 }
+

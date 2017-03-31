@@ -13,3 +13,4 @@ calc_null_loglik(data)
 Return the log-likelihood of the data betahat, with
     standard errors betahatsd, under the null that beta==0
 }
+

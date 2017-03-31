@@ -16,3 +16,4 @@ Creates a likelihood object for ash for use with t error distribution
    z = rnorm(100) + rt(100,df=4) # simulate some data with t error
    ash(z,1,lik=lik_t(df=4))
 }
+

@@ -146,11 +146,11 @@ ash <- function (betahat, sebetahat,
 #' @param control A list of control parameters passed to optmethod
 #' @param lik contains details of the likelihood used; for general
 #'     ash. Currently, the following choices are allowed: normal (see
-#'     function normal_lik(); binomial likelihood (see function
-#'     binomial_lik); likelihood based on logF error distribution
-#'     (see function logF_lik); mixture of normals likelihood (see
-#'     function normalmix_lik); and Poisson likelihood (see function
-#'     pois_lik).#'
+#'     function lik_normal(); binomial likelihood (see function
+#'     lik_binom); likelihood based on logF error distribution
+#'     (see function lik_logF); mixture of normals likelihood (see
+#'     function lik_normalmix); and Poisson likelihood (see function
+#'     lik_pois).#'
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
 #' \item{fitted_g}{fitted mixture, either a normalmix or unimix}
 #' \item{loglik}{log P(D|mle(pi))}
@@ -190,11 +190,11 @@ ash <- function (betahat, sebetahat,
 #' print(CIMatrix)
 #'
 #' #Running ash with different error models
-#' beta.ash1 = ash(betahat, sebetahat, lik = normal_lik())
-#' beta.ash2 = ash(betahat, sebetahat, lik = t_lik(df=4))
+#' beta.ash1 = ash(betahat, sebetahat, lik = lik_normal())
+#' beta.ash2 = ash(betahat, sebetahat, lik = lik_t(df=4))
 #'
 #' e = rnorm(100)+log(rf(100,df1=10,df2=10)) # simulated data with log(F) error
-#' e.ash = ash(e,1,lik=logF_lik(df1=10,df2=10))
+#' e.ash = ash(e,1,lik=lik_logF(df1=10,df2=10))
 #'
 #' # Specifying the output
 #' beta.ash = ash(betahat, sebetahat, output = c("fitted_g","logLR","lfsr"))
@@ -248,8 +248,8 @@ ash.workhorse <-
   # set likelihood based on defaults if missing
   if(is.null(lik)){ 
     if(is.null(df)){
-      lik = normal_lik()
-    } else {lik = t_lik(df)}
+      lik = lik_normal()
+    } else {lik = lik_t(df)}
   }
   
   # poisson likelihood has non-negative g

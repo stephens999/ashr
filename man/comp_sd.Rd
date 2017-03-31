@@ -18,3 +18,4 @@ it returns a vector of standard deviations
 Generic function to extract the standard deviations of
     components of the mixture
 }
+

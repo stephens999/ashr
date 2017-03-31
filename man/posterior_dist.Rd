@@ -27,3 +27,4 @@ Return the posterior on beta given a prior (g) that is
 \details{
 This can be used to obt
 }
+

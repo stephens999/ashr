@@ -14,3 +14,4 @@ calc_logLR(g, data)
 \description{
 Return the log-likelihood ratio of the data for a given g() prior
 }
+

@@ -14,3 +14,4 @@ calc_loglik(g, data)
 \description{
 Return the log-likelihood of the data for a given g() prior
 }
+

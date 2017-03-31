@@ -17,3 +17,4 @@ it returns a vector of component probabilities, summing up
 \description{
 Generic function of extracting the mixture proportions
 }
+

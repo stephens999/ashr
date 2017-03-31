@@ -15,3 +15,4 @@ a vector of length k
 \description{
 returns sds of the normal mixture
 }
+

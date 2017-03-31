@@ -18,3 +18,4 @@ it returns a vector of means.
 Generic function of calculating the first moment of components of
     the mixture
 }
+

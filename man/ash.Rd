@@ -85,3 +85,4 @@ summary(betan.ash)
 
 \code{\link{ashci}} for computation of credible intervals after getting the ash object return by \code{ash()}
 }
+

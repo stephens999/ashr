@@ -17,3 +17,4 @@ Return the density of the underlying fitted distribution
 \details{
 None
 }
+

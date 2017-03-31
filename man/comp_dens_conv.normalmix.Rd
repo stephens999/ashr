@@ -19,3 +19,4 @@ returns density of convolution of each component of a
     normal mixture with N(0,s^2) at x. Note that
     convolution of two normals is normal, so it works that way
 }
+

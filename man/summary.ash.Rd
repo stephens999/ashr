@@ -20,3 +20,4 @@ Print summary of fitted ash object
     fitted log likelihood with 10 digits and a flag to indicate
     convergence
 }
+

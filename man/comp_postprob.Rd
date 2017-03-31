@@ -17,3 +17,4 @@ compute the posterior prob that each observation came
     probabilities computed by weighting the component densities by
     pi and then normalizing
 }
+

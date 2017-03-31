@@ -18,3 +18,4 @@ it returns scalar
 Generic function of calculating the overall second moment of the
     mixture
 }
+

@@ -18,3 +18,4 @@ it returns a vector of second moments.
 Generic function of calculating the second moment of components of
     the mixture
 }
+

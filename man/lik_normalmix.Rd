@@ -22,3 +22,4 @@ Creates a likelihood object for ash for use with normal mixture error distributi
    betahat = rnorm(100)+e
    ash(betahat, 1, lik=lik_normalmix(c(0.5,0.5),c(0.8,1.5)))
 }
+

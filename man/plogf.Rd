@@ -24,3 +24,4 @@ The distribution function.
 Distribution function for the log-F distribution with \code{df1} and \code{df2}
  degrees of freedom (and optional non-centrality parameter \code{ncp}).
 }
+

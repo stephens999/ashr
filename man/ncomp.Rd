@@ -13,3 +13,4 @@ unimix() or igmix()}
 \description{
 ncomp
 }
+

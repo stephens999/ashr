@@ -18,3 +18,4 @@ my_vtruncnorm(a, b, mean = 0, sd = 1)
 \description{
 This version is better than trunvnorm package
 }
+

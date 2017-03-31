@@ -19,3 +19,4 @@ Print the fitted distribution of beta values in the EB
 \details{
 None
 }
+
