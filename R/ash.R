@@ -146,11 +146,11 @@ ash <- function (betahat, sebetahat,
 #' @param control A list of control parameters passed to optmethod
 #' @param lik contains details of the likelihood used; for general
 #'     ash. Currently, the following choices are allowed: normal (see
-#'     function lik_normal(); binomial likelihood (see function
-#'     lik_binom); likelihood based on logF error distribution
-#'     (see function lik_logF); mixture of normals likelihood (see
-#'     function lik_normalmix); and Poisson likelihood (see function
-#'     lik_pois).#'
+#'     function normal_lik(); binomial likelihood (see function
+#'     binomial_lik); likelihood based on logF error distribution
+#'     (see function logF_lik); mixture of normals likelihood (see
+#'     function normalmix_lik); and Poisson likelihood (see function
+#'     pois_lik).#'
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
 #' \item{fitted_g}{fitted mixture, either a normalmix or unimix}
 #' \item{loglik}{log P(D|mle(pi))}
@@ -190,11 +190,11 @@ ash <- function (betahat, sebetahat,
 #' print(CIMatrix)
 #'
 #' #Running ash with different error models
-#' beta.ash1 = ash(betahat, sebetahat, lik = lik_normal())
-#' beta.ash2 = ash(betahat, sebetahat, lik = lik_t(df=4))
+#' beta.ash1 = ash(betahat, sebetahat, lik = normal_lik())
+#' beta.ash2 = ash(betahat, sebetahat, lik = t_lik(df=4))
 #'
 #' e = rnorm(100)+log(rf(100,df1=10,df2=10)) # simulated data with log(F) error
-#' e.ash = ash(e,1,lik=lik_logF(df1=10,df2=10))
+#' e.ash = ash(e,1,lik=logF_lik(df1=10,df2=10))
 #'
 #' # Specifying the output
 #' beta.ash = ash(betahat, sebetahat, output = c("fitted_g","logLR","lfsr"))
@@ -248,8 +248,8 @@ ash.workhorse <-
   # set likelihood based on defaults if missing
   if(is.null(lik)){ 
     if(is.null(df)){
-      lik = lik_normal()
-    } else {lik = lik_t(df)}
+      lik = normal_lik()
+    } else {lik = t_lik(df)}
   }
   
   # poisson likelihood has non-negative g
@@ -350,20 +350,19 @@ ash.workhorse <-
     if(mixcompdist == "halfuniform"){
       
       if(min(mixsd)>0){ #simply reflect the components
-        pi = c(pi[mode-mixsd>=min(grange)],pi[mode+mixsd<=max(grange)])
+        pi = c(pi,pi)
         pi = pi/sum(pi)
-        g = unimix(pi,c((mode-mixsd)[mode-mixsd>=min(grange)],rep(mode,sum(mode+mixsd<=max(grange)))),
-                   c(rep(mode,sum(mode-mixsd>=min(grange))),(mode+mixsd)[mode+mixsd<=max(grange)]))
-        prior = c(prior[mode-mixsd>=min(grange)], prior[mode+mixsd<=max(grange)])
+        g = unimix(pi,c(mode-mixsd,rep(mode,k)),
+                   c(rep(mode,k),mode+mixsd))
+        prior = c(prior, prior)
       } else { #define two sets of components, but don't duplicate null component
         null.comp=which.min(mixsd)
-        tmp = (mode+mixsd)[-null.comp]
-        pi = c(pi[mode-mixsd>=min(grange)],(pi[-null.comp])[tmp<=max(grange)])
+        pi = c(pi,pi[-null.comp])
         pi = pi/sum(pi)
         g = unimix(pi,
-                   c((mode-mixsd)[mode-mixsd>=min(grange)],rep(mode,sum(tmp<=max(grange)))),
-                   c(rep(mode,sum(mode-mixsd>=min(grange))),tmp[tmp<=max(grange)]))
-        prior = c(prior[mode-mixsd>=min(grange)],(prior[-null.comp])[tmp<=max(grange)])
+                   c(mode-mixsd,rep(mode,k-1)),
+                   c(rep(mode,k),(mode+mixsd)[-null.comp]))
+        prior = c(prior,prior[-null.comp])
         #pi = c(pi,pi[-null.comp])
       }
     }
@@ -703,10 +702,10 @@ constrain_mix = function(g, pi, prior, grange, mixcompdist){
   }
   
   if(mixcompdist %in% c("uniform","+uniform","-uniform","halfuniform")) {
-    # only keep the uniform mixture components that are within grange
-    # (if the lower bound of uniform distribution is greater than specified grange min,
-    # and the upper bound of uniform distribution is smaller than specified grange max)
-    compidx = (g$a>=min(grange) & g$b<=max(grange))
+    # truncate the uniform mixture components that are out of grange
+    g$a = pmax(g$a, min(grange)) # change g$a to at least min(grange)
+    g$b = pmin(g$b, max(grange)) # change g$b to at most max(grange)
+    compidx = !duplicated(cbind(g$a, g$b)) # remove duplicated components
     pi = pi[compidx]
     pi = pi/sum(pi)
     g = unimix(pi,g$a[compidx],g$b[compidx])
