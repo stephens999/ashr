@@ -109,8 +109,17 @@ calc_vloglik = function(g,data){
     }
     if(class(g)=="ash"){g = g$fitted_g} #extract g object from ash object if ash object passed
   }
-  return(log(dens_conv(g,data))- data$alpha*(log(data$s_orig)))
+  
+  # compute log(dens_conv(g,data))
+  log_comp_dens = log_comp_dens_conv(g, data)
+  offset = apply(t(log_comp_dens),1,max)
+  log_comp_dens = t(t(log_comp_dens)-offset) # avoid numeric issues by subtracting max of each row
+  log_dens = log(colSums(g$pi * exp(log_comp_dens)))+offset # add offset back
+  
+  #return(log(dens_conv(g,data))- data$alpha*(log(data$s_orig)))
+  return(log_dens - data$alpha*(log(data$s_orig)))
 }
+
 
 
 #' @title Compute vector of loglikelihood for data under null that all

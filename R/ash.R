@@ -350,20 +350,19 @@ ash.workhorse <-
     if(mixcompdist == "halfuniform"){
       
       if(min(mixsd)>0){ #simply reflect the components
-        pi = c(pi[mode-mixsd>=min(grange)],pi[mode+mixsd<=max(grange)])
+        pi = c(pi,pi)
         pi = pi/sum(pi)
-        g = unimix(pi,c((mode-mixsd)[mode-mixsd>=min(grange)],rep(mode,sum(mode+mixsd<=max(grange)))),
-                   c(rep(mode,sum(mode-mixsd>=min(grange))),(mode+mixsd)[mode+mixsd<=max(grange)]))
-        prior = c(prior[mode-mixsd>=min(grange)], prior[mode+mixsd<=max(grange)])
+        g = unimix(pi,c(mode-mixsd,rep(mode,k)),
+                   c(rep(mode,k),mode+mixsd))
+        prior = c(prior, prior)
       } else { #define two sets of components, but don't duplicate null component
         null.comp=which.min(mixsd)
-        tmp = (mode+mixsd)[-null.comp]
-        pi = c(pi[mode-mixsd>=min(grange)],(pi[-null.comp])[tmp<=max(grange)])
+        pi = c(pi,pi[-null.comp])
         pi = pi/sum(pi)
         g = unimix(pi,
-                   c((mode-mixsd)[mode-mixsd>=min(grange)],rep(mode,sum(tmp<=max(grange)))),
-                   c(rep(mode,sum(mode-mixsd>=min(grange))),tmp[tmp<=max(grange)]))
-        prior = c(prior[mode-mixsd>=min(grange)],(prior[-null.comp])[tmp<=max(grange)])
+                   c(mode-mixsd,rep(mode,k-1)),
+                   c(rep(mode,k),(mode+mixsd)[-null.comp]))
+        prior = c(prior,prior[-null.comp])
         #pi = c(pi,pi[-null.comp])
       }
     }
@@ -703,10 +702,10 @@ constrain_mix = function(g, pi, prior, grange, mixcompdist){
   }
   
   if(mixcompdist %in% c("uniform","+uniform","-uniform","halfuniform")) {
-    # only keep the uniform mixture components that are within grange
-    # (if the lower bound of uniform distribution is greater than specified grange min,
-    # and the upper bound of uniform distribution is smaller than specified grange max)
-    compidx = (g$a>=min(grange) & g$b<=max(grange))
+    # truncate the uniform mixture components that are out of grange
+    g$a = pmax(g$a, min(grange)) # change g$a to at least min(grange)
+    g$b = pmin(g$b, max(grange)) # change g$b to at most max(grange)
+    compidx = !duplicated(cbind(g$a, g$b)) # remove duplicated components
     pi = pi[compidx]
     pi = pi/sum(pi)
     g = unimix(pi,g$a[compidx],g$b[compidx])
