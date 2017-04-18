@@ -5,3 +5,11 @@ cxxMixSquarem <- function(matrix_lik, prior, pi_init, control) {
     .Call('ashr_cxxMixSquarem', PACKAGE = 'ashr', matrix_lik, prior, pi_init, control)
 }
 
+timesTwo <- function(x) {
+    .Call('ashr_timesTwo', PACKAGE = 'ashr', x)
+}
+
+timesThree <- function(x) {
+    .Call('ashr_timesThree', PACKAGE = 'ashr', x)
+}
+

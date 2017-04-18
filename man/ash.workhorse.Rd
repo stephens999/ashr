@@ -6,11 +6,12 @@
 \usage{
 ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
   mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform",
-  "halfnormal"), optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM"),
-  df = NULL, nullweight = 10, pointmass = TRUE, prior = c("nullbiased",
-  "uniform", "unit"), mixsd = NULL, gridmult = sqrt(2), outputlevel = 2,
-  g = NULL, fixg = FALSE, mode = 0, alpha = 0, grange = c(-Inf, Inf),
-  control = list(), lik = NULL)
+  "halfnormal"), optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM",
+  "w_mixEM"), df = NULL, nullweight = 10, pointmass = TRUE,
+  prior = c("nullbiased", "uniform", "unit"), mixsd = NULL,
+  gridmult = sqrt(2), outputlevel = 2, g = NULL, fixg = FALSE,
+  mode = 0, alpha = 0, grange = c(-Inf, Inf), control = list(),
+  lik = NULL, weights = NULL)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -88,7 +89,9 @@ function lik_normal(); binomial likelihood (see function
 lik_binom); likelihood based on logF error distribution
 (see function lik_logF); mixture of normals likelihood (see
 function lik_normalmix); and Poisson likelihood (see function
-lik_pois).#'}
+lik_pois).}
+
+\item{weights}{a vector of weights for observations; use with optmethod = "w_mixEM"; this is currently beta-functionality.}
 }
 \value{
 ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
@@ -163,6 +166,9 @@ true_g = normalmix(c(0.5,0.5),c(0,0),c(0,1)) # define true g
 ## for each component from this g, and ii) initialize pi to the value
 ## from this g.
 beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
+
+# running with weights
+beta.ash = ash(betahat, sebetahat, optmethod="w_mixEM", weights = c(rep(0.5,100),rep(1,100)))
 }
 \seealso{
 \code{\link{ash}} for simplified specification of ash function

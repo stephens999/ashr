@@ -150,7 +150,8 @@ ash <- function (betahat, sebetahat,
 #'     lik_binom); likelihood based on logF error distribution
 #'     (see function lik_logF); mixture of normals likelihood (see
 #'     function lik_normalmix); and Poisson likelihood (see function
-#'     lik_pois).#'
+#'     lik_pois).
+#' @param weights a vector of weights for observations; use with optmethod = "w_mixEM"; this is currently beta-functionality.
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
 #' \item{fitted_g}{fitted mixture, either a normalmix or unimix}
 #' \item{loglik}{log P(D|mle(pi))}
@@ -216,15 +217,18 @@ ash <- function (betahat, sebetahat,
 #' ## for each component from this g, and ii) initialize pi to the value
 #' ## from this g.
 #' beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
+#' 
+#' # running with weights
+#' beta.ash = ash(betahat, sebetahat, optmethod="w_mixEM", weights = c(rep(0.5,100),rep(1,100)))
 ash.workhorse <-
     function(betahat, sebetahat, method = c("fdr","shrink"),
              mixcompdist = c("uniform","halfuniform","normal","+uniform",
                              "-uniform","halfnormal"),
-             optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM"),
+             optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM","w_mixEM"),
              df = NULL,nullweight = 10,pointmass = TRUE,
              prior = c("nullbiased","uniform","unit"),mixsd = NULL,
              gridmult = sqrt(2),outputlevel = 2,g = NULL,fixg = FALSE,
-             mode = 0,alpha = 0,grange = c(-Inf,Inf),control = list(),lik = NULL) {
+             mode = 0,alpha = 0,grange = c(-Inf,Inf),control = list(),lik = NULL, weights=NULL) {
 
   if(!missing(pointmass) & !missing(method))
     stop("Specify either method or pointmass, not both")
@@ -271,6 +275,7 @@ ash.workhorse <-
     if(missing(mode) & missing(g)){mode = "estimate"}
   }
   
+  #if length of mode is 2 then the numeric values give the range of values to search
   if(sum(mode=="estimate") | length(mode)==2){ #just pass everything through to ash.estmode for non-zero-mode
     args <- as.list(environment())
     args$mode = NULL
@@ -394,7 +399,7 @@ ash.workhorse <-
 
   ##3. Fitting the mixture
   if(!fixg){
-    pi.fit=estimate_mixprop(data,g,prior,optmethod=optmethod,control=control)
+    pi.fit=estimate_mixprop(data,g,prior,optmethod=optmethod,control=control,weights=weights)
   } else {
     pi.fit = list(g=g)
   }
@@ -511,12 +516,13 @@ ColsumModified = function(matrix_l){
 #' @param optmethod name of function to use to do optimization
 #' @param control list of control parameters to be passed to optmethod,
 #' typically affecting things like convergence tolerance
+#' @param weights vector of weights (for use with w_mixEM; in beta)
 #' @return list, including the final loglikelihood, the null loglikelihood,
 #' an n by k likelihood matrix with (j,k)th element equal to \eqn{f_k(x_j)},
 #' the fit
 #' and results of optmethod
 #' @export
-estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSquarem","mixIP"),control){
+estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSquarem","mixIP","w_mixEM"),control,weights=NULL){
   optmethod=match.arg(optmethod)
 
   pi_init = g$pi
@@ -528,15 +534,24 @@ estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSq
   matrix_llik = matrix_llik - apply(matrix_llik,1, max) #avoid numerical issues by subtracting max of each row
   matrix_lik = exp(matrix_llik)
 
-  # the last of these conditions checks whether the gradient at the null is negative wrt pi0
-  # to avoid running the optimization when the global null (pi0=1) is the optimal.
-  if(optmethod=="mixVBEM" || max(prior[-1])>1 || min(gradient(matrix_lik)+prior[1]-1,na.rm=TRUE)<0){
-    if(optmethod=="cxxMixSquarem"){control=set_control_squarem(control,nrow(matrix_lik))}
-    fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=control))
-  } else {
-    fit = list(converged=TRUE,pihat=c(1,rep(0,k-1)),optmethod="gradient_check")
+  if(!is.null(weights) && optmethod!="w_mixEM"){stop("weights can only be used with optmethod w_mixEM")}
+  if(optmethod=="w_mixEM"){
+    if(is.null(weights)){
+      weights = rep(1,nrow(matrix_lik))
+      message("No weights supplied for w_mixEM so setting weights to 1")
+    }
+    fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=control, weights=weights))
+  }  else {   
+    # the last of these conditions checks whether the gradient at the null is negative wrt pi0
+    # to avoid running the optimization when the global null (pi0=1) is the optimal.
+    if(optmethod=="mixVBEM" || max(prior[-1])>1 || min(gradient(matrix_lik)+prior[1]-1,na.rm=TRUE)<0){
+      if(optmethod=="cxxMixSquarem"){control=set_control_squarem(control,nrow(matrix_lik))}
+      fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=control))
+    } else {
+      fit = list(converged=TRUE,pihat=c(1,rep(0,k-1)),optmethod="gradient_check")
+    }
   }
-
+  
   if(!fit$converged){
       warning("Optimization failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
   }

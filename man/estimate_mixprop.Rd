@@ -5,7 +5,7 @@
 \title{Estimate mixture proportions of a mixture g given noisy (error-prone) data from that mixture.}
 \usage{
 estimate_mixprop(data, g, prior, optmethod = c("mixEM", "mixVBEM",
-  "cxxMixSquarem", "mixIP"), control)
+  "cxxMixSquarem", "mixIP", "w_mixEM"), control, weights = NULL)
 }
 \arguments{
 \item{data}{list to be passed to log_comp_dens_conv; details depend on model}
@@ -22,6 +22,8 @@ on mixture proportions}
 
 \item{control}{list of control parameters to be passed to optmethod,
 typically affecting things like convergence tolerance}
+
+\item{weights}{vector of weights (for use with w_mixEM; in beta)}
 }
 \value{
 list, including the final loglikelihood, the null loglikelihood,
