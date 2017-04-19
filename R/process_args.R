@@ -1,16 +1,19 @@
 #sets optimization method
 #also checks if necessary tools installed for optmethod specified
 set_optmethod = function(optmethod){
-  # Fallbacks for optmethod
-  # By default it will be "mixIP", if REBayes not present then fallback to EM
-  if (!requireNamespace("REBayes", quietly = TRUE)) {  # check whether REBayes package is present
+  # Fallbacks for optmethod - checks required packages are installed
+  if(optmethod == "mixIP"){
+    if (!requireNamespace("REBayes", quietly = TRUE)) {  # check whether REBayes package is present
     # If REBayes package missing
-    message("Due to absence of package REBayes, switching to EM algorithm")
-    if (requireNamespace("Rcpp")) {
+      message("Due to absence of package REBayes, switching to EM algorithm")
       optmethod = "cxxMixSquarem"
-    } else {
-      optmethod = "mixEM"  # fallback if neither Rcpp or REBayes are installed
-      message("Using vanilla EM; for faster performance install REBayes (preferred) or Rcpp")
+    }
+  }
+  
+  if(optmethod == "cxxMixSquarem"){
+    if (!requireNamespace("Rcpp", quietly = TRUE)) {
+      message("Due to absence of Rcpp using vanilla EM; for faster performance install REBayes (preferred) or Rcpp")
+      optmethod = "mixEM"
     }
   }
   
