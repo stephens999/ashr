@@ -23,7 +23,7 @@ test_that("lik_binom (identity link) fitted g is close to true g",{
   ash.binom.out = ash(rep(0,length(x)),1,lik=lik_binom(x,n),mode="estimate")
   
   # Check if the estimated mode is close to the true mode 0.3
-  expect_equal(ash.binom.out$fitted_g$a[1], truemode, tolerance = 0.05, scale=x)
+  expect_equal(ash.binom.out$fitted_g$a[1], truemode, tolerance = 0.05, scale=truemode)
 })
 
 test_that("lik_binom (identity link) with big n gives similar answers to normal likelihood",{
@@ -45,7 +45,7 @@ test_that("lik_binom (identity link) with big n gives similar answers to normal 
   # at most 5%).
   expect_equal(ash.norm.out$result$PosteriorMean,
                ash.binom.out$result$PosteriorMean,
-               tolerance = 0.05, scale=x)
+               tolerance = 0.05)
 })
 
 test_that("lik_binom (logit link) fitted g is close to true g",{
