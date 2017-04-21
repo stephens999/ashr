@@ -57,6 +57,28 @@ plot.ash = function(x,...,xmin,xmax){
   graphics::plot(y,type="l",...)
 }
 
+#' @title Diagnostic plot for ash object
+#'
+#' @description Plot the cdf of the fitted predictive distribution at observations
+#'
+#' @param x the fitted ash object
+#' @param ... Arguments to be passed to methods,such as graphical parameters (see \code{\link[graphics]{plot}})
+#' @details None
+#'
+#' @export
+#'
+diag.ash = function(x, ...){
+  cdfhat = cdf_conv(x$fitted_g, x$data)
+  n = length(cdfhat)
+  graphics::plot((1 : n) / (n + 1), sort(cdfhat), 
+                 pch = 19, cex = 0.25,
+                 xlim = c(0, 1), ylim = c(0, 1),
+                 xlab = "Uniform Theoretical Quantile", ylab = "Estimated Predictive Quantile",
+                 main = "Diagnostic Plot for ASH",
+                 ...)
+  abline(0, 1, lty = 2, col = "red")
+}
+
 #' @title Compute loglikelihood for data from ash fit
 #'
 #' @description Return the log-likelihood of the data for a given g() prior 
