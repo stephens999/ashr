@@ -62,6 +62,7 @@ plot.ash = function(x,...,xmin,xmax){
 #' @description Plot the cdf of the fitted predictive distribution at observations
 #'
 #' @param x the fitted ash object
+#' @param plot.it logical. whether to plot the diagnostic result.
 #' @param xlim,ylim plot parameters
 #' @param xlab,ylab,main plot labels
 #' @param pch,cex plot parameters for dots
@@ -70,7 +71,8 @@ plot.ash = function(x,...,xmin,xmax){
 #'
 #' @export
 #'
-plot_diagnostic = function (x, 
+plot_diagnostic = function (x,
+                            plot.it = TRUE,
                             xlim = c(0, 1), ylim = c(0, 1),
                             xlab = "Theoretical Uniform Quantile",
                             ylab = "Estimated Predictive Quantile",
@@ -82,16 +84,17 @@ plot_diagnostic = function (x,
   n = length(cdfhat[!na.ind])
   if (n == 0) (stop("The data have only NAs."))
   unifquantile <- qunif(stats::ppoints(n))
-  graphics::plot(unifquantile, sort(cdfhat[!na.ind]),
-                 xlim = xlim, ylim = ylim,
-                 xlab = xlab, ylab = ylab,
-                 main = main,
-                 pch = pch, cex = cex,
-                 ...)
-  abline(0, 1, lty = 2, col = "red")
-  invisible(list(cdfhat = cdfhat))
+  if (plot.it) {
+    graphics::plot(unifquantile, sort(cdfhat[!na.ind]),
+                   xlim = xlim, ylim = ylim,
+                   xlab = xlab, ylab = ylab,
+                   main = main,
+                   pch = pch, cex = cex,
+                   ...)
+    abline(0, 1, lty = 2, col = "red")
+  }
+  invisible(cdfhat)
 }
-
 
 #' @title Compute loglikelihood for data from ash fit
 #'

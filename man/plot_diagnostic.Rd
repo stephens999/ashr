@@ -4,13 +4,15 @@
 \alias{plot_diagnostic}
 \title{Diagnostic plot for ash object}
 \usage{
-plot_diagnostic(x, xlim = c(0, 1), ylim = c(0, 1),
+plot_diagnostic(x, plot.it = TRUE, xlim = c(0, 1), ylim = c(0, 1),
   xlab = "Theoretical Uniform Quantile",
   ylab = "Estimated Predictive Quantile", main = "Diagnostic Plot for ASH",
   pch = 19, cex = 0.25, ...)
 }
 \arguments{
 \item{x}{the fitted ash object}
+
+\item{plot.it}{logical. whether to plot the diagnostic result.}
 
 \item{xlim, ylim}{plot parameters}
 
