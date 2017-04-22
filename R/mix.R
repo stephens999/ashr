@@ -264,7 +264,6 @@ log_comp_dens_conv.default = function(m,data){
 }
 
 
-
 #' @title dens_conv
 #' @description compute density of mixture m convoluted with normal of
 #'     sd (s) or student t with df v at locations x
@@ -274,6 +273,31 @@ dens_conv = function(m,data){
 }
 dens_conv.default = function(m,data){
   colSums(m$pi * comp_dens_conv(m,data))
+}
+
+
+#' @title comp_cdf_conv
+#' @description compute the cdf of data for each component of mixture when convolved with error distribution 
+#' @param m mixture distribution with k components
+#' @param data details depend on the model
+#' @return a k by n matrix of cdfs
+comp_cdf_conv = function (m, data) {
+  UseMethod("comp_cdf_conv")
+}
+comp_cdf_conv.default = function(m, data){
+  stop(paste("Invalid class", class(m), "for first argument in",  match.call()))
+}
+
+
+#' @title cdf_conv
+#' @description compute cdf of mixture m convoluted with error distribution
+#'  either normal of sd (s) or student t with df v at locations x
+#' @inheritParams comp_cdf_conv
+cdf_conv = function (m, data) {
+  UseMethod("cdf_conv")
+}
+cdf_conv.default = function (m, data) {
+  colSums(m$pi * comp_cdf_conv(m, data))
 }
 
 

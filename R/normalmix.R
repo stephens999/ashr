@@ -85,8 +85,20 @@ log_comp_dens_conv.normalmix = function(m,data){
 }
 
 
-
-
+#' @title comp_cdf_conv.normalmix
+#' @description returns cdf of convolution of each component of a
+#'     normal mixture with N(0,s^2) at x. Note that
+#'     convolution of two normals is normal, so it works that way
+#' @param m mixture distribution with k components
+#' @param data a list with components x and s to be interpreted as a normally-distributed observation and its standard error
+#' @return a k by n matrix
+comp_cdf_conv.normalmix = function (m, data) {
+  if(!is_normal(data$lik)){
+    stop("Error: normal mixture for non-normal likelihood is not yet implemented")
+  }
+  sdmat = sqrt(outer(data$s^2, m$sd^2, FUN="+")) #n by k matrix of standard deviations of convolutions
+  return(t(stats::pnorm(outer(data$x, m$mean, FUN="-") / sdmat)))
+}
 
 
 #' @export

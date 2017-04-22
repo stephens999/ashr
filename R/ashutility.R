@@ -57,6 +57,45 @@ plot.ash = function(x,...,xmin,xmax){
   graphics::plot(y,type="l",...)
 }
 
+#' @title Diagnostic plot for ash object
+#'
+#' @description Plot the cdf of the fitted predictive distribution at observations
+#'
+#' @param x the fitted ash object
+#' @param plot.it logical. whether to plot the diagnostic result.
+#' @param xlim,ylim plot parameters
+#' @param xlab,ylab,main plot labels
+#' @param pch,cex plot parameters for dots
+#' @param ... Arguments to be passed to methods,such as graphical parameters (see \code{\link[graphics]{plot}})
+#' @details None
+#'
+#' @export
+#'
+plot_diagnostic = function (x,
+                            plot.it = TRUE,
+                            xlim = c(0, 1), ylim = c(0, 1),
+                            xlab = "Theoretical Uniform Quantile",
+                            ylab = "Estimated Predictive Quantile",
+                            main = "Diagnostic Plot for ASH",
+                            pch = 19, cex = 0.25,
+                            ...) {
+  cdfhat = cdf_conv(x$fitted_g, x$data)
+  na.ind = is.na(cdfhat)
+  n = length(cdfhat[!na.ind])
+  if (n == 0) (stop("The data have only NAs."))
+  unifquantile <- qunif(stats::ppoints(n))
+  if (plot.it) {
+    graphics::plot(unifquantile, sort(cdfhat[!na.ind]),
+                   xlim = xlim, ylim = ylim,
+                   xlab = xlab, ylab = ylab,
+                   main = main,
+                   pch = pch, cex = cex,
+                   ...)
+    abline(0, 1, lty = 2, col = "red")
+  }
+  invisible(cdfhat)
+}
+
 #' @title Compute loglikelihood for data from ash fit
 #'
 #' @description Return the log-likelihood of the data for a given g() prior 
