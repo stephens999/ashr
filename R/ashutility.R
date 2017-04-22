@@ -62,6 +62,9 @@ plot.ash = function(x,...,xmin,xmax){
 #' @description Plot the cdf of the fitted predictive distribution at observations
 #'
 #' @param x the fitted ash object
+#' @param xlim,ylim plot parameters
+#' @param xlab,ylab,main plot labels
+#' @param pch,cex plot parameters for dots
 #' @param ... Arguments to be passed to methods,such as graphical parameters (see \code{\link[graphics]{plot}})
 #' @details None
 #'
@@ -75,22 +78,10 @@ plot_diagnostic = function (x,
                             pch = 19, cex = 0.25,
                             ...) {
   cdfhat = cdf_conv(x$fitted_g, x$data)
-  ## the following code is copied from stats::qqnorm to handle NAs
-  if (has.na <- any(ina <- is.na(cdfhat))) {
-    cdfhatN <- cdfhat
-    cdfhat <- cdfhat[!ina]
-  }
-  if (0 == (n <- length(cdfhat))) 
-    stop("The data has only NAs")
-  unifquantile <- qunif(stats::ppoints(n))[order(order(cdfhat))]
-  if (has.na) {
-    cdfhat <- unifquantile
-    unifquantile <- cdfhatN
-    unifquantile[!ina] <- cdfhat
-    cdfhat <- cdfhatN
-  }
-  ## the above code is copied from stats::qqnorm to handle NAs
-  graphics::plot(unifquantile, cdfhat,
+  na.ind = is.na(cdfhat)
+  n = length(cdfhat[!na.ind])
+  unifquantile <- qunif(stats::ppoints(n))
+  graphics::plot(unifquantile, sort(cdfhat[!na.ind]),
                  xlim = xlim, ylim = ylim,
                  xlab = xlab, ylab = ylab,
                  main = main,
@@ -99,6 +90,7 @@ plot_diagnostic = function (x,
   abline(0, 1, lty = 2, col = "red")
   invisible(list(cdfhat = cdfhat))
 }
+
 
 #' @title Compute loglikelihood for data from ash fit
 #'

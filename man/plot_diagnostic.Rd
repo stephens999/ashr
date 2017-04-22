@@ -12,6 +12,12 @@ plot_diagnostic(x, xlim = c(0, 1), ylim = c(0, 1),
 \arguments{
 \item{x}{the fitted ash object}
 
+\item{xlim, ylim}{plot parameters}
+
+\item{xlab, ylab, main}{plot labels}
+
+\item{pch, cex}{plot parameters for dots}
+
 \item{...}{Arguments to be passed to methods,such as graphical parameters (see \code{\link[graphics]{plot}})}
 }
 \description{
