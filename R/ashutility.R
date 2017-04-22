@@ -80,6 +80,7 @@ plot_diagnostic = function (x,
   cdfhat = cdf_conv(x$fitted_g, x$data)
   na.ind = is.na(cdfhat)
   n = length(cdfhat[!na.ind])
+  if (n == 0) (stop("The data have only NAs."))
   unifquantile <- qunif(stats::ppoints(n))
   graphics::plot(unifquantile, sort(cdfhat[!na.ind]),
                  xlim = xlim, ylim = ylim,
