@@ -71,29 +71,25 @@ plot.ash = function(x,...,xmin,xmax){
 #'
 #' @export
 #'
-plot_diagnostic = function (x,
-                            plot.it = TRUE,
-                            xlim = c(0, 1), ylim = c(0, 1),
-                            xlab = "Theoretical Uniform Quantile",
-                            ylab = "Estimated Predictive Quantile",
-                            main = "Diagnostic Plot for ASH",
-                            pch = 19, cex = 0.25,
-                            ...) {
+plot_diagnostic <-
+  function (x,
+            xlabel = "Theoretical Uniform Quantile",
+            ylabel = "Estimated Predictive Quantile",
+            title = "Diagnostic Plot for ASH",
+            geom.point.args = list(shape = 19, size = 0.25),
+            geom.abline.args = list(color = "red",linetype = "dotted")) {
   cdfhat = cdf_conv(x$fitted_g, x$data)
   na.ind = is.na(cdfhat)
-  n = length(cdfhat[!na.ind])
-  if (n == 0) (stop("The data have only NAs."))
-  unifquantile <- qunif(stats::ppoints(n))
-  if (plot.it) {
-    graphics::plot(unifquantile, sort(cdfhat[!na.ind]),
-                   xlim = xlim, ylim = ylim,
-                   xlab = xlab, ylab = ylab,
-                   main = main,
-                   pch = pch, cex = cex,
-                   ...)
-    abline(0, 1, lty = 2, col = "red")
-  }
-  invisible(cdfhat)
+  n      = length(cdfhat[!na.ind])
+  if (n == 0)
+    stop("The data have only NAs.")
+  unifquantile <- qunif(ppoints(n))
+  return(ggplot(data.frame(x = unifquantile,y = sort(cdfhat[!na.ind])),
+                aes_string(x = "x",y = "y")) +
+         do.call("geom_point",geom.point.args) +
+         do.call("geom_abline",c(list(intercept = 0,slope = 1),
+                                 geom.abline.args)) +
+         labs(x = xlabel,y = ylabel,title = title))
 }
 
 #' @title Compute loglikelihood for data from ash fit

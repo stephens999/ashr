@@ -103,8 +103,14 @@ set_output=function(outputlevel){
 # returns a named list of output functions, whose names are given in outputnames
 # eg set_resfns(c("lfsr","lfdr")) would extract results functions for lfsr and lfdr
 set_resfns = function(outputnames){
-  result_fns = list(NegativeProb= calc_np, PositiveProb= calc_pp, lfsr = calc_lfsr, 
-                  svalue = calc_svalue, lfdr = calc_lfdr, qvalue = calc_qvalue,PosteriorMean = calc_pm, PosteriorSD = calc_psd)
-
-  return(result_fns[intersect(names(result_fns), outputnames)]) #extract the results functions specified in output 
+    result_fns = list(NegativeProb= calc_np,
+                      PositiveProb= calc_pp,
+                      lfsr = calc_lfsr, 
+                      svalue = calc_svalue,
+                      lfdr = calc_lfdr,
+                      qvalue = calc_qvalue,
+                      PosteriorMean = calc_pm,
+                      PosteriorSD = calc_psd)
+    return(result_fns[intersect(names(result_fns),
+                                outputnames)]) #extract the results functions specified in output 
 }
