@@ -2,7 +2,7 @@ Package: ashr
 Maintainer: Matthew Stephens <mstephens@uchicago.edu>
 Author: Matthew Stephens, Chaoxing Dai, Mengyin Lu, David Gerard, Nan Xiao,
     Peter Carbonetto, Lei Sun
-Version: 2.1-11
+Version: 2.1-12
 Date: 2017-03-15
 Title: Methods for Adaptive Shrinkage, using Empirical Bayes
 Description: The R package 'ashr' implements an Empirical Bayes approach for
@@ -19,6 +19,7 @@ Description: The R package 'ashr' implements an Empirical Bayes approach for
 Depends:
     R (>= 3.1.0)
 Imports:
+    Matrix,
     stats,
     assertthat,
     truncnorm,
