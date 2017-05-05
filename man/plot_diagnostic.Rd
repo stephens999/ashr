@@ -2,28 +2,28 @@
 % Please edit documentation in R/ashutility.R
 \name{plot_diagnostic}
 \alias{plot_diagnostic}
-\title{Diagnostic plot for ash object}
+\title{Diagnostic plots for ash object}
 \usage{
-plot_diagnostic(x, plot.it = TRUE, xlim = c(0, 1), ylim = c(0, 1),
-  xlab = "Theoretical Uniform Quantile",
-  ylab = "Estimated Predictive Quantile", main = "Diagnostic Plot for ASH",
-  pch = 19, cex = 0.25, ...)
+plot_diagnostic(x, plot.it = TRUE, sebetahat.tol = 1e-10, xmin, xmax,
+  breaks = "Sturges", alpha = 0.01, pch = 19, cex = 0.25)
 }
 \arguments{
 \item{x}{the fitted ash object}
 
 \item{plot.it}{logical. whether to plot the diagnostic result.}
 
-\item{xlim, ylim}{plot parameters}
+\item{sebetahat.tol}{tolerance to test the equality of betahat}
 
-\item{xlab, ylab, main}{plot labels}
+\item{xmin, xmax}{range of the histogram of betahat to be plotted}
+
+\item{breaks}{histograms parameter (see \code{\link[graphics]{hist}})}
+
+\item{alpha}{error level for the de-trended diagnostic plot}
 
 \item{pch, cex}{plot parameters for dots}
-
-\item{...}{Arguments to be passed to methods,such as graphical parameters (see \code{\link[graphics]{plot}})}
 }
 \description{
-Plot the cdf of the fitted predictive distribution at observations
+Generate several plots to diagnose the fitness of ASH on the data
 }
 \details{
 None
