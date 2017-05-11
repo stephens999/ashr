@@ -4,15 +4,18 @@
 \alias{plot_diagnostic}
 \title{Diagnostic plots for ash object}
 \usage{
-plot_diagnostic(x, plot.it = TRUE, sebetahat.tol = 1e-10, xmin, xmax,
-  breaks = "Sturges", alpha = 0.01, pch = 19, cex = 0.25)
+plot_diagnostic(x, plot.it = TRUE, sebetahat.tol = 0.001,
+  plot.hist = TRUE, xmin, xmax, breaks = "Sturges", alpha = 0.01,
+  pch = 19, cex = 0.25)
 }
 \arguments{
 \item{x}{the fitted ash object}
 
-\item{plot.it}{logical. whether to plot the diagnostic result.}
+\item{plot.it}{logical. whether to plot the diagnostic result}
 
 \item{sebetahat.tol}{tolerance to test the equality of betahat}
+
+\item{plot.hist}{logical. whether to plot the histogram of betahat when sebetahat is not constant}
 
 \item{xmin, xmax}{range of the histogram of betahat to be plotted}
 

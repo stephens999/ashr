@@ -62,8 +62,9 @@ plot.ash = function(x,...,xmin,xmax){
 #' @description Generate several plots to diagnose the fitness of ASH on the data
 #'
 #' @param x the fitted ash object
-#' @param plot.it logical. whether to plot the diagnostic result.
+#' @param plot.it logical. whether to plot the diagnostic result
 #' @param sebetahat.tol tolerance to test the equality of betahat
+#' @param plot.hist logical. whether to plot the histogram of betahat when sebetahat is not constant
 #' @param xmin,xmax range of the histogram of betahat to be plotted
 #' @param breaks histograms parameter (see \code{\link[graphics]{hist}})
 #' @param alpha error level for the de-trended diagnostic plot
@@ -73,7 +74,8 @@ plot.ash = function(x,...,xmin,xmax){
 #' @export
 #'
 plot_diagnostic = function (x, plot.it = TRUE, 
-                            sebetahat.tol = 1e-10,
+                            sebetahat.tol = 1e-3,
+                            plot.hist = TRUE,
                             xmin, xmax, breaks = "Sturges",
                             alpha = 0.01,
                             pch = 19, cex = 0.25
@@ -89,19 +91,33 @@ plot_diagnostic = function (x, plot.it = TRUE,
   if (plot.it) {
     betahat <- x$data$x
     sebetahat <- x$data$s
+    
+    ## plot the histogram of betahat
+    ## fitted predictive density on top of that
+    if (missing(xmin)) {xmin = min(betahat, na.rm = TRUE)}
+    if (missing(xmax)) {xmax = max(betahat, na.rm = TRUE)}
+    xgrid.length = 1000
+    xgrid = seq(xmin - 1, xmax + 1, length = xgrid.length)
+    plot.data <- x$data
     if (abs(max(sebetahat, na.rm = TRUE) - min(sebetahat, na.rm = TRUE)) <= sebetahat.tol) {
-      if (missing(xmin)) {xmin = min(betahat, na.rm = TRUE)}
-      if (missing(xmax)) {xmax = max(betahat, na.rm = TRUE)}
-      xgrid = seq(xmin - 1, xmax + 1, length = 1000)
-      x$data$x = xgrid
-      x$data$s = rep(mean(sebetahat, na.rm = TRUE), 1000)
-      hist.betahat = graphics::hist(betahat, breaks = breaks, plot = FALSE)
-      fhat = dens_conv(x$fitted_g, x$data)
-      graphics::hist(betahat, probability = TRUE, breaks = breaks,
+      plot.data$x = xgrid
+      plot.data$s = rep(mean(sebetahat, na.rm = TRUE), xgrid.length)
+      fhat = dens_conv(x$fitted_g, plot.data)
+    } else if (plot.hist) {
+      fhat = c()
+      for (i in 1 : xgrid.length) {
+        plot.data$x = rep(xgrid[i], n)
+        plot.data$s = sebetahat[!na.ind]
+        fhat[i] = mean(dens_conv(x$fitted_g, plot.data))
+      }
+    }
+    if (plot.hist) {
+      hist.betahat = graphics::hist(betahat[!na.ind], breaks = breaks, plot = FALSE)
+      graphics::hist(betahat[!na.ind], probability = TRUE, breaks = breaks,
                      ylim = c(0, max(c(fhat, hist.betahat$density))),
                      xlab = expression(hat(beta)),
                      main = expression(paste("Histogram of ", hat(beta)))
-                     )
+      )
       lines(xgrid, fhat, col = "blue")
       legend("topleft", lty = 1, col = "blue", "ASH")
       cat ("Press [enter] to see next plot")
@@ -131,7 +147,8 @@ plot_diagnostic = function (x, plot.it = TRUE,
     line <- readline()
     graphics::hist(cdfhat[!na.ind], probability = TRUE, breaks = breaks,
                    xlab = "Estimated Predictive Quantile",
-                   main = "Histogram of Estimated Predictive Quantile"
+                   main = c("Histogram of Estimated Predictive Quantile",
+                            paste("K-S Uniformity Test p Value:", p.ks.unif))
                    )
     abline(h = 1, lty = 2, col = "red")
   }
