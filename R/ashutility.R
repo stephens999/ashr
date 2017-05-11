@@ -75,7 +75,7 @@ plot.ash = function(x,...,xmin,xmax){
 #'
 plot_diagnostic = function (x, plot.it = TRUE, 
                             sebetahat.tol = 1e-3,
-                            plot.hist = TRUE,
+                            plot.hist,
                             xmin, xmax, breaks = "Sturges",
                             alpha = 0.01,
                             pch = 19, cex = 0.25
@@ -89,35 +89,36 @@ plot_diagnostic = function (x, plot.it = TRUE,
   lower = qbeta(alpha / 2, 1:n, n + 1 - (1:n)) - (1:n) / (n + 1)
   diff = sort(cdfhat[!na.ind]) - (1 : n) / (n + 1)
   if (plot.it) {
-    betahat <- x$data$x
     sebetahat <- x$data$s
-    
-    ## plot the histogram of betahat
-    ## fitted predictive density on top of that
-    if (missing(xmin)) {xmin = min(betahat, na.rm = TRUE)}
-    if (missing(xmax)) {xmax = max(betahat, na.rm = TRUE)}
-    xgrid.length = 1000
-    xgrid = seq(xmin - 1, xmax + 1, length = xgrid.length)
-    plot.data <- x$data
-    if (abs(max(sebetahat, na.rm = TRUE) - min(sebetahat, na.rm = TRUE)) <= sebetahat.tol) {
-      plot.data$x = xgrid
-      plot.data$s = rep(mean(sebetahat, na.rm = TRUE), xgrid.length)
-      fhat = dens_conv(x$fitted_g, plot.data)
-    } else if (plot.hist) {
-      fhat = c()
-      for (i in 1 : xgrid.length) {
-        plot.data$x = rep(xgrid[i], n)
-        plot.data$s = sebetahat[!na.ind]
-        fhat[i] = mean(dens_conv(x$fitted_g, plot.data))
-      }
+    sebetahat.same <- abs(max(sebetahat, na.rm = TRUE) - min(sebetahat, na.rm = TRUE)) / mean(sebetahat, na.rm = TRUE) <= sebetahat.tol
+    if (missing(plot.hist)) {
+      plot.hist = sebetahat.same
     }
     if (plot.hist) {
+      betahat <- x$data$x
+      if (missing(xmin)) {xmin = min(betahat, na.rm = TRUE)}
+      if (missing(xmax)) {xmax = max(betahat, na.rm = TRUE)}
+      xgrid.length = 1000
+      xgrid = seq(xmin - 1, xmax + 1, length = xgrid.length)
+      plot.data <- x$data
+      if (sebetahat.same) {
+        plot.data$x = xgrid
+        plot.data$s = rep(mean(sebetahat, na.rm = TRUE), xgrid.length)
+        fhat = dens_conv(x$fitted_g, plot.data)
+      } else {
+        fhat = c()
+        for (i in 1 : xgrid.length) {
+          plot.data$x = rep(xgrid[i], n)
+          plot.data$s = sebetahat[!na.ind]
+          fhat[i] = mean(dens_conv(x$fitted_g, plot.data))
+        }
+      }
       hist.betahat = graphics::hist(betahat[!na.ind], breaks = breaks, plot = FALSE)
       graphics::hist(betahat[!na.ind], probability = TRUE, breaks = breaks,
                      ylim = c(0, max(c(fhat, hist.betahat$density))),
                      xlab = expression(hat(beta)),
                      main = expression(paste("Histogram of ", hat(beta)))
-      )
+                     )
       lines(xgrid, fhat, col = "blue")
       legend("topleft", lty = 1, col = "blue", "ASH")
       cat ("Press [enter] to see next plot")
