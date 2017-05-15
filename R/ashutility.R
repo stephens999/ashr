@@ -57,41 +57,101 @@ plot.ash = function(x,...,xmin,xmax){
   graphics::plot(y,type="l",...)
 }
 
-#' @title Diagnostic plot for ash object
+#' @title Diagnostic plots for ash object
 #'
-#' @description Plot the cdf of the fitted predictive distribution at observations
+#' @description Generate several plots to diagnose the fitness of ASH on the data
 #'
 #' @param x the fitted ash object
-#' @param plot.it logical. whether to plot the diagnostic result.
-#' @param xlim,ylim plot parameters
-#' @param xlab,ylab,main plot labels
+#' @param plot.it logical. whether to plot the diagnostic result
+#' @param sebetahat.tol tolerance to test the equality of betahat
+#' @param plot.hist logical. whether to plot the histogram of betahat when sebetahat is not constant
+#' @param xmin,xmax range of the histogram of betahat to be plotted
+#' @param breaks histograms parameter (see \code{\link[graphics]{hist}})
+#' @param alpha error level for the de-trended diagnostic plot
 #' @param pch,cex plot parameters for dots
-#' @param ... Arguments to be passed to methods,such as graphical parameters (see \code{\link[graphics]{plot}})
 #' @details None
 #'
 #' @export
 #'
-plot_diagnostic = function (x,
-                            plot.it = TRUE,
-                            xlim = c(0, 1), ylim = c(0, 1),
-                            xlab = "Theoretical Uniform Quantile",
-                            ylab = "Estimated Predictive Quantile",
-                            main = "Diagnostic Plot for ASH",
-                            pch = 19, cex = 0.25,
-                            ...) {
+plot_diagnostic = function (x, plot.it = TRUE, 
+                            sebetahat.tol = 1e-3,
+                            plot.hist,
+                            xmin, xmax, breaks = "Sturges",
+                            alpha = 0.01,
+                            pch = 19, cex = 0.25
+                            ) {
   cdfhat = cdf_conv(x$fitted_g, x$data)
   na.ind = is.na(cdfhat)
   n = length(cdfhat[!na.ind])
   if (n == 0) (stop("The data have only NAs."))
-  unifquantile <- qunif(stats::ppoints(n))
+  p.ks.unif = round(stats::ks.test(cdfhat, punif)$p.val, 3)
+  upper = qbeta(1 - alpha / 2, 1:n, n + 1 - (1:n)) - (1:n) / (n + 1)
+  lower = qbeta(alpha / 2, 1:n, n + 1 - (1:n)) - (1:n) / (n + 1)
+  diff = sort(cdfhat[!na.ind]) - (1 : n) / (n + 1)
   if (plot.it) {
-    graphics::plot(unifquantile, sort(cdfhat[!na.ind]),
-                   xlim = xlim, ylim = ylim,
-                   xlab = xlab, ylab = ylab,
-                   main = main,
-                   pch = pch, cex = cex,
-                   ...)
+    sebetahat <- x$data$s
+    sebetahat.same <- abs(max(sebetahat, na.rm = TRUE) - min(sebetahat, na.rm = TRUE)) / mean(sebetahat, na.rm = TRUE) <= sebetahat.tol
+    if (missing(plot.hist)) {
+      plot.hist = sebetahat.same
+    }
+    if (plot.hist) {
+      betahat <- x$data$x
+      if (missing(xmin)) {xmin = min(betahat, na.rm = TRUE)}
+      if (missing(xmax)) {xmax = max(betahat, na.rm = TRUE)}
+      xgrid.length = 1000
+      xgrid = seq(xmin - 1, xmax + 1, length = xgrid.length)
+      plot.data <- x$data
+      if (sebetahat.same) {
+        plot.data$x = xgrid
+        plot.data$s = rep(mean(sebetahat, na.rm = TRUE), xgrid.length)
+        fhat = dens_conv(x$fitted_g, plot.data)
+      } else {
+        fhat = c()
+        for (i in 1 : xgrid.length) {
+          plot.data$x = rep(xgrid[i], n)
+          plot.data$s = sebetahat[!na.ind]
+          fhat[i] = mean(dens_conv(x$fitted_g, plot.data))
+        }
+      }
+      hist.betahat = graphics::hist(betahat[!na.ind], breaks = breaks, plot = FALSE)
+      graphics::hist(betahat[!na.ind], probability = TRUE, breaks = breaks,
+                     ylim = c(0, max(c(fhat, hist.betahat$density))),
+                     xlab = expression(hat(beta)),
+                     main = expression(paste("Histogram of ", hat(beta)))
+                     )
+      lines(xgrid, fhat, col = "blue")
+      legend("topleft", lty = 1, col = "blue", "ASH")
+      cat ("Press [enter] to see next plot")
+      line <- readline()
+    }
+    graphics::plot((1 : n) / (n + 1), sort(cdfhat[!na.ind]),
+                   xlim = c(0, 1), ylim = c(0, 1),
+                   xlab = "Theoretical Uniform Quantile", 
+                   ylab = "Estimated Predictive Quantile",
+                   main = "Diagnostic Plot for ASH",
+                   pch = pch, cex = cex
+                   )
     abline(0, 1, lty = 2, col = "red")
+    cat ("Press [enter] to see next plot")
+    line <- readline()
+    graphics::plot(diff, cex = cex, pch = pch, 
+         ylim = range(diff, upper, lower, 0),
+         xlab = "Index k",
+         ylab = expression(Q[(k)] - E(Q[(k)])), 
+         main = c("De-trended Diagnostic Plot for ASH", 
+                  paste("K-S Uniformity Test p Value:", p.ks.unif))
+         )
+    abline(h = 0, col = "red", lty = 2)
+    lines(upper, col = "red")
+    lines(lower, col = "red")
+    cat ("Press [enter] to see next plot")
+    line <- readline()
+    graphics::hist(cdfhat[!na.ind], probability = TRUE, breaks = breaks,
+                   xlab = "Estimated Predictive Quantile",
+                   main = c("Histogram of Estimated Predictive Quantile",
+                            paste("K-S Uniformity Test p Value:", p.ks.unif))
+                   )
+    abline(h = 1, lty = 2, col = "red")
   }
   invisible(cdfhat)
 }
