@@ -333,6 +333,16 @@ ash.workhorse <-
   } else {
     if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform"))) 
       stop("Error: invalid type of mixcompdist")
+    if(mixcompdist!="normal"){
+      # for unimix prior, if mode is the exactly the boundry of g's range,
+      # have to use "+uniform" or "-uniform"
+      if(min(grange)==mode){
+        mixcompdist = "+uniform"
+      }else if(max(grange)==mode){
+        mixcompdist = "-uniform"
+      }
+    }
+    
     if(is.null(mixsd)){
       mixsd = autoselect.mixsd(data,gridmult,mode,grange,mixcompdist)
     }
@@ -676,6 +686,10 @@ qval.from.lfdr = function(lfdr){
 # mult is the multiplier by which the sds differ across the grid
 # grange is the user-specified range of mixsd
 autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
+  if (data$lik$name %in% c("pois","binom")){
+    data$x = data$lik$data$y
+  }
+  
   betahat = data$x - mode
   sebetahat = data$s
   exclude = get_exclusions(data)
@@ -691,6 +705,10 @@ autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
   
   if(mixcompdist=="halfuniform"){
     sigmaamax = min(max(abs(grange-mode)), sigmaamax)
+  }else if(mixcompdist=="+uniform"){
+    sigmaamax = min(max(grange)-mode, sigmaamax)
+  }else if(mixcompdist=="-uniform"){
+    sigmaamax = min(mode-min(grange), sigmaamax)
   }else{
     sigmaamax = min(min(abs(grange-mode)), sigmaamax)
   }
