@@ -298,7 +298,7 @@ check_mosek_license <- function() {
   x       <- list()
   x$sense <- "max"
   x$c <- c(3,1,5,1)
-  x$A <- Matrix(c(3,1,2,0,
+  x$A <- Matrix::Matrix(c(3,1,2,0,
                   2,1,3,1,
                   0,2,0,3),
                 nrow=3,byrow = TRUE,sparse = TRUE)
