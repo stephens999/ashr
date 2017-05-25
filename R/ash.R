@@ -1,15 +1,14 @@
 #' @useDynLib ashr
-#' @aliases ash.workhorse
 #' @import Matrix truncnorm SQUAREM doParallel pscl Rcpp foreach parallel
 #' @title Adaptive Shrinkage
-#'
+#' 
 #' @description Takes vectors of estimates (betahat) and their
 #' standard errors (sebetahat), together with degrees of freedom (df)
 #' and applies shrinkage to them, using Empirical Bayes methods, to
 #' compute shrunk estimates for beta. Most users will be happy with
 #' the ash function, which provides the same usage, but has a simpler
 #' interface.
-#' 
+#'
 #' @details See README for more details.
 #'
 #' @param betahat a p vector of estimates
@@ -187,8 +186,7 @@ ash <- function (betahat, sebetahat,
                                   mixcompdist = mixcompdist,df = df,...),
                     list(call = match.call()))
 
-# See the comments and roxygen2 documentation accompanying function
-# "ash" for a description of this function.
+#' @describeIn ash Adaptive Shrinkage with full set of options.
 ash.workhorse <-
     function(betahat, sebetahat, method = c("fdr","shrink"),
              mixcompdist = c("uniform","halfuniform","normal","+uniform",

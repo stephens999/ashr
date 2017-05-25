@@ -7,6 +7,15 @@
 \usage{
 ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal",
   "+uniform", "-uniform", "halfnormal"), df = NULL, ...)
+
+ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
+  mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform",
+  "halfnormal"), optmethod = c("mixIP", "cxxMixSquarem", "mixEM", "mixVBEM",
+  "w_mixEM"), df = NULL, nullweight = 10, pointmass = TRUE,
+  prior = c("nullbiased", "uniform", "unit"), mixsd = NULL,
+  gridmult = sqrt(2), outputlevel = 2, g = NULL, fixg = FALSE,
+  mode = 0, alpha = 0, grange = c(-Inf, Inf), control = list(),
+  lik = NULL, weights = NULL)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -42,11 +51,6 @@ particularly when method="shrink".}
 \item{nullweight}{scalar, the weight put on the prior under
 "nullbiased" specification, see \code{prior}}
 
-\item{mode}{either numeric (indicating mode of g) or string
-"estimate", to indicate mode should be estimated, or a two
-dimension numeric vector to indicate the interval to be searched
-for the mode.}
-
 \item{pointmass}{Logical, indicating whether to use a point mass at
 zero as one of components for a mixture distribution.}
 
@@ -75,6 +79,11 @@ computations with the "true" g).}
 
 \item{fixg}{If TRUE, don't estimate g but use the specified g -
 useful for computations under the "true" g in simulations.}
+
+\item{mode}{either numeric (indicating mode of g) or string
+"estimate", to indicate mode should be estimated, or a two
+dimension numeric vector to indicate the interval to be searched
+for the mode.}
 
 \item{alpha}{Numeric value of alpha parameter in the model.}
 
@@ -133,6 +142,11 @@ interface.
 \details{
 See README for more details.
 }
+\section{Functions}{
+\itemize{
+\item \code{ash.workhorse}: Adaptive Shrinkage with full set of options.
+}}
+
 \examples{
 beta = c(rep(0,100),rnorm(100))
 sebetahat = abs(rnorm(200,0,1))

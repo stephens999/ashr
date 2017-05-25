@@ -28,5 +28,5 @@ plot_diagnostic(x, plot.it = TRUE, sebetahat.tol = 0.001, plot.hist, xmin,
 Generate several plots to diagnose the fitness of ASH on the data
 }
 \details{
-None
+None.
 }

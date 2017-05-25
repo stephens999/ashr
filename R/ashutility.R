@@ -13,6 +13,7 @@
 #'     generic/method.
 #'
 #' @export
+#' @method summary ash
 #'
 summary.ash=function(object,...){
   if(!is.null(object$fitted_g)){print(object$fitted_g)}
@@ -32,9 +33,10 @@ summary.ash=function(object,...){
 #'     generic/method.
 #'
 #' @export
-#'
+#' @method print ash
+#' 
 print.ash =function(x,...){
-  summary(x)
+  print(summary(x,...))
 }
 
 #' @title Plot method for ash object
@@ -47,6 +49,7 @@ print.ash =function(x,...){
 #' @param xmax xlim upper range, default is the highest value of betahat
 #' @details None
 #'
+#' @method plot ash
 #' @export
 #'
 plot.ash = function(x,...,xmin,xmax){
@@ -69,10 +72,17 @@ plot.ash = function(x,...,xmin,xmax){
 #' @param breaks histograms parameter (see \code{\link[graphics]{hist}})
 #' @param alpha error level for the de-trended diagnostic plot
 #' @param pch,cex plot parameters for dots
-#' @details None
+#' 
+#' @details None.
 #'
 #' @export
 #'
+#' @importFrom graphics lines
+#' @importFrom graphics legend
+#' @importFrom graphics abline
+#' @importFrom stats punif
+#' @importFrom stats qbeta
+#' 
 plot_diagnostic = function (x, plot.it = TRUE, 
                             sebetahat.tol = 1e-3,
                             plot.hist,

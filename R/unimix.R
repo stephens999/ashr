@@ -86,6 +86,10 @@ log_comp_dens_conv.unimix = function(m,data){
 #' @return a k by n matrix
 #'
 #' @export
+#'
+#' @importFrom stats pnorm
+#' @importFrom stats dnorm
+#' 
 comp_cdf_conv.unimix = function (m, data) {
   if(!is_normal(data$lik)){
     stop("Error: diagnostic plot of uniform mixture for non-normal likelihood is not yet implemented")
