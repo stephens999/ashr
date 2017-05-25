@@ -1,55 +1,135 @@
 #' @useDynLib ashr
-#' @import truncnorm SQUAREM doParallel pscl Rcpp foreach parallel
-
-#' @title Main Adaptive Shrinkage function
+#' @aliases ash.workhorse
+#' @import Matrix truncnorm SQUAREM doParallel pscl Rcpp foreach parallel
+#' @title Adaptive Shrinkage
 #'
 #' @description Takes vectors of estimates (betahat) and their
-#'     standard errors (sebetahat), together with degrees of freedom (df)
-#'     and applies shrinkage to them, using Empirical Bayes methods, to compute shrunk estimates for
-#'     beta.
-#'
-#' @details This function is actually just a simple wrapper that
-#'     passes its parameters to \code{\link{ash.workhorse}} which
-#'     provides more documented options for advanced use. See readme
-#'     for more details.
+#' standard errors (sebetahat), together with degrees of freedom (df)
+#' and applies shrinkage to them, using Empirical Bayes methods, to
+#' compute shrunk estimates for beta. Most users will be happy with
+#' the ash function, which provides the same usage, but has a simpler
+#' interface.
+#' 
+#' @details See README for more details.
 #'
 #' @param betahat a p vector of estimates
+#' 
 #' @param sebetahat a p vector of corresponding standard errors
+#' 
 #' @param mixcompdist distribution of components in mixture
-#'     ("uniform","halfuniform" or "normal"; "halfnormal", "+uniform" or
-#'     "-uniform"), the default is "uniform". If you believe your
-#'     effects may be asymmetric, use "halfuniform" or "halfnormal". If you want to
-#'     allow only positive/negative effects use "+uniform"/"-uniform".
-#'     The use of "normal" and "halfnormal" is permitted only if df=NULL.
-#' @param df appropriate degrees of freedom for (t) distribution of
-#'     betahat/sebetahat, default is NULL which is actually treated as
-#'     infinity (Gaussian)
-#' @param ... Further arguments to be passed to
-#'     \code{\link{ash.workhorse}}.
+#' ("uniform","halfuniform" or "normal"; "halfnormal", "+uniform" or
+#' "-uniform"), the default is "uniform". If you believe your effects
+#' may be asymmetric, use "halfuniform" or "halfnormal". If you want
+#' to allow only positive/negative effects use "+uniform"/"-uniform".
+#' The use of "normal" and "halfnormal" is permitted only if df=NULL.
 #'
-#' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
+#' @param df appropriate degrees of freedom for (t) distribution of
+#' betahat/sebetahat, default is NULL which is actually treated as
+#' infinity (Gaussian)
+#'
+#' @param method specifies how ash is to be run. Can be "shrinkage"
+#' (if main aim is shrinkage) or "fdr" (if main aim is to assess fdr
+#' or fsr) This is simply a convenient way to specify certain
+#' combinations of parameters: "shrinkage" sets pointmass=FALSE and
+#' prior="uniform"; "fdr" sets pointmass=TRUE and prior="nullbiased".
+#'
+#' @param optmethod specifies the function implementing an
+#' optimization method. Default is "mixIP", an interior point method,
+#' if REBayes is installed; otherwise an EM algorithm is used. The
+#' interior point method is faster for large problems (n>2000),
+#' particularly when method="shrink".
+#' 
+#' @param nullweight scalar, the weight put on the prior under
+#' "nullbiased" specification, see \code{prior}
+#' 
+#' @param mode either numeric (indicating mode of g) or string
+#' "estimate", to indicate mode should be estimated, or a two
+#' dimension numeric vector to indicate the interval to be searched
+#' for the mode.
+#' 
+#' @param pointmass Logical, indicating whether to use a point mass at
+#' zero as one of components for a mixture distribution.
+#' 
+#' @param prior string, or numeric vector indicating Dirichlet prior
+#' on mixture proportions (defaults to "uniform", or (1,1...,1); also
+#' can be "nullbiased" (nullweight,1,...,1) to put more weight on
+#' first component), or "unit" (1/K,...,1/K) [for optmethod=mixVBEM
+#' version only].
+#' 
+#' @param mixsd Vector of sds for underlying mixture components.
+#' 
+#' @param gridmult the multiplier by which the default grid values for
+#' mixsd differ by one another. (Smaller values produce finer grids.)
+#' 
+#' @param outputlevel determines amount of output. There are several
+#' numeric options [0=just fitted g; 1=also PosteriorMean and
+#' PosteriorSD; 2= everything usually needed; 3=also include results
+#' of mixture fitting procedure (includes matrix of log-likelihoods
+#' used to fit mixture); 4=output additional things required by flash
+#' (flash_data)]. Otherwise the user can also specify the output they
+#' require in detail (see Examples).
+#' 
+#' @param g The prior distribution for beta (usually estimated from
+#' the data; this is used primarily in simulated data to do
+#' computations with the "true" g).
+#' 
+#' @param fixg If TRUE, don't estimate g but use the specified g -
+#' useful for computations under the "true" g in simulations.
+#' 
+#' @param alpha Numeric value of alpha parameter in the model.
+#' 
+#' @param grange Two dimension numeric vector indicating the left and
+#' right limit of the prior g. Default is c(-Inf, Inf).
+#' 
+#' @param control A list of control parameters passed to optmethod.
+#' 
+#' @param lik Contains details of the likelihood used; for general
+#' ash. Currently, the following choices are allowed: normal (see
+#' function lik_normal(); binomial likelihood (see function
+#' lik_binom); likelihood based on logF error distribution (see
+#' function lik_logF); mixture of normals likelihood (see function
+#' lik_normalmix); and Poisson likelihood (see function lik_pois).
+#' 
+#' @param weights a vector of weights for observations; use with
+#' optmethod = "w_mixEM"; this is currently beta-functionality.
+#'
+#' @param ... Further arguments of function \code{ash} to be passed to
+#' \code{\link{ash.workhorse}}.
+#'
+#' @return ash returns an object of \code{\link[base]{class}} "ash", a
+#' list with some or all of the following elements (determined by
+#' outputlevel) \cr
 #' \item{fitted_g}{fitted mixture}
 #' \item{loglik}{log P(D|fitted_g)}
 #' \item{logLR}{log[P(D|fitted_g)/P(D|beta==0)]}
-#' \item{result}{A dataframe whose columns are}
+#' \item{result}{A dataframe whose columns are:}
 #' \describe{
-#'  \item{NegativeProb}{A vector of posterior probability that beta is negative}
-#'  \item{PositiveProb}{A vector of posterior probability that beta is positive}
-#'  \item{lfsr}{A vector of estimated local false sign rate}
-#'  \item{lfdr}{A vector of estimated local false discovery rate}
-#'  \item{qvalue}{A vector of q values}
-#'  \item{svalue}{A vector of s values}
-#'  \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
-#'  \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
-#'  }
-#' \item{call}{a call in which all of the specified arguments are specified by their full names}
-#' \item{data}{a list containing details of the data and models used (mostly for internal use)}
-#' \item{fit_details}{a list containing results of mixture optimization, and matrix of component log-likelihoods used in this optimization}
+#'   \item{NegativeProb}{A vector of posterior probability that beta is
+#'     negative.}
+#'   \item{PositiveProb}{A vector of posterior probability that beta is
+#'     positive.}
+#'   \item{lfsr}{A vector of estimated local false sign rate.}
+#'   \item{lfdr}{A vector of estimated local false discovery rate.}
+#'   \item{qvalue}{A vector of q values.}
+#'   \item{svalue}{A vector of s values.}
+#'   \item{PosteriorMean}{A vector consisting the posterior mean of beta
+#'     from the mixture.}
+#'   \item{PosteriorSD}{A vector consisting the corresponding posterior
+#'     standard deviation.}
+#'   }
+#' \item{call}{a call in which all of the specified arguments are
+#'   specified by their full names}
+#' \item{data}{a list containing details of the data and models
+#'   used (mostly for internal use)}
+#' \item{fit_details}{a list containing results of mixture optimization,
+#'   and matrix of component log-likelihoods used in this optimization}
 #'
-#' @seealso \code{\link{ash.workhorse}} for complete specification of ash function
-#' @seealso \code{\link{ashci}} for computation of credible intervals after getting the ash object return by \code{ash()}
+#' @seealso \code{\link{ashci}} for computation of credible intervals
+#' after getting the ash object return by \code{ash()}
 #'
-#' @export
+#' @export ash
+#' @export ash.workhorse
+#' 
 #' @examples
 #' beta = c(rep(0,100),rnorm(100))
 #' sebetahat = abs(rnorm(200,0,1))
@@ -64,133 +144,15 @@
 #' CIMatrix=ashci(beta.ash,level=0.95)
 #' print(CIMatrix)
 #'
-#' #Illustrating the non-zero mode feature
+#' # Illustrating the non-zero mode feature.
 #' betahat=betahat+5
 #' beta.ash = ash(betahat, sebetahat)
 #' graphics::plot(betahat,get_pm(beta.ash))
 #' betan.ash=ash(betahat, sebetahat,mode=5)
 #' graphics::plot(betahat,get_pm(betan.ash))
 #' summary(betan.ash)
-ash <- function (betahat, sebetahat,
-                 mixcompdist = c("uniform","halfuniform","normal","+uniform",
-                                 "-uniform","halfnormal"),
-                 df = NULL,...)
-  # TO DO: Explain here what this does. It certainly isn't clear
-  # (thanks in part to R's strangeness)!
-  utils::modifyList(ash.workhorse(betahat,sebetahat,
-                                  mixcompdist = mixcompdist,df = df,...),
-                    list(call = match.call()))
-
-#' @title Detailed Adaptive Shrinkage function
 #'
-#' @description Takes vectors of estimates (betahat) and their
-#'     standard errors (sebetahat), and applies shrinkage to them,
-#'     using Empirical Bayes methods, to compute shrunk estimates for
-#'     beta. This is the more detailed version of ash for "research"
-#'     use.  Most users will be happy with the ash function, which
-#'     provides the same usage, but documents only the main options
-#'     for simplicity.
-#'
-#' @details See readme for more details.
-#'
-#' @param betahat a p vector of estimates
-#' @param sebetahat a p vector of corresponding standard errors
-#' @param method specifies how ash is to be run. Can be "shrinkage"
-#'     (if main aim is shrinkage) or "fdr" (if main aim is to assess
-#'     fdr or fsr) This is simply a convenient way to specify certain
-#'     combinations of parameters: "shrinkage" sets pointmass=FALSE
-#'     and prior="uniform"; "fdr" sets pointmass=TRUE and
-#'     prior="nullbiased".
-#' @param mixcompdist distribution of components in mixture
-#'     ("uniform","halfuniform" or "normal"; "halfnormal", "+uniform" or
-#'     "-uniform"), the default is "uniform". If you believe your
-#'     effects may be asymmetric, use "halfuniform" or "halfnormal". If you want to
-#'     allow only positive/negative effects use "+uniform"/"-uniform".
-#'     The use of "normal" and "halfnormal" is permitted only if df=NULL.
-#' @param optmethod specifies the function implementing an optimization method. Default is
-#'     "mixIP", an interior point method, if REBayes is installed;
-#'     otherwise an EM algorithm is used. The interior point method is
-#'     faster for large problems (n>2000), particularly when method="shrink".
-#' @param df appropriate degrees of freedom for (t) distribution of
-#'     betahat/sebetahat, default is NULL(Gaussian)
-#' @param nullweight scalar, the weight put on the prior under
-#'     "nullbiased" specification, see \code{prior}
-#' @param mode either numeric (indicating mode of g) or string "estimate", 
-#'      to indicate mode should be estimated, or a two dimension numeric vector
-#'      to indicate the interval to be searched for the mode. 
-#' @param pointmass logical, indicating whether to use a point mass at
-#'     zero as one of components for a mixture distribution
-#' @param prior string, or numeric vector indicating Dirichlet prior
-#'     on mixture proportions (defaults to "uniform", or (1,1...,1);
-#'     also can be "nullbiased" (nullweight,1,...,1) to put more
-#'     weight on first component), or "unit" (1/K,...,1/K) [for
-#'     optmethod=mixVBEM version only]
-#' @param mixsd vector of sds for underlying mixture components
-#' @param gridmult the multiplier by which the default grid values for
-#'     mixsd differ by one another. (Smaller values produce finer
-#'     grids)
-#' @param outputlevel determines amount of output. There are several numeric options [0=just fitted g;
-#'     1=also PosteriorMean and PosteriorSD; 2= everything usually
-#'     needed; 3=also include results of mixture fitting procedure
-#'     (includes matrix of log-likelihoods used to fit mixture); 4=
-#'     output additional things required by flash (flash_data)]. Otherwise the user can also specify
-#'     the output they require in detail (see Examples)
-#' @param g the prior distribution for beta (usually estimated from
-#'     the data; this is used primarily in simulated data to do
-#'     computations with the "true" g)
-#' @param fixg if TRUE, don't estimate g but use the specified g -
-#'     useful for computations under the "true" g in simulations
-#' @param alpha numeric value of alpha parameter in the model
-#' @param grange two dimension numeric vector indicating the 
-#'     left and right limit of the prior g. Default is c(-Inf, Inf).
-#' @param control A list of control parameters passed to optmethod
-#' @param lik contains details of the likelihood used; for general
-#'     ash. Currently, the following choices are allowed: normal (see
-#'     function lik_normal(); binomial likelihood (see function
-#'     lik_binom); likelihood based on logF error distribution
-#'     (see function lik_logF); mixture of normals likelihood (see
-#'     function lik_normalmix); and Poisson likelihood (see function
-#'     lik_pois).
-#' @param weights a vector of weights for observations; use with optmethod = "w_mixEM"; this is currently beta-functionality.
-#' @return ash returns an object of \code{\link[base]{class}} "ash", a list with some or all of the following elements (determined by outputlevel) \cr
-#' \item{fitted_g}{fitted mixture, either a normalmix or unimix}
-#' \item{loglik}{log P(D|mle(pi))}
-#' \item{logLR}{log[P(D|mle(pi))/P(D|beta==0)]}
-#' \item{result}{A dataframe whose columns are}
-#' \describe{
-#'  \item{NegativeProb}{A vector of posterior probability that beta is negative}
-#'  \item{PositiveProb}{A vector of posterior probability that beta is positive}
-#'  \item{lfsr}{A vector of estimated local false sign rate}
-#'  \item{lfdr}{A vector of estimated local false discovery rate}
-#'  \item{qvalue}{A vector of q values}
-#'  \item{svalue}{A vector of s values}
-#'  \item{PosteriorMean}{A vector consisting the posterior mean of beta from the mixture}
-#'  \item{PosteriorSD}{A vector consisting the corresponding posterior standard deviation}
-#'  }
-#' \item{call}{a call in which all of the specified arguments are specified by their full names}
-#' \item{data}{a list containing details of the data and models used (mostly for internal use)}
-#' \item{fit_details}{a list containing results of mixture optimization, and matrix of component log-likelihoods used in this optimization}
-#'
-#' @seealso \code{\link{ash}} for simplified specification of ash function
-#' @seealso \code{\link{ashci}} for computation of credible intervals
-#'     after getting the ash object return by \code{ash()}
-#'
-#' @export
-#' @examples
-#' beta = c(rep(0,100),rnorm(100))
-#' sebetahat = abs(rnorm(200,0,1))
-#' betahat = rnorm(200,beta,sebetahat)
-#' beta.ash = ash(betahat, sebetahat)
-#' names(beta.ash)
-#' head(beta.ash$result) #dataframe of results
-#' head(get_lfsr(beta.ash)) #get lfsr
-#' head(get_pm(beta.ash)) #get posterior mean
-#' graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4))
-#'
-#' CIMatrix=ashci(beta.ash,level=0.95) #note currently default is only compute CIs for lfsr<0.05
-#' print(CIMatrix)
-#'
-#' #Running ash with different error models
+#' # Running ash with different error models
 #' beta.ash1 = ash(betahat, sebetahat, lik = lik_normal())
 #' beta.ash2 = ash(betahat, sebetahat, lik = lik_t(df=4))
 #'
@@ -199,14 +161,6 @@ ash <- function (betahat, sebetahat,
 #'
 #' # Specifying the output
 #' beta.ash = ash(betahat, sebetahat, output = c("fitted_g","logLR","lfsr"))
-#'
-#' #Illustrating the non-zero mode feature
-#' betahat=betahat+5
-#' beta.ash = ash(betahat, sebetahat)
-#' graphics::plot(betahat,beta.ash$result$PosteriorMean)
-#' betan.ash=ash(betahat, sebetahat,mode=5)
-#' graphics::plot(betahat, betan.ash$result$PosteriorMean)
-#' summary(betan.ash)
 #'
 #' #Running ash with a pre-specified g, rather than estimating it
 #' beta = c(rep(0,100),rnorm(100))
@@ -219,7 +173,22 @@ ash <- function (betahat, sebetahat,
 #' beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
 #' 
 #' # running with weights
-#' beta.ash = ash(betahat, sebetahat, optmethod="w_mixEM", weights = c(rep(0.5,100),rep(1,100)))
+#' beta.ash = ash(betahat, sebetahat, optmethod="w_mixEM",
+#'                weights = c(rep(0.5,100),rep(1,100)))
+#' 
+ash <- function (betahat, sebetahat,
+                 mixcompdist = c("uniform","halfuniform","normal","+uniform",
+                                 "-uniform","halfnormal"),
+                 df = NULL,...)
+    
+  # TO DO: Explain here what this does. It certainly isn't clear
+  # (thanks in part to R's strangeness)!
+  utils::modifyList(ash.workhorse(betahat,sebetahat,
+                                  mixcompdist = mixcompdist,df = df,...),
+                    list(call = match.call()))
+
+# See the comments and roxygen2 documentation accompanying function
+# "ash" for a description of this function.
 ash.workhorse <-
     function(betahat, sebetahat, method = c("fdr","shrink"),
              mixcompdist = c("uniform","halfuniform","normal","+uniform",
