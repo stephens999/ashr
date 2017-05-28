@@ -1,23 +1,24 @@
-#' Return local false sign rate from ash or mash fit
-#' @param x an ash or mash fit (e.g. from running ash or mash)
-#' @return a vector (ash) or matrix (mash) of local false sign rates
-#' @export
-get_lfsr = function(x){
-  UseMethod("get_lfsr")
-}
-#' @export
-get_lfsr.default = function(x){
-  stop(paste("Invalid class", class(x), "for first argument in",  match.call()))
-}
+# #' Return local false sign rate from ash or mash fit
+# #' @param x an ash or mash fit (e.g. from running ash or mash)
+# #' @return a vector (ash) or matrix (mash) of local false sign rates
+# #' @export
+# get_lfsr = function(x){
+#   UseMethod("get_lfsr")
+# }
+# #' @export
+# get_lfsr.default = function(x){
+#   stop(paste("Invalid class", class(x), "for first argument in",  match.call()))
+# }
 
-#' @title Return lfsr from an ash object
+#' @title Return lfsr from an ash or mash object
+#' @describeIn get_lfdr local false sign rate
 #' @export
-get_lfsr.ash=function(x){x$result$lfsr}
+get_lfsr=function(x){x$result$lfsr}
 
 #' @title Return lfdr, etc from ash object
 #'
-#' @description These functions simply return elements of an ash object, generally without doing any calculations. 
-#' (So if the value was not computed during the original call to ash, eg because of how outputlevel was set in the call, 
+#' @description These functions simply return elements of an ash object, generally without doing any calculations.
+#' (So if the value was not computed during the original call to ash, eg because of how outputlevel was set in the call,
 #' then NULL will be returned.)
 #' Accessing elements in this way
 #' rather than directly from the ash object will help ensure compatability moving forward
@@ -51,7 +52,7 @@ get_pp=function(a){a$result$PositiveProb}
 #' @export
 get_np=function(a){a$result$NegativeProb}
 
-#' @describeIn get_lfdr log-likelihood 
+#' @describeIn get_lfdr log-likelihood
 #' @export
 get_loglik=function(a){a$loglik}
 
@@ -64,7 +65,7 @@ get_logLR=function(a){a$logLR}
 get_fitted_g=function(a){a$fitted_g}
 
 
-#' @describeIn get_lfdr pi0, the proportion of nulls 
+#' @describeIn get_lfdr pi0, the proportion of nulls
 #' @export
 get_pi0 = function(a){
   null.comp = comp_sd(a$fitted_g)==0
