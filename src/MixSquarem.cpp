@@ -206,10 +206,17 @@ List squarem1(NumericVector par,NumericMatrix matrix_lik,NumericVector prior,Lis
                         Named("convergence")=conv));
 }
 
-
-
+//' @title Brief description of function.
+//' @description Explain here what this function does.
+//' @param matrix_lik Description of argument goes here.
+//' @param prior Description of argument goes here.
+//' @param pi_init Description of argument goes shere.
+//' @param control Description of argument goes here.
+//' @export
 // [[Rcpp::export]]
-List cxxMixSquarem(NumericMatrix matrix_lik, NumericVector prior, NumericVector pi_init, List control){//note: no default pi_init=NULL
+List cxxMixSquarem (NumericMatrix matrix_lik,
+		    NumericVector prior, NumericVector pi_init,
+		    List control){ //note: no default pi_init=NULL
     int  k=matrix_lik.ncol(),niter;
     bool converged=NA_LOGICAL;
     double loglik;
