@@ -13,7 +13,7 @@
 \alias{get_logLR}
 \alias{get_fitted_g}
 \alias{get_pi0}
-\title{Return lfsr from an ash or mash object}
+\title{Return lfsr from an ash object}
 \usage{
 get_lfsr(x)
 
@@ -38,6 +38,14 @@ get_logLR(a)
 get_fitted_g(a)
 
 get_pi0(a)
+}
+\arguments{
+\item{x}{an ash fit (e.g. from running ash)}
+
+\item{a}{an ash fit (e.g. from running ash)}
+}
+\value{
+a vector (ash) of local false sign rates
 }
 \description{
 These functions simply return elements of an ash object, generally without doing any calculations.

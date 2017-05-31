@@ -1,17 +1,7 @@
-# #' Return local false sign rate from ash or mash fit
-# #' @param x an ash or mash fit (e.g. from running ash or mash)
-# #' @return a vector (ash) or matrix (mash) of local false sign rates
-# #' @export
-# get_lfsr = function(x){
-#   UseMethod("get_lfsr")
-# }
-# #' @export
-# get_lfsr.default = function(x){
-#   stop(paste("Invalid class", class(x), "for first argument in",  match.call()))
-# }
-
-#' @title Return lfsr from an ash or mash object
+#' @title Return lfsr from an ash object
 #' @describeIn get_lfdr local false sign rate
+#' @param x an ash fit (e.g. from running ash)
+#' @return a vector (ash) of local false sign rates
 #' @export
 get_lfsr=function(x){x$result$lfsr}
 
@@ -24,6 +14,7 @@ get_lfsr=function(x){x$result$lfsr}
 #' rather than directly from the ash object will help ensure compatability moving forward
 #' (e.g. if the internal structure of the ash object changes during software development.)
 #'
+#' @param a an ash fit (e.g. from running ash)
 #' @describeIn get_lfdr local false discovery rate
 #' @export
 get_lfdr=function(a){a$result$lfdr}
