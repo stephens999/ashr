@@ -75,6 +75,10 @@
 #' @param fixg If TRUE, don't estimate g but use the specified g -
 #' useful for computations under the "true" g in simulations.
 #' 
+#' @param gpart A part of mixture components of the prior distribution 
+#' for beta. The mixture proportions will be fitted but the component-wise
+#' distribution parameters will be fixed.
+#' 
 #' @param alpha Numeric value of alpha parameter in the model.
 #' 
 #' @param grange Two dimension numeric vector indicating the left and
@@ -194,7 +198,7 @@ ash.workhorse <-
              optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM","w_mixEM"),
              df = NULL,nullweight = 10,pointmass = TRUE,
              prior = c("nullbiased","uniform","unit"),mixsd = NULL,
-             gridmult = sqrt(2),outputlevel = 2,g = NULL,fixg = FALSE,
+             gridmult = sqrt(2),outputlevel = 2,g = NULL,fixg = FALSE,gpart = NULL,
              mode = 0,alpha = 0,grange = c(-Inf,Inf),control = list(),lik = NULL, weights=NULL) {
 
   if(!missing(pointmass) & !missing(method))
@@ -359,14 +363,24 @@ ash.workhorse <-
       if(min(mixsd)>0){
         g = tnormalmix(c(pi,pi)/2,rep(mode,2*k),c(mixsd,mixsd),c(rep(-Inf,k),rep(0,k)),c(rep(0,k),rep(Inf,k)))
         prior = rep(prior, 2)
-        pi = rep(pi, 2)
+        #pi = rep(pi, 2)
       }
       else{
         null.comp=which.min(mixsd)
         g = tnormalmix(c(pi,pi[-null.comp])/2,rep(mode,2*k-1),c(mixsd,mixsd[-null.comp]),c(rep(-Inf,k),rep(0,k-1)),c(rep(0,k),rep(Inf,k-1)))
         prior = c(prior,prior[-null.comp])
-        pi = c(pi,pi[-null.comp])
+        #pi = c(pi,pi[-null.comp])
       }
+    }
+    
+    if(!is.null(gpart)){
+      if (class(gpart)!=class(g)){
+        stop("gpart does not match the prior type specified by mixcompdist.")
+      }
+      g = mapply(c, g, gpart, SIMPLIFY=FALSE)
+      g$pi = g$pi/sum(g$pi) #equal weights on gpart & g
+      class(g) = class(gpart)
+      prior = c(prior, rep(1, length(gpart$pi)))
     }
   }
 
