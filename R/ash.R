@@ -471,6 +471,7 @@ setprior=function(prior,k,nullweight,null.comp){
 #' @param ZeroProb A vector of posterior probability that beta is
 #'     zero.
 #' @return The local false sign rate.
+#' @export
 compute_lfsr = function(NegativeProb,ZeroProb){
   ifelse(NegativeProb> 0.5*(1-ZeroProb),1-NegativeProb,NegativeProb+ZeroProb)
 }
