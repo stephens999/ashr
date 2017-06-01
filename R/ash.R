@@ -76,7 +76,8 @@
 #' useful for computations under the "true" g in simulations.
 #' 
 #' @param gpart A part of mixture components of the prior distribution 
-#' for beta.
+#' for beta. The mixture proportions will be fitted but the component-wise
+#' distribution parameters will be fixed.
 #' 
 #' @param alpha Numeric value of alpha parameter in the model.
 #' 
@@ -377,7 +378,7 @@ ash.workhorse <-
         stop("gpart does not match the prior type specified by mixcompdist.")
       }
       g = mapply(c, g, gpart, SIMPLIFY=FALSE)
-      g$pi = g$pi/sum(g$pi) #TBD: weights on gpart & g?
+      g$pi = g$pi/sum(g$pi) #equal weights on gpart & g
       class(g) = class(gpart)
       prior = c(prior, rep(1, length(gpart$pi)))
     }
