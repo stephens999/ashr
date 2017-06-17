@@ -394,7 +394,8 @@ ash.workhorse <-
   if("flash_data" %in% output){ # if outputting flash data, need to 
     # return the pruned g so that the flash data lines up with the returned g
       ghat = prune(ghat, pi_thresh)
-      val = c(val, list(flash_data=calc_flash_data(ghat,data)))
+      val = c(val, list(flash_data=calc_flash_data(prune(ghat,pi_thresh),
+                                                   data, pi.fit$penloglik)))
   }
   if("fitted_g" %in% output){val = c(val,list(fitted_g=ghat))}
   if("loglik" %in% output){val = c(val,list(loglik =calc_loglik(ghat,data)))}
@@ -518,7 +519,8 @@ estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSq
 
   matrix_llik = t(log_comp_dens_conv(g,data)) #an n by k matrix
   matrix_llik = matrix_llik[!get_exclusions(data),,drop=FALSE] #remove any rows corresponding to excluded cases; saves time in situations where most data are missing
-  matrix_llik = matrix_llik - apply(matrix_llik,1, max) #avoid numerical issues by subtracting max of each row
+  lnorm = apply(matrix_llik,1,max) # normalization values
+  matrix_llik = matrix_llik - lnorm #avoid numerical issues by subtracting max of each row
   matrix_lik = exp(matrix_llik)
 
   if(!is.null(weights) && optmethod!="w_mixEM"){stop("weights can only be used with optmethod w_mixEM")}
@@ -543,10 +545,10 @@ estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSq
       warning("Optimization failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
   }
 
-  loglik.final =  penloglik(pi,matrix_lik,1) #compute penloglik without penalty
   g$pi=fit$pihat
-
-  return(list(loglik=loglik.final,matrix_lik=matrix_lik,g=g,optreturn=fit,optmethod=optmethod))
+  penloglik = penloglik(g$pi,matrix_lik,prior) + sum(lnorm) #objective value
+    
+  return(list(penloglik = penloglik, matrix_lik=matrix_lik,g=g,optreturn=fit,optmethod=optmethod))
 }
 
 

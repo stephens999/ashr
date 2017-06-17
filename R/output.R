@@ -63,7 +63,7 @@ calc_qvalue = function(g,data){
 
 
 # Data for flash package
-calc_flash_data = function(g,data){
+calc_flash_data = function(g,data,penloglik){
   kk = ncomp(g)
   n = n_obs(data)
   exclude = get_exclusions(data)
@@ -79,7 +79,17 @@ calc_flash_data = function(g,data){
   comp_postprob[,exclude] = mixprop(g)
   comp_postmean[,exclude] = comp_mean(g)
   comp_postmean2[,exclude] = comp_mean2(g)
-  return(list(comp_postprob = comp_postprob,comp_postmean = comp_postmean,comp_postmean2 = comp_postmean2))
+  
+  postmean = colSums(comp_postprob*comp_postmean)
+  postmean2 = colSums(comp_postprob*comp_postmean2)
+  
+  return(list(fitted_g = g,
+              comp_postprob = comp_postprob,
+              comp_postmean = comp_postmean,
+              comp_postmean2 = comp_postmean2,
+              postmean = postmean,
+              postmean2 = postmean2,
+              penloglik = penloglik))
 }
 
 
@@ -98,6 +108,8 @@ set_output=function(outputlevel){
     
     # this is a special flag for output used by flashr
     if(outputlevel==4){output=c("fitted_g","PosteriorMean", "PosteriorSD","flash_data")}
+    if(outputlevel==5){output=c("flash_data")}
+    
     return(output)
   }
 }
