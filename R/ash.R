@@ -92,7 +92,12 @@
 #' @param weights a vector of weights for observations; use with
 #' optmethod = "w_mixEM"; this is currently beta-functionality.
 #'
-#' @param ... Further arguments of function \code{ash} to be passed to
+#' @param pi_thresh a threshold below which to prune out mixture components before 
+#' computing summaries (speeds computation since empirically many components are usually assigned negligible weight)
+#' The current implementation still returns the full fitted distribution; this only affects the posterior summaries
+#' (The exception is if output includes flash_data, used by the flashr package, in which case the output fitted g is pruned so as to match the flash data)
+#' 
+#'  @param ... Further arguments of function \code{ash} to be passed to
 #' \code{\link{ash.workhorse}}.
 #'
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a
@@ -178,13 +183,13 @@
 ash <- function (betahat, sebetahat,
                  mixcompdist = c("uniform","halfuniform","normal","+uniform",
                                  "-uniform","halfnormal"),
-                 df = NULL,...)
+                 df = NULL,...){
     
-  # TO DO: Explain here what this does. It certainly isn't clear
-  # (thanks in part to R's strangeness)!
+  # This calls ash.workhorse, but then modifies the returned list so that the call is the original ash call
   utils::modifyList(ash.workhorse(betahat,sebetahat,
                                   mixcompdist = mixcompdist,df = df,...),
                     list(call = match.call()))
+}
 
 #' @describeIn ash Adaptive Shrinkage with full set of options.
 ash.workhorse <-
@@ -195,7 +200,7 @@ ash.workhorse <-
              df = NULL,nullweight = 10,pointmass = TRUE,
              prior = c("nullbiased","uniform","unit"),mixsd = NULL,
              gridmult = sqrt(2),outputlevel = 2,g = NULL,fixg = FALSE,
-             mode = 0,alpha = 0,grange = c(-Inf,Inf),control = list(),lik = NULL, weights=NULL) {
+             mode = 0,alpha = 0,grange = c(-Inf,Inf),control = list(),lik = NULL, weights=NULL, pi_thresh = 1e-10) {
 
   if(!missing(pointmass) & !missing(method))
     stop("Specify either method or pointmass, not both")
@@ -386,13 +391,17 @@ ash.workhorse <-
   val = list() # val will hold the return value
   ghat = pi.fit$g
   output = set_output(outputlevel) #sets up flags for what to output
+  if("flash_data" %in% output){ # if outputting flash data, need to 
+    # return the pruned g so that the flash data lines up with the returned g
+      ghat = prune(ghat, pi_thresh)
+      val = c(val, list(flash_data=calc_flash_data(ghat,data)))
+  }
   if("fitted_g" %in% output){val = c(val,list(fitted_g=ghat))}
   if("loglik" %in% output){val = c(val,list(loglik =calc_loglik(ghat,data)))}
   if("logLR" %in% output){val = c(val,list(logLR=calc_logLR(ghat,data)))}
   if("data" %in% output){val = c(val,list(data=data))}
   if("fit_details" %in% output){val = c(val,list(fit_details = pi.fit))}
-  if("flash_data" %in% output){val = c(val, list(flash_data=calc_flash_data(ghat,data)))}
-
+  
   # Compute the result component of value -
   # result is a dataframe containing lfsr, etc
   # resfns is a list of functions used to produce columns of that dataframe
@@ -400,7 +409,7 @@ ash.workhorse <-
   if(length(resfns)>0){
     result = data.frame(betahat = betahat,sebetahat = sebetahat)
     if(!is.null(df)){result$df = df}
-    result = cbind(result,as.data.frame(lapply(resfns,do.call,list(g=pi.fit$g,data=data))))
+    result = cbind(result,as.data.frame(lapply(resfns,do.call,list(g=prune(ghat,pi_thresh),data=data))))
     val = c(val, list(result=result))
   }
 

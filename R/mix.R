@@ -483,6 +483,22 @@ comp_postmean.default = function(m,data){
   stop("method comp_postmean not written for this class")
 }
 
+#' @title prune
+#' @description prunes out mixture components with low weight
+#' @param thresh the threshold below which components are removed
+#' @export
+prune = function(m,thresh=1e-10){
+  UseMethod("prune")
+}
+#' @export
+prune.default = function(m,thresh = 1e-10){
+  which.comp = (m$pi > thresh)
+  for(i in 1:length(m)){
+    m[[i]] = m[[i]][which.comp]
+  }
+  m$pi = m$pi/sum(m$pi) #renormalize
+  return(m)
+}
 
 
 #' @title comp_postsd

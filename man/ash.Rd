@@ -15,7 +15,7 @@ ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
   prior = c("nullbiased", "uniform", "unit"), mixsd = NULL,
   gridmult = sqrt(2), outputlevel = 2, g = NULL, fixg = FALSE,
   mode = 0, alpha = 0, grange = c(-Inf, Inf), control = list(),
-  lik = NULL, weights = NULL)
+  lik = NULL, weights = NULL, pi_thresh = 1e-10)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -32,9 +32,6 @@ The use of "normal" and "halfnormal" is permitted only if df=NULL.}
 \item{df}{appropriate degrees of freedom for (t) distribution of
 betahat/sebetahat, default is NULL which is actually treated as
 infinity (Gaussian)}
-
-\item{...}{Further arguments of function \code{ash} to be passed to
-\code{\link{ash.workhorse}}.}
 
 \item{method}{specifies how ash is to be run. Can be "shrinkage"
 (if main aim is shrinkage) or "fdr" (if main aim is to assess fdr
@@ -101,6 +98,14 @@ lik_normalmix); and Poisson likelihood (see function lik_pois).}
 
 \item{weights}{a vector of weights for observations; use with
 optmethod = "w_mixEM"; this is currently beta-functionality.}
+
+\item{pi_thresh}{a threshold below which to prune out mixture components before 
+computing summaries (speeds computation since empirically many components are usually assigned negligible weight)
+The current implementation still returns the full fitted distribution; this only affects the posterior summaries
+(The exception is if output includes flash_data, used by the flashr package, in which case the output fitted g is pruned so as to match the flash data)
+
+ @param ... Further arguments of function \code{ash} to be passed to
+\code{\link{ash.workhorse}}.}
 }
 \value{
 ash returns an object of \code{\link[base]{class}} "ash", a
