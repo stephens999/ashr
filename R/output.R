@@ -95,7 +95,9 @@ set_output=function(outputlevel){
     }
     if(outputlevel>1){output=c("data","NegativeProb","PositiveProb","lfsr","svalue","lfdr","qvalue",output)}
     if(outputlevel>2){output=c(output,"fit_details")}
-    if(outputlevel>3){output=c(output,"flash_data")}
+    
+    # this is a special flag for output used by flashr
+    if(outputlevel==4){output=c("fitted_g","PosteriorMean", "PosteriorSD","flash_data")}
     return(output)
   }
 }
