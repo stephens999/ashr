@@ -485,6 +485,7 @@ comp_postmean.default = function(m,data){
 
 #' @title prune
 #' @description prunes out mixture components with low weight
+#' @param m What is this argument?
 #' @param thresh the threshold below which components are removed
 #' @export
 prune = function(m,thresh=1e-10){
