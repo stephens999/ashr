@@ -2,33 +2,60 @@
 #' @import Matrix truncnorm SQUAREM doParallel pscl Rcpp foreach parallel
 #' @title Adaptive Shrinkage
 #' 
-#' @description Takes vectors of estimates (betahat) and their
-#' standard errors (sebetahat), together with degrees of freedom (df)
-#' and applies shrinkage to them, using Empirical Bayes methods, to
-#' compute shrunk estimates for beta. Most users will be happy with
-#' the ash function, which provides the same usage, but has a simpler
-#' interface.
+#' @description Implements Empirical Bayes shrinkage and false discovery rate 
+#' methods based on unimodal prior distributions.
 #'
-#' @details See README for more details.
-#'
+#' @details The ash function provides a number of ways to perform Empirical Bayes shrinkage
+#' estimation and false discovery rate estimation. The main assumption is that 
+#' the underlying distribution of effects is unimodal. Novice users are recommended
+#' to start with the examples provided below.
+#' 
+#' In the simplest case the inputs to ash are a vector of estimates (betahat)
+#' and their corresponding standard errors (sebetahat), and degrees of freedom (df).
+#' The method assumes that for some (unknown) "true" vector of effects beta, the statistic 
+#' (betahat[j]-beta[j])/sebetahat[j] has a $t$ distribution on $df$ degrees of freedom.
+#' (The default of df=NULL assumes a normal distribution instead of a t.)
+#' 
+#' By default the method estimates the vector beta under the assumption that beta ~ g for a distribution
+#' g in G, where G is some unimodal family of distributions to be specified (see parameter \code{mixcompdist}).
+#' By default is to assume the mode is 0, and this is suitable for settings where you are interested in testing which beta[j]
+#' are non-zero. To estimate the mode see parameter \code{mode}.
+#'  
+#' As is standard in empirical Bayes methods, the fitting proceeds in two stages: 
+#' i) estimate g by maximizing a (possibly penalized) likelihood; 
+#' ii) compute the posterior distribution for each beta[j] | betahat[j],sebetahat[j] 
+#' using the estimated g as the prior distribution.
+#' 
+#' A more general case allows that beta[j]/sebetahat[j]^alpha | sebetahat[j] ~ g.
+#' 
 #' @param betahat a p vector of estimates
 #' 
 #' @param sebetahat a p vector of corresponding standard errors
 #' 
-#' @param mixcompdist distribution of components in mixture
-#' ("uniform","halfuniform" or "normal"; "halfnormal", "+uniform" or
-#' "-uniform"), the default is "uniform". If you believe your effects
+#' @param mixcompdist distribution of components in mixture used to represent the family G.
+#' Depending on the choice of mixture component, the family G becomes more or less flexible. 
+#' Options are:\cr
+#' \describe{
+#' \item{uniform}{G is (approximately) any symmetric unimodal distribution}
+#' \item{normal}{G is (approximately) any scale mixture of normals}
+#' \item{halfuniform}{G is (approximately) any unimodal distribution}
+#' \item{+uniform}{G is (approximately) any unimodal distribution with support constrained to be greater than the mode.}
+#' \item{-uniform}{G is (approximately) any unimodal distribution with support constrained to be less than the mode.}
+#' \item{halfnormal}{G is (approximately) any scale mixture of truncated normals where the normals are truncated at the mode}
+#' }
+#' If you are happy to assume a symmetric distribution for effects, you can use
+#' "uniform" or "normal". If you believe your effects
 #' may be asymmetric, use "halfuniform" or "halfnormal". If you want
 #' to allow only positive/negative effects use "+uniform"/"-uniform".
 #' The use of "normal" and "halfnormal" is permitted only if df=NULL.
 #'
 #' @param df appropriate degrees of freedom for (t) distribution of
-#' betahat/sebetahat, default is NULL which is actually treated as
+#' (betahat-beta)/sebetahat; default is NULL which is actually treated as
 #' infinity (Gaussian)
 #'
 #' @param method specifies how ash is to be run. Can be "shrinkage"
-#' (if main aim is shrinkage) or "fdr" (if main aim is to assess fdr
-#' or fsr) This is simply a convenient way to specify certain
+#' (if main aim is shrinkage) or "fdr" (if main aim is to assess false discovery rate
+#' or false sign rate (fsr)). This is simply a convenient way to specify certain
 #' combinations of parameters: "shrinkage" sets pointmass=FALSE and
 #' prior="uniform"; "fdr" sets pointmass=TRUE and prior="nullbiased".
 #'
@@ -55,7 +82,7 @@
 #' first component), or "unit" (1/K,...,1/K) [for optmethod=mixVBEM
 #' version only].
 #' 
-#' @param mixsd Vector of sds for underlying mixture components.
+#' @param mixsd Vector of standard deviations for underlying mixture components.
 #' 
 #' @param gridmult the multiplier by which the default grid values for
 #' mixsd differ by one another. (Smaller values produce finer grids.)
@@ -64,8 +91,9 @@
 #' numeric options [0=just fitted g; 1=also PosteriorMean and
 #' PosteriorSD; 2= everything usually needed; 3=also include results
 #' of mixture fitting procedure (includes matrix of log-likelihoods
-#' used to fit mixture); 4=output additional things required by flash
-#' (flash_data)]. Otherwise the user can also specify the output they
+#' used to fit mixture); 4 and 5 are reserved for outputting additional things 
+#' data required by the (in-development) flashr package.
+#' The user can also specify the output they
 #' require in detail (see Examples).
 #' 
 #' @param g The prior distribution for beta (usually estimated from
@@ -78,7 +106,7 @@
 #' @param alpha Numeric value of alpha parameter in the model.
 #' 
 #' @param grange Two dimension numeric vector indicating the left and
-#' right limit of the prior g. Default is c(-Inf, Inf).
+#' right limit of g. Default is c(-Inf, Inf).
 #' 
 #' @param control A list of control parameters passed to optmethod.
 #' 
@@ -184,7 +212,6 @@ ash <- function (betahat, sebetahat,
                  mixcompdist = c("uniform","halfuniform","normal","+uniform",
                                  "-uniform","halfnormal"),
                  df = NULL,...){
-    
   # This calls ash.workhorse, but then modifies the returned list so that the call is the original ash call
   utils::modifyList(ash.workhorse(betahat,sebetahat,
                                   mixcompdist = mixcompdist,df = df,...),
@@ -523,12 +550,14 @@ estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSq
   matrix_llik = matrix_llik - lnorm #avoid numerical issues by subtracting max of each row
   matrix_lik = exp(matrix_llik)
 
-  if(!is.null(weights) && optmethod!="w_mixEM"){stop("weights can only be used with optmethod w_mixEM")}
+  if(!is.null(weights) && optmethod!="w_mixEM" && optmethod!="mixIP"){stop("weights can only be used with optmethod w_mixEM or mixIP")}
   if(optmethod=="w_mixEM"){
     if(is.null(weights)){
       weights = rep(1,nrow(matrix_lik))
       message("No weights supplied for w_mixEM so setting weights to 1")
     }
+  }
+  if(!is.null(weights)){
     fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=control, weights=weights))
   }  else {   
     # the last of these conditions checks whether the gradient at the null is negative wrt pi0

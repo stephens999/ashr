@@ -4,7 +4,7 @@
 \alias{mixIP}
 \title{Estimate mixture proportions of a mixture model by Interior Point method}
 \usage{
-mixIP(matrix_lik, prior, pi_init = NULL, control = list())
+mixIP(matrix_lik, prior, pi_init = NULL, control = list(), weights = NULL)
 }
 \arguments{
 \item{matrix_lik, }{a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.}
@@ -14,6 +14,8 @@ mixIP(matrix_lik, prior, pi_init = NULL, control = list())
 \item{pi_init, }{the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).}
 
 \item{control}{A list of control parameters for the SQUAREM algorithm, default value is set to be control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE).}
+
+\item{weights}{weights to be assigned to the observations (an n vector)}
 }
 \value{
 A list, including the estimates (pihat), the log likelihood for each interation (B)
@@ -23,10 +25,11 @@ and a flag to indicate convergence
 Given the individual component likelihoods for a mixture model, estimates the mixture proportions.
 }
 \details{
-Fits a k component mixture model \deqn{f(x|\pi)= \sum_k \pi_k f_k(x)} to independent
-and identically distributed data \eqn{x_1,\dots,x_n}. 
-Estimates mixture proportions \eqn{\pi} by maximum likelihood, or by maximum a posteriori (MAP) estimation for a Dirichlet prior on \eqn{\pi} 
-(if a prior is specified). Calls REBayes::KWDual in the REBayes package, which is in turn a wrapper to the mosek 
-convex optimization software. So REBayes must be installed to use this. Used by the ash main function; there is no need for a user to call this 
+Optimizes \deqn{L(pi)= sum_j w_j log(sum_k pi_k f_{jk}) + h(pi)} 
+subject to pi_k non-negative and sum_k pi_k = 1. Here \deqn{h(pi)} is
+a penalty function h(pi) = sum_k (prior_k-1) log pi_k.
+Calls REBayes::KWDual in the REBayes package, which is in turn a wrapper to the mosek 
+convex optimization software. So REBayes must be installed to use this. 
+Used by the ash main function; there is no need for a user to call this 
 function separately, but it is exported for convenience.
 }

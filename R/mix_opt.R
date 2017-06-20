@@ -7,11 +7,12 @@
 #'
 #' @description Given the individual component likelihoods for a mixture model, estimates the mixture proportions.
 #'
-#' @details Fits a k component mixture model \deqn{f(x|\pi)= \sum_k \pi_k f_k(x)} to independent
-#' and identically distributed data \eqn{x_1,\dots,x_n}. 
-#' Estimates mixture proportions \eqn{\pi} by maximum likelihood, or by maximum a posteriori (MAP) estimation for a Dirichlet prior on \eqn{\pi} 
-#' (if a prior is specified). Calls REBayes::KWDual in the REBayes package, which is in turn a wrapper to the mosek 
-#' convex optimization software. So REBayes must be installed to use this. Used by the ash main function; there is no need for a user to call this 
+#' @details Optimizes \deqn{L(pi)= sum_j w_j log(sum_k pi_k f_{jk}) + h(pi)} 
+#' subject to pi_k non-negative and sum_k pi_k = 1. Here \deqn{h(pi)} is
+#' a penalty function h(pi) = sum_k (prior_k-1) log pi_k.
+#' Calls REBayes::KWDual in the REBayes package, which is in turn a wrapper to the mosek 
+#' convex optimization software. So REBayes must be installed to use this. 
+#' Used by the ash main function; there is no need for a user to call this 
 #' function separately, but it is exported for convenience.
 #'
 #' 
@@ -19,13 +20,14 @@
 #' @param prior, a k vector of the parameters of the Dirichlet prior on \eqn{\pi}. Recommended to be rep(1,k)
 #' @param pi_init, the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).
 #' @param control A list of control parameters for the SQUAREM algorithm, default value is set to be control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). 
+#' @param weights weights to be assigned to the observations (an n vector)
 #' 
 #' @return A list, including the estimates (pihat), the log likelihood for each interation (B)
 #' and a flag to indicate convergence
 #'  
 #' @export
-mixIP = function(matrix_lik, prior, pi_init = NULL, control = list()){
-
+mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(), weights=NULL){
+ 
   # This is the smallest value allowed for the mixture weights.
   min.f <- 0
     
@@ -33,9 +35,11 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list()){
   control = set_control_mixIP(control)
   n = nrow(matrix_lik)
   k = ncol(matrix_lik)
-  #A = matrix_lik
+  
+  if(is.null(weights)){weights = rep(1,n)} # give all observations weight 1
+  
   A = rbind(diag(length(prior)),matrix_lik) # add in observations corresponding to prior
-  w = c(prior-1,rep(1,n))
+  w = c(prior-1,weights)
   A = A[w!=0,]    #remove zero weight entries, as these otherwise cause errors
   w = w[w!=0]
                                         #w = rep(1,n+k)
