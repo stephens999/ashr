@@ -125,7 +125,7 @@
 #' The current implementation still returns the full fitted distribution; this only affects the posterior summaries
 #' (The exception is if output includes flash_data, used by the flashr package, in which case the output fitted g is pruned so as to match the flash data)
 #' 
-#'  @param ... Further arguments of function \code{ash} to be passed to
+#' @param ... Further arguments of function \code{ash} to be passed to
 #' \code{\link{ash.workhorse}}.
 #'
 #' @return ash returns an object of \code{\link[base]{class}} "ash", a

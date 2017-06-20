@@ -7,6 +7,8 @@
 prune(m, thresh = 1e-10)
 }
 \arguments{
+\item{m}{What is this argument?}
+
 \item{thresh}{the threshold below which components are removed}
 }
 \description{
