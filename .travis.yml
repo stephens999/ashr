@@ -8,6 +8,10 @@ branches:
     - master
     - cran
 
+env:
+  global:
+    - _R_CHECK_FORCE_SUGGESTS_: false
+
 after_success:
   - Rscript -e 'covr::coveralls()'
   - Rscript -e 'covr::codecov()'
