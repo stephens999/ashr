@@ -37,8 +37,9 @@ Suggests:
     covr,
     knitr,
     rmarkdown,
-    ggplot2
-Enhances: REBayes, Rmosek
+    ggplot2,
+    REBayes,
+    Rmosek
 License: GPL (>=3)
 NeedsCompilation: no
 URL: http://github.com/stephens999/ashr

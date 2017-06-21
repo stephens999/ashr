@@ -16,7 +16,6 @@ environment:
     NOT_CRAN: true
     _R_CHECK_FORCE_SUGGESTS_: false
 
-
 build_script:
   - travis-tool.sh install_deps
 
