@@ -191,6 +191,15 @@ head(get_pm(beta.ash)) # get_pm returns posterior mean
 head(get_lfsr(beta.ash)) # get_lfsr returns the local false sign rate
 graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4))
 
+# Small example in which the interior-point method (implemented in
+# MOSEK) yields negative mixture weights. These mixture weights are
+# automatically set to zero and the weights are re-normalized. The
+# EM algorithm does not suffer from this problem.
+betahat <- c(8.115,9.027,9.289,10.097,9.463)
+sebeta  <- c(0.6157,0.4129,0.3197,0.3920,0.5496)
+fit.em  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixEM")
+fit.ip  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixIP")
+ 
 CIMatrix=ashci(beta.ash,level=0.95)
 print(CIMatrix)
 
