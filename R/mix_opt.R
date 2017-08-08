@@ -47,9 +47,14 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(), weights=NU
   res = REBayes::KWDual(A, rep(1,k), normalize(w), control=control)
 
   # Fix any mixture weights that are less than the minimum allowed value.
-  i        <- which(res$f < min.f)
-  res$f[i] <- min.f
-  res$f    <- normalize(res$f)
+  i <- which(res$f < min.f)
+  if (length(i) > 0) {
+    warning(paste("Optimization step yields mixture weights that are either",
+                  "too small, or negative; weights have been corrected and",
+                  "renormalized after the optimization."))
+    res$f[i] <- min.f
+    res$f    <- normalize(res$f)
+  }
   
   return(list(pihat = normalize(res$f), niter = NULL, converged=(res$status=="OPTIMAL"), control=control))
 }
