@@ -36,7 +36,7 @@ ashci = function (a,level=0.95,betaindex,lfsr_threshold=1,tol=1e-3,trace=FALSE){
   data = a$data
   if(is.null(data)){stop("ash object has to have data returned to compute CIs; use outputlevel 2 or more when running ash")}
  
-  options(warn=-1)
+  # options(warn=-1)
   if(missing(betaindex)){
     betaindex = which(get_lfsr(a)<=lfsr_threshold)
     #betaindex[is.na(betaindex)]=FALSE #Some lfsrs would have NA
