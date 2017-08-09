@@ -175,6 +175,7 @@
 #' graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4))
 #'
 #' \dontrun{
+#' # Why is this example included here? -Peter
 #' CIMatrix=ashci(beta.ash,level=0.95)
 #' print(CIMatrix)
 #' }
