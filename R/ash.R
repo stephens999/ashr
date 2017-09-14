@@ -420,9 +420,11 @@ ash.workhorse <-
   output = set_output(outputlevel) #sets up flags for what to output
   if("flash_data" %in% output){ # if outputting flash data, need to 
     # return the pruned g so that the flash data lines up with the returned g
+      prior = prior[ghat$pi > pi_thresh]
       ghat = prune(ghat, pi_thresh)
-      val = c(val, list(flash_data=calc_flash_data(prune(ghat,pi_thresh),
-                                                   data, pi.fit$penloglik)))
+      flash_data=c(list(prior=prior),
+                   calc_flash_data(ghat,data, pi.fit$penloglik))
+      val = c(val, list(flash_data=flash_data))
   }
   if("fitted_g" %in% output){val = c(val,list(fitted_g=ghat))}
   if("loglik" %in% output){val = c(val,list(loglik =calc_loglik(ghat,data)))}

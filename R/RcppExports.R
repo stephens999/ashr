@@ -9,6 +9,6 @@
 #' @param control Description of argument goes here.
 #' @export
 cxxMixSquarem <- function(matrix_lik, prior, pi_init, control) {
-    .Call('ashr_cxxMixSquarem', PACKAGE = 'ashr', matrix_lik, prior, pi_init, control)
+    .Call('_ashr_cxxMixSquarem', PACKAGE = 'ashr', matrix_lik, prior, pi_init, control)
 }
 

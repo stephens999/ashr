@@ -4,7 +4,7 @@
 #include <R_ext/Visibility.h>
 
 // Declarations for .Call entry points.
-SEXP ashr_cxxMixSquarem (SEXP matrix_likSEXP, SEXP priorSEXP,
+SEXP _ashr_cxxMixSquarem (SEXP matrix_likSEXP, SEXP priorSEXP,
 			 SEXP pi_initSEXP, SEXP controlSEXP);
 
 // See "Registering native routines" in "Writing R Extensions" manual
@@ -12,7 +12,7 @@ SEXP ashr_cxxMixSquarem (SEXP matrix_likSEXP, SEXP priorSEXP,
 #define CALLDEF(name, n) {#name, (DL_FUNC) &name, n}
 
 const static R_CallMethodDef R_CallDef[] = {
-  CALLDEF(ashr_cxxMixSquarem,4),
+  CALLDEF(_ashr_cxxMixSquarem,4),
   {NULL, NULL, 0}
 };
 

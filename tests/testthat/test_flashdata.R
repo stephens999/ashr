@@ -21,3 +21,8 @@ test_that("comp_postprob for missing data is fitted pi", {
   set.seed(1); z=rnorm(100,0,2); z.ash=ash(c(NA,z),1, outputlevel=4)
   expect_true(all(z.ash$flash_data$comp_postprob[,1]==z.ash$fitted_g$pi)) 
 })
+
+test_that("prior is returned with correct components for flash data", {
+  set.seed(1); z=rnorm(100,0,2); z.ash=ash(z,1,method="fdr",outputlevel=5,pi_thresh=1e-6)
+  expect_true(length(z.ash$flash_data$prior)==ncomp(z.ash$flash_data$fitted_g)) 
+})
