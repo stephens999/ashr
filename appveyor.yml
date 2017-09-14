@@ -13,7 +13,9 @@ install:
 # Adapt as necessary starting from here
 environment:
   global:
-    NOT_CRAN: true
+    USE_RTOOLS: yes
+    R_VERSION: release
+    R_ARCH: x64
     _R_CHECK_FORCE_SUGGESTS_: false
 
 build_script:

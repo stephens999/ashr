@@ -181,6 +181,7 @@ A more general case allows that beta[j]/sebetahat[j]^alpha | sebetahat[j] ~ g.
 }}
 
 \examples{
+
 beta = c(rep(0,100),rnorm(100))
 sebetahat = abs(rnorm(200,0,1))
 betahat = rnorm(200,beta,sebetahat)
@@ -191,8 +192,11 @@ head(get_pm(beta.ash)) # get_pm returns posterior mean
 head(get_lfsr(beta.ash)) # get_lfsr returns the local false sign rate
 graphics::plot(betahat,get_pm(beta.ash),xlim=c(-4,4),ylim=c(-4,4))
 
+\dontrun{
+# Why is this example included here? -Peter
 CIMatrix=ashci(beta.ash,level=0.95)
 print(CIMatrix)
+}
 
 # Illustrating the non-zero mode feature.
 betahat=betahat+5
@@ -226,6 +230,15 @@ beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
 beta.ash = ash(betahat, sebetahat, optmethod="w_mixEM",
                weights = c(rep(0.5,100),rep(1,100)))
 
+# Small example in which the interior-point method (implemented in
+# MOSEK) yields negative mixture weights. These mixture weights are
+# automatically set to zero and the weights are re-normalized. The
+# EM algorithm does not suffer from this problem.
+set.seed(1)
+betahat <- c(8.115,9.027,9.289,10.097,9.463)
+sebeta  <- c(0.6157,0.4129,0.3197,0.3920,0.5496)
+fit.em  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixEM")
+fit.ip  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixIP")
 }
 \seealso{
 \code{\link{ashci}} for computation of credible intervals
