@@ -3,4 +3,5 @@
 ^\.Rproj\.user$
 ^appveyor\.yml$
 ^codecov\.yml$
+^README\.md$
 
