@@ -236,7 +236,8 @@ ash.workhorse <-
     function(betahat, sebetahat, method = c("fdr","shrink"),
              mixcompdist = c("uniform","halfuniform","normal","+uniform",
                              "-uniform","halfnormal"),
-             optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM","w_mixEM"),
+             optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM",
+                           "w_mixEM","mixSQP"),
              df = NULL,nullweight = 10,pointmass = TRUE,
              prior = c("nullbiased","uniform","unit"),mixsd = NULL,
              gridmult = sqrt(2),outputlevel = 2,g = NULL,fixg = FALSE,
@@ -552,7 +553,7 @@ ColsumModified = function(matrix_l){
 #' the fit
 #' and results of optmethod
 #' @export
-estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSquarem","mixIP","w_mixEM"),control,weights=NULL){
+estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSquarem","mixIP","w_mixEM","mixSQP"),control,weights=NULL){
   optmethod=match.arg(optmethod)
 
   pi_init = g$pi

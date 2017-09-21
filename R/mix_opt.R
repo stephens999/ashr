@@ -27,7 +27,7 @@
 #'  
 #' @export
 mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(), weights=NULL){
- 
+
   # This is the smallest value allowed for the mixture weights.
   min.f <- 0
     
@@ -92,6 +92,24 @@ mixEM = function(matrix_lik,prior,pi_init=NULL,control=list()){
               niter = res$iter, converged=res$convergence, control=control))
 }
 
+# Youngseok's algorithm.
+mixSQP <- function (matrix_lik, prior, pi_init = NULL, control = list()) {
+
+  # Get number of mixture components.
+  k <- ncol(matrix_lik)
+
+  # Set initial value of mixture weights.
+  if (is.null(pi_init))
+    pi_init <- rep(1/k,k)
+
+  # TO DO: Change this code. This gives the return value.
+  return(list(pihat     = pi_init,
+              B         = 0, 
+              niter     = 0,
+              converged = res$convergence,
+              control  = control))
+}
+    
 # helper functions used by mixEM
 normalize = function(x){return(x/sum(x))}
 
