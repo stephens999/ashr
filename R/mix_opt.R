@@ -94,6 +94,7 @@ mixEM = function(matrix_lik,prior,pi_init=NULL,control=list()){
 
 # Youngseok's algorithm.
 mixSQP <- function (matrix_lik, prior, pi_init = NULL, control = list()) {
+  control = set_control_squarem(control,nrow(matrix_lik))
 
   # Get number of mixture components.
   k <- ncol(matrix_lik)
@@ -102,12 +103,15 @@ mixSQP <- function (matrix_lik, prior, pi_init = NULL, control = list()) {
   if (is.null(pi_init))
     pi_init <- rep(1/k,k)
 
+  # Placeholder --- Youngseok will add code for SQP algorithm here.
+  res = squarem(par=pi_init,fixptfn=fixpoint, objfn=negpenloglik,
+                matrix_lik=matrix_lik, prior=prior, control=control)
+  
+  cat("Run Youngseok's amazing algorithm.\n")
+  
   # TO DO: Change this code. This gives the return value.
-  return(list(pihat     = pi_init,
-              B         = 0, 
-              niter     = 0,
-              converged = res$convergence,
-              control  = control))
+  return(list(pihat = normalize(pmax(0,res$par)), B=res$value.objfn, 
+              niter = res$iter, converged=res$convergence, control=control))
 }
     
 # helper functions used by mixEM
