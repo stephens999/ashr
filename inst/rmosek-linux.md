@@ -33,7 +33,7 @@ want the "Linux 64 bit x86" version here:
 
 ```bash
 wget http://download.mosek.com/stable/7.1.0.52/mosektoolslinux64x86.tar.bz2
-tar -xvf mosektoolslinux64x86.tar.bz2
+tar jxvf mosektoolslinux64x86.tar.bz2
 ```
 
 ### upload mosek license
