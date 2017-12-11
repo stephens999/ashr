@@ -20,5 +20,5 @@ test_that("some test about my_etrucnorm function", {
   expect_equal(real,my_etruncnorm(a,b,m,sd))
   
   expect_equal(my_etruncnorm(0,99,-2,3),truncnorm::etruncnorm(0,99,-2,3))
-  
+  expect_equal(my_etruncnorm(0,9999,-2,3),my_etruncnorm(0,Inf,-2,3),tol=1e-3)
 })

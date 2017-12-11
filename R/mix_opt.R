@@ -19,7 +19,7 @@
 #' @param matrix_lik, a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.
 #' @param prior, a k vector of the parameters of the Dirichlet prior on \eqn{\pi}. Recommended to be rep(1,k)
 #' @param pi_init, the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).
-#' @param control A list of control parameters for the SQUAREM algorithm, default value is set to be control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). 
+#' @param control A list of control parameters to be passed to REBayes::KWDual
 #' @param weights weights to be assigned to the observations (an n vector)
 #' 
 #' @return A list, including the estimates (pihat), the log likelihood for each interation (B)
