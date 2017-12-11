@@ -18,4 +18,7 @@ test_that("some test about my_etrucnorm function", {
   sd = 0
   real = rbind(c(0,1,1),c(0,0,0))
   expect_equal(real,my_etruncnorm(a,b,m,sd))
+  
+  expect_equal(my_etruncnorm(0,99,-2,3),truncnorm::etruncnorm(0,99,-2,3))
+  
 })

@@ -26,7 +26,7 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   isequal=is.equal(alpha,beta)
   tmp1[isequal]=alpha[isequal]
   
-  tmp= (-1)^flip * (mean+sd*tmp1)
+  tmp= mean+ sd * ((-1)^flip * tmp1)
   
   max_alphabeta = ifelse(alpha<beta, beta,alpha)
   max_ab = ifelse(alpha<beta,b,a)
@@ -97,7 +97,7 @@ my_e2truncnorm= function(a,b,mean=0,sd=1){
   isequal=is.equal(alpha,beta)
  
   tmp1[isequal]=alpha[isequal]
-  tmp= (-1)^flip * (mean+sd*tmp1)
+  tmp= mean+ sd * ((-1)^flip * tmp1)
   # for the variance
   # error report in vtruncnorm
   # vtruncnorm(10,-10,0,1)
