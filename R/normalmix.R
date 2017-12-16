@@ -158,11 +158,12 @@ post_sample.normalmix = function(m,data,nsamp){
   postmean = comp_postmean(m,data)
   postsd = comp_postsd(m,data)
   
-  samp = matrix(nrow=nsamp, ncol=n)
-  # Loop over observations
-  for (i in 1:n) {
-    mixcomp = sample(1:k, size=nsamp, replace=T, prob=postprob[,i])
-    samp[,i] = rnorm(nsamp, postmean[mixcomp,i], postsd[mixcomp,i])
-  }
-  samp
+  # Sample mixture components
+  mixcomp = apply(postprob, 2, function(prob) {
+    sample(1:k, nsamp, replace=TRUE, prob=prob)
+  })
+  # Use samples to index into postmean and postsd matrices
+  idx = mixcomp + rep(k*(0:(n-1)), each=nsamp)
+  samp = rnorm(nsamp*n, postmean[idx], postsd[idx])
+  matrix(samp, nrow=nsamp, ncol=n)
 }

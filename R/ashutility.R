@@ -291,6 +291,21 @@ cdf.ash=function(a,x,lower.tail=TRUE){
   return(list(x=x,y=mixcdf(a$fitted_g,x,lower.tail)))
 }
 
+#' @title Sample from posterior 
+#'
+#' @description Returns random samples from the posterior distribution for each
+#'     observation in an ash object. A matrix is returned, with columns corresponding
+#'     to observations and rows corresponding to samples.
+#'
+#' @param a the fitted ash object
+#' @param nsamp number of samples to return (for each observation)
+#'
+#' @details None
+#'
+#' @export
+get_post_sample = function(a,nsamp){
+  return(post_sample(a$fitted_g,a$data,nsamp))
+}
 
 #Functions from MATLAB packages, used to measure performance and to show progress
 tic <- function(gcFirst = TRUE, type=c("elapsed", "user.self", "sys.self"))
