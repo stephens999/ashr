@@ -96,9 +96,11 @@
 #' The user can also specify the output they
 #' require in detail (see Examples).
 #' 
-#' @param g The prior distribution for beta (usually estimated from
-#' the data; this is used primarily in simulated data to do
-#' computations with the "true" g).
+#' @param g The prior distribution for beta. Usually this is unspecified (NULL) and 
+#' estimated from the data. However, it can be used in conjuction with fixg=TRUE 
+#' to specify the g to use (e.g. useful in simulations to do computations with the "true" g).
+#' Or, if g is specified but fixg=FALSE, the g specifies the initial value of g used before optimization,
+#' (which also implicitly specifies mixcompdist). 
 #' 
 #' @param fixg If TRUE, don't estimate g but use the specified g -
 #' useful for computations under the "true" g in simulations.
