@@ -111,11 +111,13 @@ penloglik = function(pi, matrix_lik, prior){
   m  = t(pi * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k
   m.rowsum = rowSums(m)
   loglik = sum(log(m.rowsum))
-  subset = (prior != 1.0)
-  priordens = sum((prior-1)[subset]*log(pi[subset]))
-  return(loglik+priordens)
+  return(loglik+penalty(prior))
 }
 
+penalty=function(prior){
+  subset = (prior != 1.0)
+  sum((prior-1)[subset]*log(pi[subset]))
+}
 
 #' @title Estimate mixture proportions of a mixture model by EM algorithm (weighted version)
 #'
