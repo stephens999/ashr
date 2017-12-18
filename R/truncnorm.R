@@ -16,17 +16,20 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   alpha[flip]= -alpha[flip]
   beta[flip]=-beta[flip]
   
+  
   #Fix a bug of quoting the truncnorm package
   #E(X|a<X<b)=a when a==b is a natural result
   #while etruncnorm would simply return NaN,causing PosteriorMean also NaN
   # ZMZ:  when a and b are both negative and far from 0, etruncnorm can't compute
   # the mean and variance. Also we should deal with 0/0 situation caused by sd = 0.
-  tmp1=etruncnorm(alpha,beta,0,1)
+  lower = ifelse(alpha<beta,alpha,beta) # needed this to make etruncnorm play nice with Inf
+  upper = ifelse(alpha<beta,beta,alpha) # see Issue #78
+  tmp1=etruncnorm(lower,upper,0,1)
   
   isequal=is.equal(alpha,beta)
   tmp1[isequal]=alpha[isequal]
   
-  tmp= (-1)^flip * (mean+sd*tmp1)
+  tmp= mean+ sd * ((-1)^flip * tmp1)
   
   max_alphabeta = ifelse(alpha<beta, beta,alpha)
   max_ab = ifelse(alpha<beta,b,a)
@@ -93,11 +96,14 @@ my_e2truncnorm= function(a,b,mean=0,sd=1){
   #Fix a bug of quoting the truncnorm package
   #E(X|a<X<b)=a when a==b as a natural result
   #while etruncnorm would simply return NaN,causing PosteriorMean also NaN
-  tmp1=etruncnorm(alpha,beta,0,1)
+  lower = ifelse(alpha<beta,alpha,beta) # needed this to make etruncnorm play nice with Inf
+  upper = ifelse(alpha<beta,beta,alpha) # see Issue #78
+  tmp1=etruncnorm(lower,upper,0,1)
+  
   isequal=is.equal(alpha,beta)
  
   tmp1[isequal]=alpha[isequal]
-  tmp= (-1)^flip * (mean+sd*tmp1)
+  tmp= mean+ sd * ((-1)^flip * tmp1)
   # for the variance
   # error report in vtruncnorm
   # vtruncnorm(10,-10,0,1)

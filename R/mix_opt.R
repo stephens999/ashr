@@ -19,7 +19,7 @@
 #' @param matrix_lik, a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.
 #' @param prior, a k vector of the parameters of the Dirichlet prior on \eqn{\pi}. Recommended to be rep(1,k)
 #' @param pi_init, the initial value of \eqn{\pi} to use. If not specified defaults to (1/k,...,1/k).
-#' @param control A list of control parameters for the SQUAREM algorithm, default value is set to be control.default=list(K = 1, method=3, square=TRUE, step.min0=1, step.max0=1, mstep=4, kr=1, objfn.inc=1,tol=1.e-07, maxiter=5000, trace=FALSE). 
+#' @param control A list of control parameters to be passed to REBayes::KWDual
 #' @param weights weights to be assigned to the observations (an n vector)
 #' 
 #' @return A list, including the estimates (pihat), the log likelihood for each interation (B)
@@ -111,11 +111,13 @@ penloglik = function(pi, matrix_lik, prior){
   m  = t(pi * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k
   m.rowsum = rowSums(m)
   loglik = sum(log(m.rowsum))
-  subset = (prior != 1.0)
-  priordens = sum((prior-1)[subset]*log(pi[subset]))
-  return(loglik+priordens)
+  return(loglik+penalty(prior))
 }
 
+penalty=function(prior){
+  subset = (prior != 1.0)
+  sum((prior-1)[subset]*log(pi[subset]))
+}
 
 #' @title Estimate mixture proportions of a mixture model by EM algorithm (weighted version)
 #'
