@@ -16,6 +16,9 @@ Returns random samples from the posterior distribution for each
     observation in an ash object. A matrix is returned, with columns corresponding
     to observations and rows corresponding to samples.
 }
-\details{
-None
+\examples{
+beta = rnorm(100,0,1)
+betahat= beta+rnorm(100,0,1)
+ash.beta = ash(betahat,1,mixcompdist="normal")
+post.beta = get_post_sample(ash.beta,1000)
 }

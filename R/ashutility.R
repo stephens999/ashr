@@ -299,9 +299,11 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #'
 #' @param a the fitted ash object
 #' @param nsamp number of samples to return (for each observation)
-#'
-#' @details None
-#'
+#' @examples 
+#' beta = rnorm(100,0,1)
+#' betahat= beta+rnorm(100,0,1)
+#' ash.beta = ash(betahat,1,mixcompdist="normal")
+#' post.beta = get_post_sample(ash.beta,1000)
 #' @export
 get_post_sample = function(a,nsamp){
   return(post_sample(a$fitted_g,a$data,nsamp))
