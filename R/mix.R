@@ -523,6 +523,24 @@ comp_postsd.default = function(m,data){
   stop("method comp_postsd not written for this class")
 }
 
+#' @title post_sample
+#' @description returns random samples from the posterior, given a prior distribution
+#'     m and n observed datapoints. 
+#' @details exported, but mostly users will want to use `get_post_sample`
+#' @param m prior distribution (eg of type normalmix)
+#' @param data a list with components x and s, each vectors of length n, to be interpreted as a 
+#'     normally-distributed observations and corresponding standard errors
+#' @param nsamp number of random samples to return for each observation
+#' @return an nsamp by n matrix
+#' @export
+post_sample = function(m,data,nsamp){
+  UseMethod("post_sample")
+}
+#' @export
+post_sample.default = function(m,data,nsamp){
+  stop("method post_sample not written for this class")
+}
+
 #find nice limits of mixture m for plotting
 min_lim = function(m){
   UseMethod("min_lim")
