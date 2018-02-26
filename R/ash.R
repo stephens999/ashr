@@ -446,6 +446,9 @@ ash.workhorse <-
   if("logLR" %in% output){val = c(val,list(logLR=calc_logLR(ghat,data)))}
   if("data" %in% output){val = c(val,list(data=data))}
   if("fit_details" %in% output){val = c(val,list(fit_details = pi.fit))}
+  if("post_sampler" %in% output){
+    val = c(val, list(post_sampler = function(nsamp) {post_sample(ghat, data, nsamp)}))
+    }
   
   # Compute the result component of value -
   # result is a dataframe containing lfsr, etc
