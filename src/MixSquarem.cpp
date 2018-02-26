@@ -1,5 +1,4 @@
 #include <Rcpp.h>
-#include <cmath> //not sure this is necessary
 #include <algorithm>
 
 using namespace Rcpp;

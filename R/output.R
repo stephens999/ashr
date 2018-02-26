@@ -82,6 +82,7 @@ calc_flash_data = function(g,data,penloglik){
   
   postmean = colSums(comp_postprob*comp_postmean)
   postmean2 = colSums(comp_postprob*comp_postmean2)
+  postmean2[postmean2<0]=0 # avoid potential negatives due to numeric rounding errors
   
   return(list(fitted_g = g,
               comp_postprob = comp_postprob,
