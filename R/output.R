@@ -110,7 +110,7 @@ set_output=function(outputlevel){
     # this is a special flag for output used by flashr
     if(outputlevel==4){output=c("fitted_g","PosteriorMean", "PosteriorSD","flash_data")}
     if(outputlevel==5){output=c("flash_data")}
-    
+
     return(output)
   }
 }

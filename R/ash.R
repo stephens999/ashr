@@ -437,8 +437,10 @@ ash.workhorse <-
     # return the pruned g so that the flash data lines up with the returned g
       prior = prior[ghat$pi > pi_thresh]
       ghat = prune(ghat, pi_thresh)
+      sampler = function(nsamp) {post_sample(ghat, data, nsamp)}
       flash_data=c(list(prior=prior),
-                   calc_flash_data(ghat,data, pi.fit$penloglik))
+                   calc_flash_data(ghat,data, pi.fit$penloglik),
+                   sampler = sampler)
       val = c(val, list(flash_data=flash_data))
   }
   if("fitted_g" %in% output){val = c(val,list(fitted_g=ghat))}
@@ -446,7 +448,7 @@ ash.workhorse <-
   if("logLR" %in% output){val = c(val,list(logLR=calc_logLR(ghat,data)))}
   if("data" %in% output){val = c(val,list(data=data))}
   if("fit_details" %in% output){val = c(val,list(fit_details = pi.fit))}
-  
+
   # Compute the result component of value -
   # result is a dataframe containing lfsr, etc
   # resfns is a list of functions used to produce columns of that dataframe
