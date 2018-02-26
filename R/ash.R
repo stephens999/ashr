@@ -448,7 +448,7 @@ ash.workhorse <-
   if("fit_details" %in% output){val = c(val,list(fit_details = pi.fit))}
   if("post_sampler" %in% output){
     val = c(val, list(post_sampler = function(nsamp) {post_sample(ghat, data, nsamp)}))
-    }
+  }
   
   # Compute the result component of value -
   # result is a dataframe containing lfsr, etc
