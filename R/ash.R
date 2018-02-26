@@ -440,7 +440,7 @@ ash.workhorse <-
       sampler = function(nsamp) {post_sample(ghat, data, nsamp)}
       flash_data=c(list(prior=prior),
                    calc_flash_data(ghat,data, pi.fit$penloglik),
-                   sampler = post_sampler)
+                   sampler = sampler)
       val = c(val, list(flash_data=flash_data))
   }
   if("fitted_g" %in% output){val = c(val,list(fitted_g=ghat))}
