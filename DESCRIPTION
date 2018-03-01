@@ -4,7 +4,8 @@ Type: Package
 Maintainer: Peter Carbonetto <pcarbo@uchicago.edu>
 Authors@R: c(person("Matthew","Stephens",role="aut",
                     email="mstephens@uchicago.edu"),
-             person("Peter","Carbonetto",role=c("aut","cre")),
+             person("Peter","Carbonetto",role=c("aut","cre"),
+	            email="pcarbo@uchicago.edu"),
              person("Chaoxing","Dai",role="ctb"),
              person("David","Gerard",role="aut"),
              person("Mengyin","Lu",role="aut"),
