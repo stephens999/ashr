@@ -55,7 +55,7 @@ Suggests:
 License: GPL (>=3)
 NeedsCompilation: no
 LazyData: true
-URL: http://github.com/stephens999/ashr
-BugReports: http://github.com/stephens999/ashr/issues
+URL: https://github.com/stephens999/ashr
+BugReports: https://github.com/stephens999/ashr/issues
 RoxygenNote: 6.0.1.9000
 VignetteBuilder: knitr
