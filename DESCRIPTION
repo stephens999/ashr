@@ -1,10 +1,10 @@
 Package: ashr
 Encoding: UTF-8
 Type: Package
-Maintainer: Peter Carbonetto <peter.carbonetto@gmail.com>
-Authors@R: c(person("Matthew","Stephens",role=c("aut","cre"),
+Maintainer: Peter Carbonetto <pcarbo@uchicago.edu>
+Authors@R: c(person("Matthew","Stephens",role="aut",
                     email="mstephens@uchicago.edu"),
-             person("Peter","Carbonetto",role="aut"),
+             person("Peter","Carbonetto",role=c("aut","cre")),
              person("Chaoxing","Dai",role="ctb"),
              person("David","Gerard",role="aut"),
              person("Mengyin","Lu",role="aut"),
