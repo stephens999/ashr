@@ -143,13 +143,17 @@ comp_postmean2.normalmix = function(m,data){
 }
 
 #' @title post_sample.normalmix
-#' @description returns random samples from the posterior, given a prior distribution
-#'     m and n observed datapoints. 
+#' 
+#' @description returns random samples from the posterior, given a
+#'   prior distribution m and n observed datapoints.
+#' 
 #' @param m mixture distribution with k components
 #' @param data a list with components x and s to be interpreted as a 
 #'     normally-distributed observation and its standard error
 #' @param nsamp number of samples to return for each observation
 #' @return a nsamp by n matrix
+#' @importFrom stats rnorm
+#' @export
 post_sample.normalmix = function(m,data,nsamp){
   k = length(m$pi)
   n = length(data$x)

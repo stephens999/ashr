@@ -18,6 +18,6 @@ normally-distributed observation and its standard error}
 a nsamp by n matrix
 }
 \description{
-returns random samples from the posterior, given a prior distribution
-    m and n observed datapoints.
+returns random samples from the posterior, given a
+  prior distribution m and n observed datapoints.
 }
