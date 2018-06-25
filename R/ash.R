@@ -345,7 +345,7 @@ ash.workhorse <-
     null.comp=1 #null.comp not actually used
     prior = setprior(prior,k,nullweight,null.comp)
   } else {
-    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform"))) 
+    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","halfnormal"))) 
       stop("Error: invalid type of mixcompdist")
     if(mixcompdist!="normal"){
       # for unimix prior, if mode is the exactly the boundry of g's range,
