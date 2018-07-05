@@ -536,6 +536,7 @@ comp_postsd.default = function(m,data){
 post_sample = function(m,data,nsamp){
   UseMethod("post_sample")
 }
+
 #' @export
 post_sample.default = function(m,data,nsamp){
   stop("method post_sample not written for this class")

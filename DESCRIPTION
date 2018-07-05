@@ -1,21 +1,34 @@
 Package: ashr
-Maintainer: Matthew Stephens <mstephens@uchicago.edu>
-Author: Matthew Stephens, Chaoxing Dai, Mengyin Lu, David Gerard, Nan Xiao,
-    Mazon Zeng, Peter Carbonetto, Lei Sun, Jason Willwerscheid
-Version: 2.2-5
-Date: 2018-01-02
+Encoding: UTF-8
+Type: Package
+Maintainer: Peter Carbonetto <pcarbo@uchicago.edu>
+Authors@R: c(person("Matthew","Stephens",role="aut",
+                    email="mstephens@uchicago.edu"),
+             person("Peter","Carbonetto",role=c("aut","cre"),
+	            email="pcarbo@uchicago.edu"),
+             person("Chaoxing","Dai",role="ctb"),
+             person("David","Gerard",role="aut"),
+             person("Mengyin","Lu",role="aut"),
+             person("Lei","Sun",role="aut"),
+             person("Jason","Willwerscheid",role="aut"),
+             person("Nan","Xiao",role="aut"),
+             person("Mazon","Zeng",role="ctb"))
+Version: 2.2-8
+Date: 2018-03-01
 Title: Methods for Adaptive Shrinkage, using Empirical Bayes
-Description: The R package 'ashr' implements an Empirical Bayes approach for
-    large-scale hypothesis testing and false discovery rate (FDR) estimation based
-    on the methods proposed in M. Stephens, 2016, "False discovery rates: a new
-    deal", <DOI:10.1093/biostatistics/kxw041>. These methods can be applied whenever
-    two sets of summary statistics---estimated effects and standard errors---are
-    available, just as 'qvalue' can be applied to previously computed p-values.
-    Two main interfaces are provided: ash(), which is more user-friendly; and
-    ash.workhorse(), which has more options and is geared toward advanced users. The
-    ash() and ash.workhorse() also provides a flexible modeling interface that can
-    accomodate a variety of likelihoods (e.g., normal, Poisson) and mixture priors
-    (e.g., uniform, normal).
+Description: The R package 'ashr' implements an Empirical Bayes
+    approach for large-scale hypothesis testing and false discovery
+    rate (FDR) estimation based on the methods proposed in
+    M. Stephens, 2016, "False discovery rates: a new deal",
+    <DOI:10.1093/biostatistics/kxw041>. These methods can be applied
+    whenever two sets of summary statistics---estimated effects and
+    standard errors---are available, just as 'qvalue' can be applied
+    to previously computed p-values. Two main interfaces are
+    provided: ash(), which is more user-friendly; and ash.workhorse(),
+    which has more options and is geared toward advanced users. The
+    ash() and ash.workhorse() also provides a flexible modeling
+    interface that can accomodate a variety of likelihoods (e.g.,
+    normal, Poisson) and mixture priors (e.g., uniform, normal).
 Depends:
     R (>= 3.1.0)
 Imports:
@@ -42,6 +55,8 @@ Suggests:
     Rmosek
 License: GPL (>=3)
 NeedsCompilation: no
-URL: http://github.com/stephens999/ashr
-RoxygenNote: 6.0.1
+LazyData: true
+URL: https://github.com/stephens999/ashr
+BugReports: https://github.com/stephens999/ashr/issues
+RoxygenNote: 6.0.1.9000
 VignetteBuilder: knitr

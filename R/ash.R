@@ -345,7 +345,7 @@ ash.workhorse <-
     null.comp=1 #null.comp not actually used
     prior = setprior(prior,k,nullweight,null.comp)
   } else {
-    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform"))) 
+    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","halfnormal"))) 
       stop("Error: invalid type of mixcompdist")
     if(mixcompdist!="normal"){
       # for unimix prior, if mode is the exactly the boundry of g's range,
@@ -446,6 +446,9 @@ ash.workhorse <-
   if("logLR" %in% output){val = c(val,list(logLR=calc_logLR(ghat,data)))}
   if("data" %in% output){val = c(val,list(data=data))}
   if("fit_details" %in% output){val = c(val,list(fit_details = pi.fit))}
+  if("post_sampler" %in% output){
+    val = c(val,list(post_sampler=function(nsamp){post_sample(ghat, data, nsamp)}))
+  }
   
   # Compute the result component of value -
   # result is a dataframe containing lfsr, etc
