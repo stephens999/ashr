@@ -128,8 +128,8 @@ lik_binom = function(y,n,link=c("identity","logit")){
          const = TRUE,
          lcdfFUN = function(x){stats::pbeta(1/(1+exp(-x)),shape1=y1,shape2=n1-y1,log.p=TRUE)+log(n1/(y1*(n1-y1)))},
          lpdfFUN = function(x){stats::dbeta(1/(1+exp(-x)),shape1=y1,shape2=n1-y1,log=TRUE)+log(n1/(y1*(n1-y1)))},
-         etruncFUN = function(a,b){-my_etruncbeta(-1/(1+exp(-b)),-1/(1+exp(-a)),y1,n1-y1)},
-         e2truncFUN = function(a,b){my_e2truncbeta(-1/(1+exp(-b)),-1/(1+exp(-a)),y1,n1-y1)},
+         etruncFUN = function(a,b){-my_etruncbeta(1/(1+exp(-b)),1/(1+exp(-a)),y1,n1-y1)},
+         e2truncFUN = function(a,b){my_e2truncbeta(1/(1+exp(-b)),1/(1+exp(-a)),y1,n1-y1)},  
          data=list(y=y,n=n,link=link))
   }
 }
