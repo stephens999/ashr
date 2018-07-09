@@ -63,8 +63,6 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(),
 }
 
 # Estimate mixture proportions of a mixture model using mixSQP.
-#
-#' @importFrom mixSQP mixSQP
 mixSQP <- function (matrix_lik, prior, pi_init, control = list(), weights) {
   if(!requireNamespace("mixSQP",quietly = TRUE))
     stop("mixSQP requires installation of package mixSQP")
