@@ -4,7 +4,7 @@
 \alias{estimate_mixprop}
 \title{Estimate mixture proportions of a mixture g given noisy (error-prone) data from that mixture.}
 \usage{
-estimate_mixprop(data, g, prior, optmethod = c("mixEM", "mixVBEM",
+estimate_mixprop(data, g, prior, optmethod = c("mixEM", "mixSQP", "mixVBEM",
   "cxxMixSquarem", "mixIP", "w_mixEM"), control, weights = NULL)
 }
 \arguments{

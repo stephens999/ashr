@@ -3,8 +3,9 @@
 set_optmethod = function(optmethod){
   # Fallbacks for optmethod - checks required packages are installed
   if(optmethod == "mixIP"){
-    if (!requireNamespace("REBayes", quietly = TRUE)) {  # check whether REBayes package is present
-    # If REBayes package missing
+    if (!requireNamespace("REBayes", quietly = TRUE)) {
+    # Check whether REBayes package is present.
+    # If REBayes package missing.
       message("Due to absence of package REBayes, switching to EM algorithm")
       optmethod = "cxxMixSquarem"
     }

@@ -26,12 +26,15 @@
 #' and a flag to indicate convergence
 #'  
 #' @export
-mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(), weights=NULL){
+#' 
+mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(),
+                 weights = NULL) {
  
   # This is the smallest value allowed for the mixture weights.
   min.f <- 0
     
-  if(!requireNamespace("REBayes",quietly=TRUE)){stop("mixIP requires installation of package REBayes")}
+  if(!requireNamespace("REBayes",quietly=TRUE))
+    stop("mixIP requires installation of package REBayes")
   control = set_control_mixIP(control)
   n = nrow(matrix_lik)
   k = ncol(matrix_lik)
@@ -57,6 +60,17 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(), weights=NU
   }
   
   return(list(pihat = normalize(res$f), niter = NULL, converged=(res$status=="OPTIMAL"), control=control))
+}
+
+# Estimate mixture proportions of a mixture model using mixSQP.
+#
+#' @importFrom mixSQP mixSQP
+mixSQP <- function (matrix_lik, prior, pi_init, control = list(), weights) {
+  if(!requireNamespace("mixSQP",quietly = TRUE))
+    stop("mixSQP requires installation of package mixSQP")
+  return(list(pihat = mixSQP::mixSQP(matrix_lik + .Machine$double.eps,
+              weights,eps = 1e-8)$x,
+              converged = TRUE))
 }
 
 #' @title Estimate mixture proportions of a mixture model by EM algorithm
