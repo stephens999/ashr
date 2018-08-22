@@ -29,4 +29,5 @@ Suppose we have Poisson observations \code{y} where \eqn{y_i\sim Poisson(c_i\lam
    beta = c(rnorm(100,50,5)) # prior mode: 50
    y = rpois(100,beta) # simulate Poisson observations
    ash(rep(0,length(y)),1,lik=lik_pois(y))
+
 }
