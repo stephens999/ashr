@@ -67,7 +67,7 @@ mixSQP <- function (matrix_lik, prior, pi_init, control = list(), weights) {
   if(!requireNamespace("mixSQP",quietly = TRUE))
     stop("mixSQP requires installation of package mixSQP")
   return(list(pihat = mixSQP::mixSQP(matrix_lik + .Machine$double.eps,
-              weights,eps = 1e-8)$x,
+                                     weights,eps = 1e-8,verbose = FALSE)$x,
               converged = TRUE))
 }
 
