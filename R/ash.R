@@ -581,7 +581,7 @@ estimate_mixprop = function (data, g, prior,
   if(optmethod=="w_mixEM" | optmethod == "mixSQP"){
     if (is.null(weights)) {
       weights = rep(1,nrow(matrix_lik))
-      message("No weights supplied for w_mixEM so setting weights to 1")
+      message("No weights supplied, so setting weights to 1")
     }
   }
   if(!is.null(weights)){
