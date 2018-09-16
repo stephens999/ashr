@@ -213,8 +213,9 @@ post_sample.unimix = function(m,data,nsamp){
   a = m$a[mixcomp]
   b = m$b[mixcomp]
   
-  samp = rtruncnorm(nsamp*n, a = a, b = b, mean = rep(x, each=nsamp), 
-                    sd = rep(s, each=nsamp))
+  samp = rtruncnorm(nsamp*n, a = a, b = b, 
+                    mean = rep(data$x, each=nsamp), 
+                    sd = rep(data$s, each=nsamp))
   # rtruncnorm gives NA when a = b, so these need to be set separately:
   idx = (a == b)
   samp[idx] = a[idx]
