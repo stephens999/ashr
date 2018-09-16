@@ -238,7 +238,8 @@ ash.workhorse <-
     function(betahat, sebetahat, method = c("fdr","shrink"),
              mixcompdist = c("uniform","halfuniform","normal","+uniform",
                              "-uniform","halfnormal"),
-             optmethod = c("mixIP","cxxMixSquarem","mixEM","mixVBEM","w_mixEM"),
+             optmethod = c("mixIP","mixSQP","cxxMixSquarem","mixEM",
+                           "mixVBEM","w_mixEM"),
              df = NULL,nullweight = 10,pointmass = TRUE,
              prior = c("nullbiased","uniform","unit"),mixsd = NULL,
              gridmult = sqrt(2),outputlevel = 2,g = NULL,fixg = FALSE,
@@ -345,7 +346,7 @@ ash.workhorse <-
     null.comp=1 #null.comp not actually used
     prior = setprior(prior,k,nullweight,null.comp)
   } else {
-    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform"))) 
+    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","halfnormal"))) 
       stop("Error: invalid type of mixcompdist")
     if(mixcompdist!="normal"){
       # for unimix prior, if mode is the exactly the boundry of g's range,
@@ -556,9 +557,14 @@ ColsumModified = function(matrix_l){
 #' an n by k likelihood matrix with (j,k)th element equal to \eqn{f_k(x_j)},
 #' the fit
 #' and results of optmethod
+#' 
 #' @export
-estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSquarem","mixIP","w_mixEM"),control,weights=NULL){
-  optmethod=match.arg(optmethod)
+#' 
+estimate_mixprop = function (data, g, prior,
+  optmethod = c("mixEM","mixSQP","mixVBEM","cxxMixSquarem","mixIP","w_mixEM"),
+  control, weights = NULL) {
+    
+  optmethod <- match.arg(optmethod)
 
   pi_init = g$pi
   if(optmethod=="mixVBEM"){pi_init=NULL}  #for some reason pi_init doesn't work with mixVBEM
@@ -570,11 +576,12 @@ estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSq
   matrix_llik = matrix_llik - lnorm #avoid numerical issues by subtracting max of each row
   matrix_lik = exp(matrix_llik)
 
-  if(!is.null(weights) && optmethod!="w_mixEM" && optmethod!="mixIP"){stop("weights can only be used with optmethod w_mixEM or mixIP")}
-  if(optmethod=="w_mixEM"){
-    if(is.null(weights)){
+  if(!is.null(weights) && !is.element(optmethod,c("w_mixEM","mixIP","mixSQP")))
+    stop("weights can only be used with optmethod w_mixEM, mixIP or mixSQP")
+  if(optmethod=="w_mixEM" | optmethod == "mixSQP"){
+    if (is.null(weights)) {
       weights = rep(1,nrow(matrix_lik))
-      message("No weights supplied for w_mixEM so setting weights to 1")
+      message("No weights supplied, so setting weights to 1")
     }
   }
   if(!is.null(weights)){
@@ -599,7 +606,6 @@ estimate_mixprop = function(data,g,prior,optmethod=c("mixEM","mixVBEM","cxxMixSq
     
   return(list(penloglik = penloglik, matrix_lik=matrix_lik,g=g,optreturn=fit,optmethod=optmethod))
 }
-
 
 #' @title Compute Posterior
 #'

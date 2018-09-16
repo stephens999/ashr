@@ -70,14 +70,19 @@ lik_logF = function(df1,df2){
 #'    beta = c(rnorm(100,50,5)) # prior mode: 50
 #'    y = rpois(100,beta) # simulate Poisson observations
 #'    ash(rep(0,length(y)),1,lik=lik_pois(y))
+#'
+#' @importFrom stats pgamma
+#' @importFrom stats dgamma
+#' 
 #' @export
+#'
 lik_pois = function(y, scale=1, link=c("identity","log")){
   link = match.arg(link)
   if (link=="identity"){
     list(name = "pois",
          const = TRUE,
-         lcdfFUN = function(x){stats::pgamma(abs(x),shape=y+1,rate=scale,log.p=TRUE)+y*log(scale)},
-         lpdfFUN = function(x){stats::dgamma(abs(x),shape=y+1,rate=scale,log=TRUE)+y*log(scale)},
+         lcdfFUN = function(x){pgamma(abs(x),shape=y+1,rate=scale,log.p=TRUE)-log(scale)},
+         lpdfFUN = function(x){dgamma(abs(x),shape=y+1,rate=scale,log=TRUE)-log(scale)},
          etruncFUN = function(a,b){-my_etruncgamma(-b,-a,y+1,scale)},
          e2truncFUN = function(a,b){my_e2truncgamma(-b,-a,y+1,scale)},
          data=list(y=y,link=link))
@@ -85,8 +90,8 @@ lik_pois = function(y, scale=1, link=c("identity","log")){
     y1 = y+1e-5 # add pseudocount
     list(name = "pois",
          const = TRUE,
-         lcdfFUN = function(x){stats::pgamma(exp(-x),shape=y1,rate=scale,log.p=TRUE)-log(y1)+y*log(scale)},
-         lpdfFUN = function(x){stats::dgamma(exp(-x),shape=y1,rate=scale,log=TRUE)-log(y1)+y*log(scale)},
+         lcdfFUN = function(x){pgamma(exp(-x),shape=y1,rate=scale,log.p=TRUE)-log(y1)},
+         lpdfFUN = function(x){dgamma(exp(-x),shape=y1,rate=scale,log=TRUE)-log(y1)},
          etruncFUN = function(a,b){-my_etruncgamma(exp(-b),exp(-a),y1,scale)},
          e2truncFUN = function(a,b){my_e2truncgamma(exp(-b),exp(-a),y1,scale)},
          data=list(y=y,link=link))
@@ -128,8 +133,8 @@ lik_binom = function(y,n,link=c("identity","logit")){
          const = TRUE,
          lcdfFUN = function(x){stats::pbeta(1/(1+exp(-x)),shape1=y1,shape2=n1-y1,log.p=TRUE)+log(n1/(y1*(n1-y1)))},
          lpdfFUN = function(x){stats::dbeta(1/(1+exp(-x)),shape1=y1,shape2=n1-y1,log=TRUE)+log(n1/(y1*(n1-y1)))},
-         etruncFUN = function(a,b){-my_etruncbeta(-1/(1+exp(-b)),-1/(1+exp(-a)),y1,n1-y1)},
-         e2truncFUN = function(a,b){my_e2truncbeta(-1/(1+exp(-b)),-1/(1+exp(-a)),y1,n1-y1)},
+         etruncFUN = function(a,b){-my_etruncbeta(1/(1+exp(-b)),1/(1+exp(-a)),y1,n1-y1)},
+         e2truncFUN = function(a,b){my_e2truncbeta(1/(1+exp(-b)),1/(1+exp(-a)),y1,n1-y1)},  
          data=list(y=y,n=n,link=link))
   }
 }
