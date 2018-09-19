@@ -13,4 +13,12 @@ test_that("get_post_sample works as expected",{
   samp_sds = sqrt(apply(samp, 2, var))
   # Check that the sampled posterior SDs are close to the true posterior SDs:
   expect_equal(samp_sds, z.ash$result$PosteriorSD, tolerance = 0.01)
+  
+  u = runif(n)
+  u.ash = ash(u, se, "uniform")
+  u.samp = get_post_sample(u.ash, nsamp)
+  expect_equal(dim(u.samp), c(nsamp, n))
+  expect_equal(colMeans(u.samp), u.ash$result$PosteriorMean, tolerance = 0.01)
+  u.samp_sds = sqrt(apply(u.samp, 2, var))
+  expect_equal(u.samp_sds, u.ash$result$PosteriorSD, tolerance = 0.01)
 })

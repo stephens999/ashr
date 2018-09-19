@@ -186,3 +186,39 @@ comp_postmean2.unimix = function(m,data){
 #   return(matrix(NA,nrow=k,ncol=n))
 #   #  return(sqrt(comp_postmean2(m,betahat,sebetahat,v)-comp_postmean(m,betahat,sebetahat,v)^2))
 # }
+
+
+#' @title post_sample.unimix
+#' 
+#' @description returns random samples from the posterior, given a
+#'   prior distribution m and n observed datapoints.
+#' 
+#' @param m mixture distribution with k components
+#' @param data a list with components x and s to be interpreted as a 
+#'     normally-distributed observation and its standard error
+#' @param nsamp number of samples to return for each observation
+#' @return a nsamp by n matrix
+#' @importFrom truncnorm rtruncnorm
+#' @export
+post_sample.unimix = function(m,data,nsamp){
+  k = length(m$pi)
+  n = length(data$x)
+  
+  postprob = comp_postprob(m,data)
+  # Sample mixture components
+  mixcomp = apply(postprob, 2, function(prob) {
+    sample(1:k, nsamp, replace=TRUE, prob=prob)
+  })
+  
+  a = m$a[mixcomp]
+  b = m$b[mixcomp]
+  
+  samp = rtruncnorm(nsamp*n, a = a, b = b, 
+                    mean = rep(data$x, each=nsamp), 
+                    sd = rep(data$s, each=nsamp))
+  # rtruncnorm gives NA when a = b, so these need to be set separately:
+  idx = (a == b)
+  samp[idx] = a[idx]
+  
+  matrix(samp, nrow=nsamp, ncol=n)
+}

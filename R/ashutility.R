@@ -53,8 +53,8 @@ print.ash =function(x,...){
 #' @export
 #'
 plot.ash = function(x,...,xmin,xmax){
-  if(missing(xmin)){xmin=min(x$data$betahat)}
-  if(missing(xmax)){xmax=max(x$data$betahat)}
+  if(missing(xmin)){xmin=min(x$data$x)}
+  if(missing(xmax)){xmax=max(x$data$x)}
   xgrid = seq(xmin,xmax,length=1000)
   y = cdf.ash(x,xgrid)
   graphics::plot(y,type="l",...)
