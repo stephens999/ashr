@@ -123,10 +123,10 @@ penloglik = function(pi, matrix_lik, prior){
   m  = t(pi * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k
   m.rowsum = rowSums(m)
   loglik = sum(log(m.rowsum))
-  return(loglik+penalty(prior))
+  return(loglik+penalty(prior, pi))
 }
 
-penalty=function(prior){
+penalty=function(prior, pi){
   subset = (prior != 1.0)
   sum((prior-1)[subset]*log(pi[subset]))
 }
