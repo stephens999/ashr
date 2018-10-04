@@ -426,7 +426,7 @@ ash.workhorse <-
   if(!fixg){
     pi.fit=estimate_mixprop(data,g,prior,optmethod=optmethod,control=control,weights=weights)
   } else {
-    pi.fit = list(g=g,penloglik = calc_loglik(g,data)+penalty(prior))
+    pi.fit = list(g=g,penloglik = calc_loglik(g,data)+penalty(prior, g$pi))
   }
   
   ##4. Computing the return values
