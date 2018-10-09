@@ -11,15 +11,7 @@ set_optmethod = function(optmethod){
     }
   }
   
-  if(optmethod == "cxxMixSquarem"){
-    if (!requireNamespace("Rcpp", quietly = TRUE)) {
-      message("Due to absence of Rcpp using vanilla EM; for faster performance install REBayes (preferred) or Rcpp")
-      optmethod = "mixEM"
-    }
-  }
-  
   if (optmethod == "mixIP") assertthat::assert_that(requireNamespace("REBayes", quietly = TRUE))
-  if (optmethod == "cxxMixSquarem") assertthat::assert_that(requireNamespace("Rcpp", quietly = TRUE))
   return(optmethod)
 }
 

@@ -62,13 +62,38 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(),
   return(list(pihat = normalize(res$f), niter = NULL, converged=(res$status=="OPTIMAL"), control=control))
 }
 
-# Estimate mixture proportions of a mixture model using mixSQP.
-mixSQP <- function (matrix_lik, prior, pi_init, control = list(), weights) {
-  if(!requireNamespace("mixSQP",quietly = TRUE))
-    stop("mixSQP requires installation of package mixSQP")
-  return(list(pihat = mixSQP::mixSQP(matrix_lik + .Machine$double.eps,
-                                     weights,eps = 1e-8,verbose = FALSE)$x,
-              converged = TRUE))
+# Estimate mixture proportions of a mixture model using mix-SQP algorithm.
+mixSQP <- function (matrix_lik, prior, pi_init = NULL, control = list(),
+                    weights) {
+  if(!requireNamespace("mixsqp",quietly = TRUE))
+    stop("optmethod = \"mixSQP\" requires installation of mixsqp package")
+  n <- nrow(matrix_lik)
+  k <- ncol(matrix_lik)
+
+  # If weights are not provided, set to uniform.
+  if (is.null(weights))
+    weights <- rep(1,n)
+
+  # It the initial estimate of the mixture weights is not provided,
+  # set to uniform.
+  if (is.null(pi_init))
+    pi_init <- rep(1,k)
+  
+  # Add in observations corresponding to the prior.
+  A <- rbind(diag(k),matrix_lik) 
+  w <- c(prior - 1,weights)
+  A <- A[w != 0,]
+  w <- w[w != 0]
+  
+  # Fit the mixture weights using the mix-SQP algorithm.
+  out <- mixsqp::mixsqp(A + .Machine$double.eps,w,pi_init,verbose = FALSE)
+
+  # Return the fitted mixture weights, and some other information
+  # about the optimization step.
+  return(list(pihat     = out$x,
+              niter     = nrow(out$data),
+              converged = (out$status == mixsqp:::mixsqp.status.converged),
+              control   = control))
 }
 
 #' @title Estimate mixture proportions of a mixture model by EM algorithm
