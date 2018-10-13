@@ -426,7 +426,7 @@ ash.workhorse <-
   if(!fixg){
     pi.fit=estimate_mixprop(data,g,prior,optmethod=optmethod,control=control,weights=weights)
   } else {
-    pi.fit = list(g=g,penloglik = calc_loglik(g,data)+penalty(prior))
+    pi.fit = list(g=g,penloglik = calc_loglik(g,data)+penalty(prior, g$pi))
   }
   
   ##4. Computing the return values
@@ -578,11 +578,9 @@ estimate_mixprop = function (data, g, prior,
 
   if(!is.null(weights) && !is.element(optmethod,c("w_mixEM","mixIP","mixSQP")))
     stop("weights can only be used with optmethod w_mixEM, mixIP or mixSQP")
-  if(optmethod=="w_mixEM" | optmethod == "mixSQP"){
-    if (is.null(weights)) {
+  if(optmethod == "w_mixEM" | optmethod == "mixSQP"){
+    if (is.null(weights))
       weights = rep(1,nrow(matrix_lik))
-      message("No weights supplied, so setting weights to 1")
-    }
   }
   if(!is.null(weights)){
     fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=control, weights=weights))
