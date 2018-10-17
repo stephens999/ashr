@@ -58,7 +58,7 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(),
     res$f[i] <- min.f
     res$f    <- normalize(res$f)
   }
-  
+
   return(list(pihat = normalize(res$f), niter = NULL, converged=(res$status=="OPTIMAL"), control=control))
 }
 
@@ -84,10 +84,10 @@ mixSQP <- function (matrix_lik, prior, pi_init = NULL, control = list(),
   w <- c(prior - 1,weights)
   A <- A[w != 0,]
   w <- w[w != 0]
-  
-  # Fit the mixture weights using the mix-SQP algorithm.
-  out <- mixsqp::mixsqp(A + .Machine$double.eps,w,pi_init,verbose = FALSE)
 
+  # Fit the mixture weights using the mix-SQP algorithm.
+  out <- mixsqp::mixsqp(A,w,pi_init,verbose = FALSE)
+  
   # Return the fitted mixture weights, and some other information
   # about the optimization step.
   return(list(pihat     = out$x,
