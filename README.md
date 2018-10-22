@@ -16,9 +16,7 @@ install_github("stephens999/ashr")
 
 To use the interior-point solver (`optmethod = "mixIP"`), you need to
 install [MOSEK](http://www.mosek.com/products/mosek) and the 
-[Rmosek package](http://rmosek.r-forge.r-project.org). We have
-provided some [Mac-specific](inst/rmosek-mac.md) and 
-[Linux-specific](inst/rmosek-linux.md) instructions for installing MOSEK.
+[Rmosek package](https://www.mosek.com/documentation).
 
 ## Running Adaptive Shrinkage
 
