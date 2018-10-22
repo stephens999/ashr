@@ -1,3 +1,5 @@
+context("ashr posterior sampling")
+
 test_that("get_post_sample works as expected",{
   set.seed(1)
   n = 10 # number of observations

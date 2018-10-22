@@ -1,3 +1,5 @@
+context("ashr comparisons with previous versions")
+
 test_that("new results match old ones ", {
 # these results were saved under v1.1.3 before introducing more stable
 # calculation of likelihoods via first computing log-likelihood and normalizing

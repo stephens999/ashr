@@ -1,14 +1,7 @@
+context("ashr mode")
+
 test_that("ash emits error if try to use mode and g", {
   expect_error(ash(rnorm(10),1,g=unimix(1,0,0),mode=0))
-})
-
-test_that("ash mode fits specified value", {
-  set.seed(1)
-  z= rnorm(10)+1
-  z.ash = ash(z,1,mode=1)
- # expect_equal(sum((comp_mean(get_fitted_g(z.ash))-1)^2),0)
-  #z.ash = ash(abs(rnorm(10))+1,1,mode=1,mixcompdist ="+uniform")
-  #expect_equal(sum((get_fitted_g(z.ash)$a-1)^2),0)
 })
 
 test_that("pm_on_zero gives expected results", {

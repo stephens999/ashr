@@ -1,3 +1,5 @@
+context("ashr with mixture-of-truncated-normal priors")
+
 test_that("compdens_conv for tnormal gives same results as compdens_conv for normal when a=-Inf, b=Inf", {
   gn = normalmix(c(0.5,0.5),c(0,0),c(0.1,1))
   gtn = tnormalmix(c(0.5,0.5),c(0,0),c(0.1,1),c(-Inf,-Inf),c(Inf,Inf))

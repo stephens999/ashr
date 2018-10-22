@@ -1,3 +1,5 @@
+context("ashr with Poisson likelihoods")
+
 test_that("lik_pois (identity link) fitted g is close to true g",{
   # Simulate a Poisson dataset
   set.seed(1)

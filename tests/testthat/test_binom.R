@@ -1,3 +1,5 @@
+context("ashr with Binomial likelihoods")
+
 test_that("lik_binom (identity link) fitted g is close to true g",{
   # Simulate a Binomial dataset
   set.seed(1)

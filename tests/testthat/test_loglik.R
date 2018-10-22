@@ -1,8 +1,11 @@
+context("ashr likelihood computations")
+
 test_that("calc_null_loglik gives expected answer under normal", {
 	set.seed(1); z=rnorm(100); s = rgamma(100,10,10); 
 	data1 = set_data(z,s,alpha=0.5)
 	data2 = set_data(z,s,alpha=1)
 	data3 = set_data(z,s,alpha=0.1)
+        
 	# likelihooods for different alpha should be same under null
 	expect_equal(ashr::calc_null_loglik(data1),ashr::calc_null_loglik(data2))
 	expect_equal(ashr::calc_null_loglik(data1),ashr::calc_null_loglik(data3))

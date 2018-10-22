@@ -1,3 +1,5 @@
+context("ashr with weighted samples")
+
 test_that("optimization with weights matches expectations", {
   set.seed(1)
   z=rnorm(100,0,2) 

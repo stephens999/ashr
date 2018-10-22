@@ -1,3 +1,5 @@
+context("truncated-normal computations")
+
 test_that("gen_etruncFUN_single gives similar answers to etruncnorm and etrunct", {
   expect_equal(
     gen_etruncFUN_single(function(x){pnorm(x,log=TRUE)},
