@@ -62,7 +62,11 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(),
   return(list(pihat = normalize(res$f), niter = NULL, converged=(res$status=="OPTIMAL"), control=control))
 }
 
-# Estimate mixture proportions of a mixture model using mix-SQP algorithm.
+#' @title Estimate mixture proportions of a mixture model using
+#' mix-SQP algorithm.
+#'
+#' @export
+#' 
 mixSQP <- function (matrix_lik, prior, pi_init = NULL,
                     control = list(), weights) {
   if(!requireNamespace("mixsqp",quietly = TRUE))
