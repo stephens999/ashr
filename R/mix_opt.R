@@ -68,7 +68,7 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(),
 #' @export
 #' 
 mixSQP <- function (matrix_lik, prior, pi_init = NULL,
-                    control = list(), weights) {
+                    control = list(), weights = NULL) {
   if(!requireNamespace("mixsqp",quietly = TRUE))
     stop("optmethod = \"mixSQP\" requires installation of mixsqp package")
   n <- nrow(matrix_lik)

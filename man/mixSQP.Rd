@@ -5,7 +5,8 @@
 \title{Estimate mixture proportions of a mixture model using
 mix-SQP algorithm.}
 \usage{
-mixSQP(matrix_lik, prior, pi_init = NULL, control = list(), weights)
+mixSQP(matrix_lik, prior, pi_init = NULL, control = list(),
+  weights = NULL)
 }
 \description{
 Estimate mixture proportions of a mixture model using
