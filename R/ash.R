@@ -575,7 +575,16 @@ estimate_mixprop = function (data, g, prior,
   lnorm = apply(matrix_llik,1,max) # normalization values
   matrix_llik = matrix_llik - lnorm #avoid numerical issues by subtracting max of each row
   matrix_lik = exp(matrix_llik)
-
+  
+  is_zero_col = (colSums(matrix_lik) == 0)
+  if (sum(is_zero_col) > 0) {
+    orig_matrix_lik = matrix_lik  
+    orig_prior = prior
+    matrix_lik = matrix_lik[, !is_zero_col]
+    prior = prior[!is_zero_col]
+    pi_init = pi_init[!is_zero_col]
+  }
+    
   if(!is.null(weights) && !is.element(optmethod,c("w_mixEM","mixIP","mixSQP")))
     stop("weights can only be used with optmethod w_mixEM, mixIP or mixSQP")
   if(optmethod == "w_mixEM" | optmethod == "mixSQP"){
@@ -599,7 +608,12 @@ estimate_mixprop = function (data, g, prior,
       warning("Optimization failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
   }
 
-  g$pi=fit$pihat
+  g$pi = rep(0, k)
+  g$pi[!is_zero_col] = fit$pihat
+  if (sum(is_zero_col) > 0) {
+    matrix_lik = orig_matrix_lik
+    prior = orig_prior
+  }  
   penloglik = penloglik(g$pi,matrix_lik,prior) + sum(lnorm) #objective value
     
   return(list(penloglik = penloglik, matrix_lik=matrix_lik,g=g,optreturn=fit,optmethod=optmethod))
