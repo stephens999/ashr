@@ -1,4 +1,5 @@
-#context("postmean2 and postsd works")
+context("ashr moments")
+
 test_that("postsd.default and postmean2.default don't return NaN's or negative values", {
     temp <- readRDS("error_dat.Rds")
     data = set_data(temp$betahat,temp$sebetahat,lik_normal(),alpha=1)

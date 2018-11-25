@@ -1,3 +1,5 @@
+context("ashr with other likelihoods")
+
 test_that("general likelihood with multiple df works", {
   df = c(rep(100,50),rep(2,50))
   s = rgamma(100,1,1)

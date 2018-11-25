@@ -1,3 +1,5 @@
+context("ashr with FLASH data")
+
 test_that("PosteriorMean is equal to weighted component-specific posterior means", {
   set.seed(1); z=rnorm(100,0,2); z.ash=ash(z,1, outputlevel=4); expect_equal(z.ash$res$PosteriorMean, colSums(z.ash$flash_data$comp_postprob * z.ash$flash_data$comp_postmean)) 
 })

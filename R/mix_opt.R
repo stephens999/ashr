@@ -58,13 +58,17 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(),
     res$f[i] <- min.f
     res$f    <- normalize(res$f)
   }
-  
+
   return(list(pihat = normalize(res$f), niter = NULL, converged=(res$status=="OPTIMAL"), control=control))
 }
 
-# Estimate mixture proportions of a mixture model using mix-SQP algorithm.
-mixSQP <- function (matrix_lik, prior, pi_init = NULL, control = list(),
-                    weights) {
+#' @title Estimate mixture proportions of a mixture model using
+#' mix-SQP algorithm.
+#'
+#' @export
+#' 
+mixSQP <- function (matrix_lik, prior, pi_init = NULL,
+                    control = list(), weights = NULL) {
   if(!requireNamespace("mixsqp",quietly = TRUE))
     stop("optmethod = \"mixSQP\" requires installation of mixsqp package")
   n <- nrow(matrix_lik)
@@ -84,10 +88,12 @@ mixSQP <- function (matrix_lik, prior, pi_init = NULL, control = list(),
   w <- c(prior - 1,weights)
   A <- A[w != 0,]
   w <- w[w != 0]
-  
-  # Fit the mixture weights using the mix-SQP algorithm.
-  out <- mixsqp::mixsqp(A + .Machine$double.eps,w,pi_init,verbose = FALSE)
 
+  # Fit the mixture weights using the mix-SQP algorithm.
+  control0 <- list(verbose = FALSE)
+  control  <- modifyList(control0,control,keep.null = TRUE)
+  out <- mixsqp::mixsqp(A,w,pi_init,control = control)
+  
   # Return the fitted mixture weights, and some other information
   # about the optimization step.
   return(list(pihat     = out$x,

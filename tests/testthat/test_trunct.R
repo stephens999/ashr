@@ -1,3 +1,5 @@
+context("ashr, context unclear")
+
 test_that("my_e2truncnorm matches simulations", {
   set.seed(1); x = rnorm(1000000)
   expect_equal(mean(x[abs(x)<1]^2),my_e2truncnorm(-1,1),tolerance=0.01)

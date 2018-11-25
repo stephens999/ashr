@@ -1,3 +1,5 @@
+context("ashr with half-uniform mixture priors")
+
 test_that("mixcompdist=+uniform gives all non-negative values for b and zero for a", {
   set.seed(1); z=rnorm(10); z.ash=ash(z,1,mixcompdist="+uniform")
   k = length(z.ash$fitted_g$pi)

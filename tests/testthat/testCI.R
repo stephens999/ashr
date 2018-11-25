@@ -1,3 +1,5 @@
+context("ashr credible intervals")
+
 test_that("CI result works for uniform prior", {
   set.seed(17)
   s = rgamma(100,10,10)

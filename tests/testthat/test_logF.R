@@ -1,3 +1,5 @@
+context("ashr with logF likelihood")
+
 test_that("logF error with df=(10,10) gives similar answers to normal error",{
 
   # Simulate a data set.
