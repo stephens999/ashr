@@ -572,15 +572,15 @@ estimate_mixprop = function (data, g, prior,
 
   matrix_llik = t(log_comp_dens_conv(g,data)) #an n by k matrix
   matrix_llik = matrix_llik[!get_exclusions(data),,drop=FALSE] #remove any rows corresponding to excluded cases; saves time in situations where most data are missing
-  lnorm = apply(matrix_llik,1,max) # normalization values
+  lnorm = apply(matrix_llik, 1, max) # normalization values
   matrix_llik = matrix_llik - lnorm #avoid numerical issues by subtracting max of each row
   matrix_lik = exp(matrix_llik)
   
   is_zero_col = (apply(matrix_lik, 2, max) == 0)
   if (sum(is_zero_col) > 0) {
-    orig_matrix_lik = matrix_lik  
-    orig_prior = prior
+    k = k - sum(is_zero_col)
     matrix_lik = matrix_lik[, !is_zero_col]
+    lnorm = lnorm[!is_zero_col]
     prior = prior[!is_zero_col]
     pi_init = pi_init[!is_zero_col]
     if (!is.null(weights))
@@ -610,13 +610,9 @@ estimate_mixprop = function (data, g, prior,
       warning("Optimization failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
   }
 
-  g$pi = rep(0, k)
+  g$pi = rep(0, ncomp(g))
   g$pi[!is_zero_col] = fit$pihat
-  if (sum(is_zero_col) > 0) {
-    matrix_lik = orig_matrix_lik
-    prior = orig_prior
-  }  
-  penloglik = penloglik(g$pi,matrix_lik,prior) + sum(lnorm) #objective value
+  penloglik = penloglik(fit$pihat, matrix_lik, prior) + sum(lnorm) #objective value
     
   return(list(penloglik = penloglik, matrix_lik=matrix_lik,g=g,optreturn=fit,optmethod=optmethod))
 }
