@@ -10,7 +10,7 @@ ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform",
 
 ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
   mixcompdist = c("uniform", "halfuniform", "normal", "+uniform",
-  "-uniform", "halfnormal"), optmethod = c("mixIP", "mixSQP",
+  "-uniform", "halfnormal"), optmethod = c("mixSQP", "mixIP",
   "cxxMixSquarem", "mixEM", "mixVBEM", "w_mixEM"), df = NULL,
   nullweight = 10, pointmass = TRUE, prior = c("nullbiased",
   "uniform", "unit"), mixsd = NULL, gridmult = sqrt(2),
@@ -54,10 +54,7 @@ combinations of parameters: "shrinkage" sets pointmass=FALSE and
 prior="uniform"; "fdr" sets pointmass=TRUE and prior="nullbiased".}
 
 \item{optmethod}{specifies the function implementing an
-optimization method. Default is "mixIP", an interior point method,
-if REBayes is installed; otherwise an EM algorithm is used. The
-interior point method is faster for large problems (n>2000),
-particularly when method="shrink".}
+optimization method.}
 
 \item{nullweight}{scalar, the weight put on the prior under
 "nullbiased" specification, see \code{prior}}
@@ -241,7 +238,7 @@ set.seed(1)
 betahat <- c(8.115,9.027,9.289,10.097,9.463)
 sebeta  <- c(0.6157,0.4129,0.3197,0.3920,0.5496)
 fit.em  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixEM")
-fit.ip  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixIP")
+fit.ip  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixSQP")
 }
 \seealso{
 \code{\link{ashci}} for computation of credible intervals

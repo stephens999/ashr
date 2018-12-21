@@ -9,13 +9,13 @@ List fixptfn(NumericVector pi_est,NumericMatrix matrix_lik, NumericVector prior)
     for (int i=0;i<k;i++){
         pi_est[i]=std::max(0.0,pi_est[i]);
     }
-    pi_est=pi_est/sum(pi_est); //normalize pi
+    pi_est = pi_est/sum(pi_est); //normalize pi
     
     double loglik,lpriordens=0.0;
     NumericMatrix m(n,k);
     NumericMatrix classprob(m);
     NumericVector m_rowsum(n);
-    //IntegerVector subset(prior);
+    
     for (int i=0;i<k;i++){
         m.column(i)=pi_est[i]*matrix_lik.column(i);
         m_rowsum=m_rowsum+m.column(i);

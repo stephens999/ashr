@@ -60,10 +60,7 @@
 #' prior="uniform"; "fdr" sets pointmass=TRUE and prior="nullbiased".
 #'
 #' @param optmethod specifies the function implementing an
-#' optimization method. Default is "mixIP", an interior point method,
-#' if REBayes is installed; otherwise an EM algorithm is used. The
-#' interior point method is faster for large problems (n>2000),
-#' particularly when method="shrink".
+#' optimization method.
 #' 
 #' @param nullweight scalar, the weight put on the prior under
 #' "nullbiased" specification, see \code{prior}
@@ -222,7 +219,7 @@
 #' betahat <- c(8.115,9.027,9.289,10.097,9.463)
 #' sebeta  <- c(0.6157,0.4129,0.3197,0.3920,0.5496)
 #' fit.em  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixEM")
-#' fit.ip  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixIP")
+#' fit.ip  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixSQP")
 ash <- function (betahat, sebetahat,
                  mixcompdist = c("uniform","halfuniform","normal","+uniform",
                                  "-uniform","halfnormal"),
@@ -238,7 +235,7 @@ ash.workhorse <-
     function(betahat, sebetahat, method = c("fdr","shrink"),
              mixcompdist = c("uniform","halfuniform","normal","+uniform",
                              "-uniform","halfnormal"),
-             optmethod = c("mixIP","mixSQP","cxxMixSquarem","mixEM",
+             optmethod = c("mixSQP","mixIP","cxxMixSquarem","mixEM",
                            "mixVBEM","w_mixEM"),
              df = NULL,nullweight = 10,pointmass = TRUE,
              prior = c("nullbiased","uniform","unit"),mixsd = NULL,
@@ -561,7 +558,7 @@ ColsumModified = function(matrix_l){
 #' @export
 #' 
 estimate_mixprop = function (data, g, prior,
-  optmethod = c("mixEM","mixSQP","mixVBEM","cxxMixSquarem","mixIP","w_mixEM"),
+  optmethod = c("mixSQP","mixEM","mixVBEM","cxxMixSquarem","mixIP","w_mixEM"),
   control, weights = NULL) {
     
   optmethod <- match.arg(optmethod)
