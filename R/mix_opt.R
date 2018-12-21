@@ -384,9 +384,9 @@ check_mosek_license <- function() {
   tryCatch({
     out <- Rmosek::mosek(x,opts = list(verbose = 0))
     if (out$response$code != 0)
-      stop(paste("MOSEK is installed, but failed to run. A common issue is that\n",
-                  "the license is expired unavailable. To troubleshoot, see:\n",
-                  "https://github.com/stephens999/ashr/blob/master/inst/rmosek-mac.md\n",
-                  "https://github.com/stephens999/ashr/blob/master/inst/rmosek-linux.md"))
+      stop(paste("MOSEK is installed, but failed to run. A common issue\n",
+                 "is that the license is expired unavailable. For more",
+                 "information on installing MOSEK and Rmosek, see",
+                 "https://www.mosek.com/documentation"))
   })
 }
