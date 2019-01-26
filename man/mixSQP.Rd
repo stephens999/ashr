@@ -8,6 +8,27 @@ mix-SQP algorithm.}
 mixSQP(matrix_lik, prior, pi_init = NULL, control = list(),
   weights = NULL)
 }
+\arguments{
+\item{matrix_lik}{A matrix containing the conditional likelihood
+values, possibly normalized.}
+
+\item{prior}{A vector of the parameters of the Dirichlet prior on
+the mixture weights.}
+
+\item{pi_init}{The initial estimate of the mixture weights.}
+
+\item{control}{A list of settings for the mix-SQP optimization
+algorithm; see \code{\link[mixsqp]{mixsqp}} for details.}
+
+\item{weights}{The weights to be assigned to the observations. Must
+be a vector of length equal the number of rows of \code{matrix_lik}.
+If \code{weights = NULL}, all observations are assigned the same
+weight.}
+}
+\value{
+A list object including the estimates (\code{pihat}) and a
+flag (\code{control}) indicating convergence success or failure.
+}
 \description{
 Estimate mixture proportions of a mixture model using
 mix-SQP algorithm.

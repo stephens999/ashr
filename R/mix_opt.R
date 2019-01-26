@@ -65,12 +65,32 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(),
 #' @title Estimate mixture proportions of a mixture model using
 #' mix-SQP algorithm.
 #'
+#' @param matrix_lik A matrix containing the conditional likelihood
+#' values, possibly normalized.
+#'
+#' @param prior A vector of the parameters of the Dirichlet prior on
+#' the mixture weights.
+#'
+#' @param pi_init The initial estimate of the mixture weights.
+#'
+#' @param control A list of settings for the mix-SQP optimization
+#' algorithm; see \code{\link[mixsqp]{mixsqp}} for details.
+#'
+#' @param weights The weights to be assigned to the observations. Must
+#' be a vector of length equal the number of rows of \code{matrix_lik}.
+#' If \code{weights = NULL}, all observations are assigned the same
+#' weight.
+#'
+#' @return A list object including the estimates (\code{pihat}) and a
+#' flag (\code{control}) indicating convergence success or failure.
+#' 
+#' @importFrom utils modifyList
+#' @importFrom mixsqp mixsqp
+#' 
 #' @export
 #' 
 mixSQP <- function (matrix_lik, prior, pi_init = NULL,
                     control = list(), weights = NULL) {
-  if(!requireNamespace("mixsqp",quietly = TRUE))
-    stop("optmethod = \"mixSQP\" requires installation of mixsqp package")
   n <- nrow(matrix_lik)
   k <- ncol(matrix_lik)
 
@@ -111,7 +131,6 @@ mixSQP <- function (matrix_lik, prior, pi_init = NULL,
 #' Estimates mixture proportions \eqn{\pi} by maximum likelihood, or by maximum a posteriori (MAP) estimation for a Dirichlet prior on \eqn{\pi} 
 #' (if a prior is specified).  Uses the SQUAREM package to accelerate convergence of EM. Used by the ash main function; there is no need for a user to call this 
 #' function separately, but it is exported for convenience.
-#'
 #' 
 #' @param matrix_lik, a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.
 #' @param prior, a k vector of the parameters of the Dirichlet prior on \eqn{\pi}. Recommended to be rep(1,k)
@@ -365,9 +384,9 @@ check_mosek_license <- function() {
   tryCatch({
     out <- Rmosek::mosek(x,opts = list(verbose = 0))
     if (out$response$code != 0)
-      stop(paste("MOSEK is installed, but failed to run. A common issue is that\n",
-                  "the license is expired unavailable. To troubleshoot, see:\n",
-                  "https://github.com/stephens999/ashr/blob/master/inst/rmosek-mac.md\n",
-                  "https://github.com/stephens999/ashr/blob/master/inst/rmosek-linux.md"))
+      stop(paste("MOSEK is installed, but failed to run. A common issue\n",
+                 "is that the license is expired unavailable. For more",
+                 "information on installing MOSEK and Rmosek, see",
+                 "https://www.mosek.com/documentation"))
   })
 }
