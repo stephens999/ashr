@@ -1,6 +1,7 @@
 context("ashr with Binomial likelihoods")
 
 test_that("lik_binom (identity link) fitted g is close to true g",{
+    
   # Simulate a Binomial dataset
   set.seed(1)
   trueg = unimix(c(0.5,0.5),c(0.5,0.1),c(0.5,0.9)) # true prior g: 0.5*U(0.1,0.9)+0.5*delta(0.5)
@@ -74,8 +75,9 @@ test_that("lik_binom (logit link) fitted g is close to true g",{
   p = 1/(1+exp(-logitp))
   n = rep(100,1000)
   x = rbinom(1000,n,p) # Binomial observations
-  ash.binom.out = ash(rep(0,length(x)),1,lik=lik_binom(x,n,link="logit"),mode="estimate")
+  ash.binom.out = ash(rep(0,length(x)),1,lik=lik_binom(x,n,link="logit"),
+                      mode = "estimate")
   
   # Check if the estimated mode is close to the true mode
-  expect_equal(ash.binom.out$fitted_g$a[1], truemode, tolerance = 0.05, scale=x)
+  expect_equal(ash.binom.out$fitted_g$a[1], truemode, tolerance = 0.05)
 })

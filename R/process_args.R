@@ -3,7 +3,8 @@
 set_optmethod = function(optmethod){
   # Fallbacks for optmethod - checks required packages are installed
   if(optmethod == "mixIP"){
-    if (!requireNamespace("REBayes", quietly = TRUE)) {
+      if (!requireNamespace("REBayes", quietly = TRUE)) {
+          
     # Check whether REBayes package is present.
     # If REBayes package missing.
       message("Due to absence of package REBayes, switching to EM algorithm")
@@ -11,10 +12,10 @@ set_optmethod = function(optmethod){
     }
   }
   
-  if (optmethod == "mixIP") assertthat::assert_that(requireNamespace("REBayes", quietly = TRUE))
+  if (optmethod == "mixIP")
+    assertthat::assert_that(requireNamespace("REBayes", quietly = TRUE))
   return(optmethod)
 }
-
 
 check_lik = function(lik, betahat, sebetahat, df, mixcompdist){
   if(is.null(lik$lcdfFUN)){stop("Likelihood must have lcdfFUN")}
