@@ -576,7 +576,7 @@ estimate_mixprop = function (data, g, prior,
   matrix_llik = matrix_llik - lnorm #avoid numerical issues by subtracting max of each row
   matrix_lik = exp(matrix_llik)
   
-  is_zero_col = (apply(matrix_lik, 2, max) == 0)
+  is_zero_col = (colSums(matrix_lik) == 0)
   if (sum(is_zero_col) > 0) {
     orig_matrix_lik = matrix_lik  
     orig_prior = prior
