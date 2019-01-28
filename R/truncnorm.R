@@ -6,155 +6,183 @@
 #' @param mean The mean of the untruncated normal.
 #' @param sd The standard deviation of the untruncated normal.
 #' @export
-my_etruncnorm= function(a,b,mean=0,sd=1){
-  alpha = (a-mean)/sd
-  beta =  (b-mean)/sd
-  #Flip the onese where both are positive, as the computations are more stable
-  #when both negative
-  flip = (alpha>0 & beta>0)
-  flip[is.na(flip)]=FALSE #deal with NAs
-  alpha[flip]= -alpha[flip]
-  beta[flip]=-beta[flip]
+#' 
+my_etruncnorm = function(a, b, mean = 0, sd = 1) {
+  # The case where some sds are zero is handled last. In the meantime, assume
+  #   that sd > 0.
+  alpha = (a - mean) / sd
+  beta = (b - mean) / sd
   
+  # Flip alpha and beta when: 1. Both are positive (since computations are 
+  #   unstable when both values of pnorm are close to 1); 2. dnorm(alpha) is 
+  #   greater than dnorm(beta) (since subtraction is done on the log scale).
+  flip = (alpha > 0 & beta > 0) | (beta > abs(alpha))
+  flip[is.na(flip)] = FALSE
+  orig.alpha = alpha
+  alpha[flip] = -beta[flip]
+  beta[flip] = -orig.alpha[flip]
   
-  #Fix a bug of quoting the truncnorm package
-  #E(X|a<X<b)=a when a==b is a natural result
-  #while etruncnorm would simply return NaN,causing PosteriorMean also NaN
-  # ZMZ:  when a and b are both negative and far from 0, etruncnorm can't compute
-  # the mean and variance. Also we should deal with 0/0 situation caused by sd = 0.
-  lower = ifelse(alpha<beta,alpha,beta) # needed this to make etruncnorm play nice with Inf
-  upper = ifelse(alpha<beta,beta,alpha) # see Issue #78
-  tmp1=etruncnorm(lower,upper,0,1)
+  dnorm.diff = logscale_sub(dnorm(beta, log = TRUE), dnorm(alpha, log = TRUE))
+  pnorm.diff = logscale_sub(pnorm(beta, log = TRUE), pnorm(alpha, log = TRUE))
+  scaled.res = -exp(dnorm.diff - pnorm.diff)
   
-  isequal=is.equal(alpha,beta)
-  tmp1[isequal]=alpha[isequal]
+  # Handle the division by zero that occurs when pnorm.diff = -Inf (that is, 
+  #   when endpoints are approximately equal).
+  endpts.equal = is.infinite(pnorm.diff)
+  scaled.res[endpts.equal] = (alpha[endpts.equal] + beta[endpts.equal]) / 2
   
-  tmp= mean+ sd * ((-1)^flip * tmp1)
+  # When alpha and beta are very large and both negative (due to the flipping
+  #   logic, they cannot both be positive), computations can become unstable. 
+  #   We find such cases by checking that the expectations make sense. When
+  #   beta is negative, beta + 1 / beta is a lower bound for the expectation.
+  #   Further, it is an increasingly good approximation as beta goes to -Inf 
+  #   as long as alpha and beta aren't too close to one another. If they are,
+  #   then their midpoint can be used as an alternate approximation (and lower 
+  #   bound).
+  lower.bd = pmax(beta + 1 / beta, (alpha + beta) / 2)
+  bad.idx = (!is.na(beta) & beta < 0 
+             & (scaled.res < lower.bd | scaled.res > beta))
+  scaled.res[bad.idx] = lower.bd[bad.idx]
   
-  max_alphabeta = ifelse(alpha<beta, beta,alpha)
-  max_ab = ifelse(alpha<beta,b,a)
-  toobig = max_alphabeta<(-30)
-  toobig[is.na(toobig)]=FALSE
-  tmp[toobig] = max_ab[toobig]
-
-  # muzhe: this part consider many cases when 
-  # truncnorm expectation outcome is NA. For example
-  # when sd=0, or when the mean lies outside the given
-  # interval with extremely small sd, etc. This part 
-  # deals with all these problems. The concrete example
-  # can be found in test_myetruncnorm.R file.
-  # Also we need the function to be adaptive to 
-  # various forms of input: scaler, vector, matrix.
-  # To unify all these possibility we need to wrap
-  # things up. That's what expand_args function does.
-  NAentry = is.na(tmp)
-  if(sum(NAentry)>0 | sum(sd==0)>0) {
-    sList = expand_args(tmp,sd)
-    sList[[2]][NAentry] = 0
-    sdd = sList[[2]]
-    BigList = expand_args(tmp,a,b,mean,sdd)
-    sdzero = which(BigList[[5]] == 0)
-    BigList[[1]][sdzero] = ifelse(BigList[[2]][sdzero]<=BigList[[4]][sdzero] & BigList[[3]][sdzero]>=BigList[[4]][sdzero],BigList[[4]][sdzero],ifelse(BigList[[2]][sdzero] > BigList[[4]][sdzero],BigList[[2]][sdzero],BigList[[3]][sdzero]))
-    result = matrix(BigList[[1]],ifelse(is.null(dim(tmp)),length(tmp),dim(tmp)[1]),ifelse(is.null(dim(tmp)),1,dim(tmp)[2]))
-    result = as.matrix(result)
-    if(min(dim(result))==1){return(as.numeric(result))}
-    return(result)
+  # Flip back.
+  scaled.res[flip] = -scaled.res[flip]
+  
+  res = mean + sd * scaled.res
+  
+  # Handle zero sds. Return the mean of the untruncated normal when it is 
+  #   located inside of the interval [alpha, beta]. Otherwise, return the 
+  #   endpoint that is closer to the mean.
+  if (any(sd == 0)) {
+    # For the subsetting to work correctly, arguments need to be recycled.
+    a = rep(a, length.out = length(res))
+    b = rep(b, length.out = length(res))
+    mean = rep(mean, length.out = length(res))
+    
+    sd.zero = (sd == 0)
+    res[sd.zero & b <= mean] = b[sd.zero & b <= mean]
+    res[sd.zero & a >= mean] = a[sd.zero & a >= mean]
+    res[sd.zero & a < mean & b > mean] = mean[sd.zero & a < mean & b > mean]
   }
-  else{
-    return(tmp)
-  }
-
-}
-
-#tests for equality, with NA defined to be FALSE
-is.equal = function(a,b){
-  isequal = (a==b)
-  isequal[is.na(isequal)]=FALSE
-  return(isequal)
-}
-
-expand_args <- function(...){
-  dots <- list(...)
-  max_length <- max(sapply(dots, length))
-  lapply(dots, rep, length.out = max_length)
-
-}
-
-#' More about the truncated normal
-#' @inheritParams my_etruncnorm
-#' @export
-my_e2truncnorm= function(a,b,mean=0,sd=1){
-  alpha = (a-mean)/sd
-  beta =  (b-mean)/sd
-  #Flip the onese where both are positive, as the computations are more stable
-  #when both negative
-  flip = (alpha>0 & beta>0)
-  flip[is.na(flip)]=FALSE #deal with NAs
-  alpha[flip]= -alpha[flip]
-  beta[flip]=-beta[flip]
   
-  #Fix a bug of quoting the truncnorm package
-  #E(X|a<X<b)=a when a==b as a natural result
-  #while etruncnorm would simply return NaN,causing PosteriorMean also NaN
-  lower = ifelse(alpha<beta,alpha,beta) # needed this to make etruncnorm play nice with Inf
-  upper = ifelse(alpha<beta,beta,alpha) # see Issue #78
-  tmp1=etruncnorm(lower,upper,0,1)
-  
-  isequal=is.equal(alpha,beta)
- 
-  tmp1[isequal]=alpha[isequal]
-  tmp= mean+ sd * ((-1)^flip * tmp1)
-  # for the variance
-  # error report in vtruncnorm
-  # vtruncnorm(10,-10,0,1)
-  # vtruncnorm(-10,10,0,1)
-  # vtruncnorm(3,-3,0,1)
-  # vtruncnorm(-3,3,0,1)
-  # I am not sure smaller one should be put in the first or not
-  # vtruncnorm(-7,-8,0,1)
-  # vtruncnorm(-8,-7,0,1)
-  # vtruncnorm(7,8,0,1)
-  # vtruncnorm(8,7,0,1)
-  # vtruncnorm(-8,-9,0,1)
-  # vtruncnorm(-9,-10,0,1)
-  # maybe we should try ourselves according to some result
-  # https://people.sc.fsu.edu/~jburkardt/presentations/truncated_normal.pdf
-  # tmpvar = vtruncnorm(alpha,beta,0,1)
-  tmpvar = my_vtruncnorm(ifelse(alpha<beta,alpha,beta),ifelse(alpha<beta,beta,alpha),0,1)
-  # for the second moment
-  tmp2 = tmp^2 + tmpvar*sd^2
-  isequal=is.equal(a,b)
-  tmp2[isequal]=(a[isequal])^2
-  
-  # if the truncate value is too big
-  max_alphabeta = ifelse(alpha<beta, beta,alpha)
-  max_ab = ifelse(alpha<beta,b,a)
-  # I think here, 8 or 7 is enough for this case. try the following:
-  toobig = max_alphabeta<(-20)
-  toobig[is.na(toobig)]=FALSE
-  tmp2[toobig] = (max_ab[toobig])^2
-  tmp2
+  return(res)
 }
-#pnorm also have some problems......
-#stats::pnorm(7);stats::pnorm(8)
-#stats::pnorm(-7);stats::pnorm(-8)
-# but it is fine since we flip the sign if a and b are all positive in function my_e2truncnorm
-#' This version is better than trunvnorm package
+
+#' @title my_e2truncnorm
+#' @description Compute expected squared value of truncated normal.
 #'
 #' @inheritParams my_etruncnorm
 #' @export
 #'
-my_vtruncnorm = function(a,b,mean = 0, sd = 1){
-  a = ifelse(a== -Inf, -1e5,a)
-  b = ifelse(b== Inf, 1e5, b)
-  alpha = (a-mean)/sd
-  beta =  (b-mean)/sd
-  frac1 = (beta*stats::dnorm(beta,0,1) - alpha*stats::dnorm(alpha,0,1)) / (stats::pnorm(beta,0,1)-stats::pnorm(alpha,0,1) )
-  frac2 = (stats::dnorm(beta,0,1) - stats::dnorm(alpha,0,1)) / (stats::pnorm(beta,0,1)-stats::pnorm(alpha,0,1) )
-  truncnormvar = sd^2 * (1 - frac1 - frac2^2)
+my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
+  alpha = (a - mean) / sd
+  beta = (b - mean) / sd
   
-  # turn all nan and negative into 0
-  nan.index = is.na(truncnormvar) | truncnormvar < 0
-  truncnormvar[nan.index] = 0
-  return(truncnormvar)
+  # Flip alpha and beta when both are positive (as above, but the mean is
+  #   also recycled and flipped so that we don't have to flip back).
+  flip = (alpha > 0 & beta > 0)
+  flip[is.na(flip)] = FALSE
+  orig.alpha = alpha
+  alpha[flip] = -beta[flip]
+  beta[flip] = -orig.alpha[flip]
+  if (any(mean != 0)) {
+    mean = rep(mean, length.out = length(alpha))
+    mean[flip] = -mean[flip]
+  }
+  
+  pnorm.diff = logscale_sub(pnorm(beta, log = TRUE), pnorm(alpha, log = TRUE))
+  alpha.frac = alpha * exp(dnorm(alpha, log = TRUE) - pnorm.diff)
+  beta.frac = beta * exp(dnorm(beta, log = TRUE) - pnorm.diff)
+  
+  # Create a vector or matrix of 1's with NA's in the correct places.
+  if (is.matrix(alpha))
+    scaled.res = array(1, dim = dim(alpha))
+  else
+    scaled.res = rep(1, length.out = length(alpha))
+  is.na(scaled.res) = is.na(flip)
+  
+  alpha.idx = is.finite(alpha)
+  scaled.res[alpha.idx] = 1 + alpha.frac[alpha.idx]
+  beta.idx = is.finite(beta)
+  scaled.res[beta.idx] = scaled.res[beta.idx] - beta.frac[beta.idx]
+  
+  # Handle approximately equal endpoints.
+  endpts.equal = is.infinite(pnorm.diff)
+  scaled.res[endpts.equal] = (alpha[endpts.equal] + beta[endpts.equal])^2 / 4
+  
+  # Check that the results make sense. When beta is negative,
+  #   beta^2 + 2 * (1 + 1 / beta^2) is an upper bound for the expected squared
+  #   value, and it is typically a good approximation as beta goes to -Inf. 
+  #   When the endpoints are very close to one another, the expected squared 
+  #   value of the uniform distribution on [alpha, beta] is a better upper 
+  #   bound (and approximation).
+  upper.bd1 = beta^2 + 2 * (1 + 1 / beta^2)
+  upper.bd2 = (alpha^2 + alpha * beta + beta^2) / 3
+  upper.bd = pmin(upper.bd1, upper.bd2)
+  bad.idx = (!is.na(beta) & beta < 0 
+             & (scaled.res < beta^2 | scaled.res > upper.bd))
+  scaled.res[bad.idx] = upper.bd[bad.idx]
+  
+  res = mean^2 + 2 * mean * sd * my_etruncnorm(alpha, beta) + sd^2 * scaled.res
+  
+  # Handle zero sds.
+  if (any(sd == 0)) {
+    a = rep(a, length.out = length(res))
+    b = rep(b, length.out = length(res))
+    mean = rep(mean, length.out = length(res))
+    
+    sd.zero = (sd == 0)
+    res[sd.zero & b <= mean] = b[sd.zero & b <= mean]^2
+    res[sd.zero & a >= mean] = a[sd.zero & a >= mean]^2
+    res[sd.zero & a < mean & b > mean] = mean[sd.zero & a < mean & b > mean]^2
+  }
+  
+  return(res)
+}
+
+#' @title my_vtruncnorm
+#' @description Compute variance of truncated normal.
+#'
+#' @inheritParams my_etruncnorm
+#' @export
+#' 
+my_vtruncnorm = function(a, b, mean = 0, sd = 1) {
+  alpha = (a - mean) / sd
+  beta = (b - mean) / sd
+  
+  scaled.res = my_e2truncnorm(alpha, beta) - my_etruncnorm(alpha, beta)^2
+  
+  # When alpha and beta are large and share the same sign, this computation 
+  #   becomes unstable. A good approximation in this regime is 1 / beta^2
+  #   (when alpha and beta are both negative). If my_e2truncnorm and
+  #   my_etruncnorm are accurate to the eighth digit, then we can only trust 
+  #   results up to the second digit if beta^2 and 1 / beta^2 differ by an
+  #   order of magnitude no more than 6.
+  smaller.endpt = pmin(abs(alpha), abs(beta))
+  bad.idx = (is.finite(smaller.endpt) & smaller.endpt > 30)
+  scaled.res[bad.idx] = pmin(1 / smaller.endpt[bad.idx]^2,
+                             (beta[bad.idx] - alpha[bad.idx])^2 / 12)
+  
+  # Handle zero sds.
+  scaled.res[is.nan(scaled.res)] = 0
+  
+  res = sd^2 * scaled.res
+  
+  return(res)
+}
+
+logscale_sub = function(logx, logy) {
+  # In rare cases, logx can become numerically less than logy. When this
+  #   occurs, logx is adjusted and a warning is issued.
+  diff = logx - logy
+  if (any(diff < 0, na.rm = TRUE)) {
+    bad.idx = (diff < 0)
+    bad.idx[is.na(bad.idx)] = FALSE
+    logx[bad.idx] = logy[bad.idx]
+    warning("logscale_sub encountered negative value(s) of logx - logy (min: ",
+            formatC(min(diff[bad.idx]), format = "e", digits = 2), ")")
+  }
+  
+  scale.by = logx
+  scale.by[is.infinite(scale.by)] = 0
+  return(log(exp(logx - scale.by) - exp(logy - scale.by)) + scale.by)
 }
