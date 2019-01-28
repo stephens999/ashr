@@ -583,8 +583,6 @@ estimate_mixprop = function (data, g, prior,
     matrix_lik = matrix_lik[, !is_zero_col]
     prior = prior[!is_zero_col]
     pi_init = pi_init[!is_zero_col]
-    if (!is.null(weights))
-      weights = weights[!is_zero_col]
   }
     
   if(!is.null(weights) && !is.element(optmethod,c("w_mixEM","mixIP","mixSQP")))
