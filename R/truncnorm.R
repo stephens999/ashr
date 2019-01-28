@@ -23,7 +23,7 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   beta[flip] = -orig.alpha[flip]
   
   dnorm.diff = logscale_sub(dnorm(beta, log = TRUE), dnorm(alpha, log = TRUE))
-  pnorm.diff = logscale_sub(pnorm(beta, log = TRUE), pnorm(alpha, log = TRUE))
+  pnorm.diff = logscale_sub(pnorm(beta, log.p = TRUE), pnorm(alpha, log.p = TRUE))
   scaled.res = -exp(dnorm.diff - pnorm.diff)
   
   # Handle the division by zero that occurs when pnorm.diff = -Inf (that is, 
@@ -89,7 +89,7 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
     mean[flip] = -mean[flip]
   }
   
-  pnorm.diff = logscale_sub(pnorm(beta, log = TRUE), pnorm(alpha, log = TRUE))
+  pnorm.diff = logscale_sub(pnorm(beta, log.p = TRUE), pnorm(alpha, log.p = TRUE))
   alpha.frac = alpha * exp(dnorm(alpha, log = TRUE) - pnorm.diff)
   beta.frac = beta * exp(dnorm(beta, log = TRUE) - pnorm.diff)
   
