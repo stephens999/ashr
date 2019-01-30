@@ -1,13 +1,34 @@
-#' @title my_etruncnorm
-#' @description Compute expectation of truncated normal.
+#' @title Expected Value of Truncated Normal
+#' @description Computes the means of truncated normal distributions with
+#'   parameters \code{a}, \code{b}, \code{mean}, and \code{sd}. Arguments
+#'   can be scalars, vectors, or matrices. Arguments of shorter length will
+#'   be recycled according to the usual recycling rules. The exception
+#'   to this rule is that \code{a} and \code{b} must have the same length.
+#'   Missing values are accepted for all arguments.
 #'
-#' @param a Left limit of distribution.
-#' @param b Right limit of distribution.
+#' @param a The lower limit for the support of the truncated normal. Can be
+#'   \code{-Inf}.
+#' @param b The upper limit for the support. Can be \code{Inf}. \code{a} and 
+#'   \code{b} must have the same length, and each element of \code{a} should 
+#'   be less than or equal to the corresponding element of \code{b}. 
 #' @param mean The mean of the untruncated normal.
-#' @param sd The standard deviation of the untruncated normal.
+#' @param sd The standard deviation of the untruncated normal. Standard
+#'   deviations of zero are interpreted as numerically (rather than exactly)
+#'   zero, so that the untruncated mean is returned if it lies within 
+#'   \code{[a, b]} and the nearer of \code{a} and \code{b} is returned
+#'   otherwise.
+#' 
+#' @return The expected values of truncated normal distributions with
+#'   parameters \code{a}, \code{b}, \code{mean}, and \code{sd}. If any of the
+#'   arguments is a matrix, then a matrix will be returned.
+#'   
+#' @seealso \code{\link{my_e2truncnorm}}, \code{\link{my_vtruncnorm}}
+#'   
 #' @export
 #' 
 my_etruncnorm = function(a, b, mean = 0, sd = 1) {
+  do_truncnorm_argchecks(a, b)
+  
   # The case where some sds are zero is handled last. In the meantime, assume
   #   that sd > 0.
   alpha = (a - mean) / sd
@@ -67,13 +88,32 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   return(res)
 }
 
-#' @title my_e2truncnorm
-#' @description Compute expected squared value of truncated normal.
+#' @title Expected Squared Value of Truncated Normal
+#' @description Computes the expected squared values of truncated normal 
+#'   distributions with parameters \code{a}, \code{b}, \code{mean}, and 
+#'   \code{sd}. Arguments can be scalars, vectors, or matrices. Arguments of 
+#'   shorter length will be recycled according to the usual recycling rules. 
+#'   The exception to this rule is that \code{a} and \code{b} must have the 
+#'   same length. Missing values are accepted for all arguments.
 #'
 #' @inheritParams my_etruncnorm
+#' @param sd The standard deviation of the untruncated normal. Standard
+#'   deviations of zero are interpreted as numerically (rather than exactly)
+#'   zero, so that the square of the untruncated mean is returned if it lies 
+#'   within \code{[a, b]} and the square of the nearer of \code{a} and 
+#'   \code{b} is returned otherwise.
+#' 
+#' @return The expected squared values of truncated normal distributions with
+#'   parameters \code{a}, \code{b}, \code{mean}, and \code{sd}. If any of the
+#'   arguments is a matrix, then a matrix will be returned.
+#'  
+#' @seealso \code{\link{my_etruncnorm}}, \code{\link{my_vtruncnorm}}
+#'     
 #' @export
 #'
 my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
+  do_truncnorm_argchecks(a, b)
+  
   alpha = (a - mean) / sd
   beta = (b - mean) / sd
   
@@ -139,13 +179,28 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
   return(res)
 }
 
-#' @title my_vtruncnorm
-#' @description Compute variance of truncated normal.
+#' @title Variance of Truncated Normal
+#' @description Computes the variance of truncated normal distributions with
+#'   parameters \code{a}, \code{b}, \code{mean}, and \code{sd}. Arguments can 
+#'   be scalars, vectors, or matrices. Arguments of shorter length will be 
+#'   recycled according to the usual recycling rules. The exception to this 
+#'   rule is that \code{a} and \code{b} must have the same length. Missing 
+#'   values are accepted for all arguments.
 #'
 #' @inheritParams my_etruncnorm
+#' @param sd The standard deviation of the untruncated normal.
+#' 
+#' @return The variance of truncated normal distributions with parameters 
+#'   \code{a}, \code{b}, \code{mean}, and \code{sd}. If any of the arguments 
+#'   is a matrix, then a matrix will be returned.
+#'   
+#' @seealso \code{\link{my_etruncnorm}}, \code{\link{my_e2truncnorm}}
+#'
 #' @export
 #' 
 my_vtruncnorm = function(a, b, mean = 0, sd = 1) {
+  do_truncnorm_argchecks(a, b)
+  
   alpha = (a - mean) / sd
   beta = (b - mean) / sd
   
@@ -168,6 +223,13 @@ my_vtruncnorm = function(a, b, mean = 0, sd = 1) {
   res = sd^2 * scaled.res
   
   return(res)
+}
+
+do_truncnorm_argchecks = function(a, b) {
+  if (!(length(a) == length(b)))
+    stop("truncnorm functions require that a and b have the same length.")
+  if (any(b < a, na.rm = TRUE))
+    stop("truncnorm functions require that a <= b.")
 }
 
 logscale_sub = function(logx, logy) {

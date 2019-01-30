@@ -23,6 +23,8 @@ test_that("my_etruncnorm returns expected results", {
   
   expect_equal(my_etruncnorm(0,99,-2,3),truncnorm::etruncnorm(0,99,-2,3))
   expect_equal(my_etruncnorm(0,9999,-2,3),my_etruncnorm(0,Inf,-2,3),tol=1e-3)
+  expect_error(my_etruncnorm(0, 1:2, mean = 0, sd = 1))
+  expect_error(my_etruncnorm(1, 0, mean = 0, sd = 1))
 })
 
 context("my_vtruncnorm")
