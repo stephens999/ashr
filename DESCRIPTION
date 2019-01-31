@@ -47,8 +47,6 @@ Imports:
 LinkingTo: Rcpp
 Suggests:
     testthat,
-    roxygen2,
-    covr,
     knitr,
     rmarkdown,
     ggplot2,

@@ -8,6 +8,11 @@ branches:
     - master
     - cran
 
+# This is the minimal set of R packages needed to run "R CMD check" on
+# the package.
+install:
+  - R -e 'install.packages(c("assertthat","etrunct","truncnorm","Rcpp","foreach","doParallel","pscl","SQUAREM","mixsqp","testthat"))'
+
 env:
   global:
     - R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
