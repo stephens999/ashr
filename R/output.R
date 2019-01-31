@@ -12,7 +12,6 @@ calc_pm = function(g,data){
   return(PosteriorMean)
 }
 
-
 # Posterior Standard Deviation
 calc_psd = function(g,data){
   exclude  = get_exclusions(data)
@@ -40,7 +39,6 @@ calc_np = function(g,data){
   NegativeProb[exclude] = mixcdf(g,0)
   return(NegativeProb)
 }
-
 
 #positive probability
 calc_pp = function(g,data){
@@ -102,7 +100,7 @@ set_output=function(outputlevel){
     if(outputlevel>1){output=c("data","NegativeProb","PositiveProb","lfsr","svalue","lfdr","qvalue",output)}
     if(outputlevel>2){output=c(output,"fit_details")}
     
-    # this is a special flag for output used by flashr
+    # These are special flags for output used by flashr.
     if(outputlevel==4){output=c("fitted_g","PosteriorMean", "PosteriorSD","flash_data")}
     if(outputlevel==5){output=c("flash_data")}
     

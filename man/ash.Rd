@@ -5,18 +5,17 @@
 \alias{ash.workhorse}
 \title{Adaptive Shrinkage}
 \usage{
-ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform",
-  "normal", "+uniform", "-uniform", "halfnormal"), df = NULL, ...)
+ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal",
+  "+uniform", "-uniform", "halfnormal"), df = NULL, ...)
 
 ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
-  mixcompdist = c("uniform", "halfuniform", "normal", "+uniform",
-  "-uniform", "halfnormal"), optmethod = c("mixSQP", "mixIP",
-  "cxxMixSquarem", "mixEM", "mixVBEM", "w_mixEM"), df = NULL,
-  nullweight = 10, pointmass = TRUE, prior = c("nullbiased",
-  "uniform", "unit"), mixsd = NULL, gridmult = sqrt(2),
-  outputlevel = 2, g = NULL, fixg = FALSE, mode = 0, alpha = 0,
-  grange = c(-Inf, Inf), control = list(), lik = NULL,
-  weights = NULL, pi_thresh = 1e-10)
+  mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform",
+  "halfnormal"), optmethod = c("mixSQP", "mixIP", "cxxMixSquarem", "mixEM",
+  "mixVBEM", "w_mixEM"), df = NULL, nullweight = 10, pointmass = TRUE,
+  prior = c("nullbiased", "uniform", "unit"), mixsd = NULL,
+  gridmult = sqrt(2), outputlevel = 2, g = NULL, fixg = FALSE,
+  mode = 0, alpha = 0, grange = c(-Inf, Inf), control = list(),
+  lik = NULL, weights = NULL, pi_thresh = 1e-10)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -73,14 +72,13 @@ version only].}
 \item{gridmult}{the multiplier by which the default grid values for
 mixsd differ by one another. (Smaller values produce finer grids.)}
 
-\item{outputlevel}{determines amount of output. There are several
-numeric options [0=just fitted g; 1=also PosteriorMean and
-PosteriorSD; 2= everything usually needed; 3=also include results
-of mixture fitting procedure (includes matrix of log-likelihoods
-used to fit mixture); 4 and 5 are reserved for outputting additional things 
-data required by the (in-development) flashr package.
-The user can also specify the output they
-require in detail (see Examples).}
+\item{outputlevel}{Determines amount of output. There are several
+numeric options: 0 = just fitted g; 1 = also PosteriorMean and
+PosteriorSD; 2 = everything usually needed; 3 = also include results
+of mixture fitting procedure (including matrix of log-likelihoods
+used to fit mixture). 4 and 5 are reserved for outputting additional 
+data required by the (in-development) flashr package. The user can 
+also specify the output they require in detail (see Examples).}
 
 \item{g}{The prior distribution for beta. Usually this is unspecified (NULL) and 
 estimated from the data. However, it can be used in conjuction with fixg=TRUE 
@@ -113,10 +111,11 @@ lik_normalmix); and Poisson likelihood (see function lik_pois).}
 \item{weights}{a vector of weights for observations; use with
 optmethod = "w_mixEM"; this is currently beta-functionality.}
 
-\item{pi_thresh}{a threshold below which to prune out mixture components before 
-computing summaries (speeds computation since empirically many components are usually assigned negligible weight)
-The current implementation still returns the full fitted distribution; this only affects the posterior summaries
-(The exception is if output includes flash_data, used by the flashr package, in which case the output fitted g is pruned so as to match the flash data)}
+\item{pi_thresh}{a threshold below which to prune out mixture 
+components before computing summaries (speeds up computation since 
+empirically many components are usually assigned negligible 
+weight). The current implementation still returns the full fitted 
+distribution; this only affects the posterior summaries.}
 }
 \value{
 ash returns an object of \code{\link[base]{class}} "ash", a
