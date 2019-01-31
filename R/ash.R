@@ -627,7 +627,8 @@ estimate_mixprop = function (data, g, prior,
 
   g$pi = rep(0, ncomp(g))
   g$pi[nonzero_cols] = fit$pihat
-  penloglik = penloglik(g$pi, matrix_lik, prior) + sum(lnorm) # objective value
+  # Value of objective function:
+  penloglik = penloglik(fit$pihat, matrix_lik, prior) + sum(lnorm)
     
   return(list(penloglik = penloglik, 
               matrix_lik = matrix_lik,
