@@ -2,9 +2,9 @@
 #' @description Computes the means of truncated normal distributions with
 #'   parameters \code{a}, \code{b}, \code{mean}, and \code{sd}. Arguments
 #'   can be scalars, vectors, or matrices. Arguments of shorter length will
-#'   be recycled according to the usual recycling rules. The exception
-#'   to this rule is that \code{a} and \code{b} must have the same length.
-#'   Missing values are accepted for all arguments.
+#'   be recycled according to the usual recycling rules, but \code{a} and 
+#'   \code{b} must have the same length. Missing values are accepted for all 
+#'   arguments.
 #'
 #' @param a The lower limit for the support of the truncated normal. Can be
 #'   \code{-Inf}.
@@ -92,9 +92,9 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
 #' @description Computes the expected squared values of truncated normal 
 #'   distributions with parameters \code{a}, \code{b}, \code{mean}, and 
 #'   \code{sd}. Arguments can be scalars, vectors, or matrices. Arguments of 
-#'   shorter length will be recycled according to the usual recycling rules. 
-#'   The exception to this rule is that \code{a} and \code{b} must have the 
-#'   same length. Missing values are accepted for all arguments.
+#'   shorter length will be recycled according to the usual recycling rules, 
+#'   but \code{a} and \code{b} must have the same length. Missing values are 
+#'   accepted for all arguments.
 #'
 #' @inheritParams my_etruncnorm
 #' @param sd The standard deviation of the untruncated normal. Standard
@@ -183,9 +183,8 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
 #' @description Computes the variance of truncated normal distributions with
 #'   parameters \code{a}, \code{b}, \code{mean}, and \code{sd}. Arguments can 
 #'   be scalars, vectors, or matrices. Arguments of shorter length will be 
-#'   recycled according to the usual recycling rules. The exception to this 
-#'   rule is that \code{a} and \code{b} must have the same length. Missing 
-#'   values are accepted for all arguments.
+#'   recycled according to the usual recycling rules, but \code{a} and \code{b}
+#'   must have the same length. Missing values are accepted for all arguments.
 #'
 #' @inheritParams my_etruncnorm
 #' @param sd The standard deviation of the untruncated normal.
