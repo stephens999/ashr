@@ -61,39 +61,34 @@ calc_qvalue = function(g,data){
   return(qval.from.lfdr(calc_lfdr(g,data)))
 }
 
-
-# Data for flash package
-calc_flash_data = function(g,data,penloglik){
+# Data for flashr package
+calc_flash_data = function(g, data, penloglik) {
   kk = ncomp(g)
   n = n_obs(data)
   exclude = get_exclusions(data)
-  comp_postprob = matrix(0,nrow = kk, ncol = n)
-  comp_postmean = matrix(0,nrow = kk, ncol = n)
-  comp_postmean2 =  matrix(0,nrow = kk, ncol = n)
+  comp_postprob = matrix(0, nrow = kk, ncol = n)
+  comp_postmean = matrix(0, nrow = kk, ncol = n)
+  comp_postmean2 =  matrix(0, nrow = kk, ncol = n)
   
-  comp_postprob[,!exclude] = comp_postprob(g,data)[,!exclude]
-  comp_postmean[,!exclude] = comp_postmean(g,data)[,!exclude]
-  comp_postmean2[,!exclude] = comp_postmean2(g,data)[,!exclude]
+  comp_postprob[, !exclude] = comp_postprob(g, data)[, !exclude]
+  comp_postmean[, !exclude] = comp_postmean(g, data)[, !exclude]
+  comp_postmean2[, !exclude] = comp_postmean2(g, data)[, !exclude]
   
-  #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
-  comp_postprob[,exclude] = mixprop(g)
-  comp_postmean[,exclude] = comp_mean(g)
-  comp_postmean2[,exclude] = comp_mean2(g)
+  # For missing observations, use the prior instead of the posterior.
+  comp_postprob[, exclude] = mixprop(g)
+  comp_postmean[, exclude] = comp_mean(g)
+  comp_postmean2[, exclude] = comp_mean2(g)
   
-  postmean = colSums(comp_postprob*comp_postmean)
-  postmean2 = colSums(comp_postprob*comp_postmean2)
-  postmean2[postmean2<0]=0 # avoid potential negatives due to numeric rounding errors
+  postmean = colSums(comp_postprob * comp_postmean)
+  postmean2 = colSums(comp_postprob * comp_postmean2)
+  # Avoid potential negatives due to numeric rounding errors.
+  postmean2[postmean2 < 0] = 0 
   
   return(list(fitted_g = g,
-              comp_postprob = comp_postprob,
-              comp_postmean = comp_postmean,
-              comp_postmean2 = comp_postmean2,
               postmean = postmean,
               postmean2 = postmean2,
               penloglik = penloglik))
 }
-
-
 
 # if outputlevel an integer, produce a vector of character strings naming output to be produced
 # (otherwise return outputlevel)
