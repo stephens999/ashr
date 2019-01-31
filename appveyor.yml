@@ -19,9 +19,12 @@ environment:
     R_ARCH: x64
     _R_CHECK_FORCE_SUGGESTS_: false
 
+# This is the minimal set of R packages needed to run "R CMD check" on
+# the package.
 build_script:
-  - travis-tool.sh install_deps
-
+  - R -e install.packages(c('assertthat','devtools','etrunct','truncnorm','Rcpp','foreach','doParallel','pscl','SQUAREM','testthat','rmarkdown','knitr','ggplot2'),head(.libPaths(),1),'http://cran.wustl.edu')
+  - R -e devtools::install_github('stephenslab/mixsqp')
+  
 test_script:
   - travis-tool.sh run_tests
 
