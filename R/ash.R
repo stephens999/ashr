@@ -254,11 +254,12 @@ ash.workhorse <-
     if (method == "fdr"){pointmass =TRUE; prior= "nullbiased"}
   }
 
-  ## Check to see if is Inf, then switch to NULL.
-  if (!is.null(df)) {
-    if (df == Inf) {
-      df <- NULL
-    }
+  ## Check to see whether df is Inf. If so, switch to NULL.
+  if (length(df) > 1) {
+    stop("Only one value can be specified for df.")
+  }
+  if (!is.null(df) && is.infinite(df)) {
+    df <- NULL
   }
   
   # set likelihood based on defaults if missing
@@ -340,11 +341,15 @@ ash.workhorse <-
     stop("If fixg = TRUE then you must specify g!")
   }
 
-  if (!missing(g)) {
+  if (!missing(g) && (fixg || gsanity_check(data, g))) {
     k = ncomp(g)
     null.comp = 1 # null.comp not actually used
     prior = setprior(prior, k, nullweight, null.comp)
   } else {
+    if (!missing(g)) {
+      warning("Initial value of g is poor. Ignoring g.")
+    }
+    
     if (mixcompdist %in% c("uniform", "halfuniform", "+uniform", "-uniform")) {
       # For unimix prior, if mode is exactly the boundary of g's range, have
       #   to use "+uniform" or "-uniform"
@@ -741,17 +746,66 @@ autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
   }
 }
 
+# Check that an initial value of g has a fighting chance of fitting the data.
+gsanity_check = function(data, g) {
+  # Currently only implemented for normal likelihoods.
+  if (!is_normal(data$lik))
+    return(TRUE)
+  
+  # Find rough limits for the region where g can have significantly positive
+  #   density (pi can be ignored because it will be re-estimated).
+  if (is(g, "unimix")) {
+    lower.grange = min(g$a)
+    upper.grange = max(g$b)
+  } else if (is(g, "normalmix")) {
+    # In the normal and halfnormal cases, use an anti-conservative range. It's
+    #   better to re-estimate the grid than to use a bad one.
+    lower.grange = upper.grange = 2 * max(g$sd)
+  } else if (is(g, "tnormalmix")) {
+    lower.grange = 2 * max(g$sd[is.infinite(g$a)])
+    upper.grange = 2 * max(g$sd[is.infinite(g$b)])
+  } else {
+    stop("gsanity_check does not recognize that prior type.")
+  }
+  
+  # Find the most outlying data points and calculate p-values conditional
+  #   on the true values lying at the limits of g's range.
+  worst.lower = min((data$x - lower.grange) / data$s)
+  lower.p = exp(data$lik$lcdfFUN(worst.lower))
+  worst.upper = max((data$x - upper.grange) / data$s)
+  upper.p = 1 - exp(data$lik$lcdfFUN(worst.upper))
+
+  # In the +uniform case, the worst lower point is ignored because we can't
+  #   do anything about it.
+  if (length(g$a) > 1 && min(g$a) == max(g$a)) {
+    lower.p = 1
+  }
+  # And similarly for the -uniform case.
+  if (length(g$b) > 1 && min(g$b) == max(g$b)) {
+    upper.p = 1
+  }  
+  
+  worst.p = min(lower.p, upper.p)
+  
+  # The case where g is a single (null) component and the data comes from
+  #   the null model should pass with 95% probability.
+  n = length(data$x)
+  passes.sanity.check = (worst.p > 1 - 0.95^(1/n))
+  
+  return(passes.sanity.check)
+}
+
 # Constrain g within grange.
 # g: unimix, normalmix, or tnormalmix prior
 # prior: k-vector
-# grange: two dimensional numeric vector indicating the left and right limit 
+# grange: two-dimensional numeric vector indicating the left and right limit 
 #   of the prior g.
 constrain_mix = function(g, prior, grange, mixcompdist) {
   pi = g$pi
   if (is(g, "normalmix") || is(g, "tnormalmix")) {
     # Normal mixture priors always lie on (-Inf, Inf), so ignore grange.
     if (max(grange) < Inf | min(grange) > -Inf) {
-      warning("Can't constrain grange for normal/halfnormal mixture prior", 
+      warning("Can't constrain grange for normal/halfnormal mixture prior ", 
               "case.")
     }
   } else if (is(g, "unimix")) {
@@ -761,12 +815,14 @@ constrain_mix = function(g, prior, grange, mixcompdist) {
     compidx = !duplicated(cbind(g$a, g$b)) # remove duplicated components
     pi = pi[compidx]
     if (sum(pi) == 0) {
-      stop("No component has positive mixture probability after constraining",
+      stop("No component has positive mixture probability after constraining ",
            "range.")
     }
     pi = pi / sum(pi)
     g = unimix(pi, g$a[compidx], g$b[compidx])
     prior = prior[compidx]
+  } else {
+    stop("constrain_mix does not recognize that prior type.")
   }
   
   return(list(g = g, prior = prior))
