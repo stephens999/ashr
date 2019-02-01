@@ -755,15 +755,16 @@ gsanity_check = function(data, g) {
   # Find rough limits for the region where g can have significantly positive
   #   density (pi can be ignored because it will be re-estimated).
   if (is(g, "unimix")) {
-    lower.grange = min(g$a)
     upper.grange = max(g$b)
+    lower.grange = min(g$a)
   } else if (is(g, "normalmix")) {
     # In the normal and halfnormal cases, use an anti-conservative range. It's
     #   better to re-estimate the grid than to use a bad one.
-    lower.grange = upper.grange = 2 * max(g$sd)
+    upper.grange = 2 * max(g$sd)
+    lower.grange = -upper.grange
   } else if (is(g, "tnormalmix")) {
-    lower.grange = 2 * max(g$sd[is.infinite(g$a)])
     upper.grange = 2 * max(g$sd[is.infinite(g$b)])
+    lower.grange = -2 * max(g$sd[is.infinite(g$a)])
   } else {
     stop("gsanity_check does not recognize that prior type.")
   }
