@@ -565,6 +565,12 @@ estimate_mixprop = function (data, g, prior,
   optmethod = match.arg(optmethod)
 
   pi_init = g$pi
+  # In rare cases, a mixture proportion that is initialized to zero can cause
+  #   optimization to fail. So we ensure that all proportions are positive.
+  if (!all(pi_init > 0)) {
+    pi_init = pmax(pi_init, 1e-6)
+    pi_init = pi_init / sum(pi_init)
+  }
   # For some reason pi_init doesn't work with mixVBEM.
   if (optmethod=="mixVBEM") {
     pi_init = NULL
