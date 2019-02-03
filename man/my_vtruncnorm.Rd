@@ -2,19 +2,34 @@
 % Please edit documentation in R/truncnorm.R
 \name{my_vtruncnorm}
 \alias{my_vtruncnorm}
-\title{This version is better than trunvnorm package}
+\title{Variance of Truncated Normal}
 \usage{
 my_vtruncnorm(a, b, mean = 0, sd = 1)
 }
 \arguments{
-\item{a}{Left limit of distribution.}
+\item{a}{The lower limit for the support of the truncated normal. Can be
+\code{-Inf}.}
 
-\item{b}{Right limit of distribution.}
+\item{b}{The upper limit for the support. Can be \code{Inf}. \code{a} and 
+\code{b} must have the same length, and each element of \code{a} should 
+be less than or equal to the corresponding element of \code{b}.}
 
 \item{mean}{The mean of the untruncated normal.}
 
 \item{sd}{The standard deviation of the untruncated normal.}
 }
+\value{
+The variance of truncated normal distributions with parameters 
+  \code{a}, \code{b}, \code{mean}, and \code{sd}. If any of the arguments 
+  is a matrix, then a matrix will be returned.
+}
 \description{
-This version is better than trunvnorm package
+Computes the variance of truncated normal distributions with
+  parameters \code{a}, \code{b}, \code{mean}, and \code{sd}. Arguments can 
+  be scalars, vectors, or matrices. Arguments of shorter length will be 
+  recycled according to the usual recycling rules, but \code{a} and \code{b}
+  must have the same length. Missing values are accepted for all arguments.
+}
+\seealso{
+\code{\link{my_etruncnorm}}, \code{\link{my_e2truncnorm}}
 }

@@ -1,6 +1,6 @@
-context("my_etrucnorm")
+context("my_etruncnorm")
 
-test_that("some test about my_etrucnorm function", {
+test_that("my_etruncnorm returns expected results", {
   expect_equal(-100,my_etruncnorm(-Inf,-100,0,1),tolerance=0.01)
   expect_equal(-100,my_etruncnorm(-Inf,-100,0,0))
   expect_equal(30,my_etruncnorm(30,100,0,0))
@@ -9,11 +9,11 @@ test_that("some test about my_etrucnorm function", {
   b=c(-100,-100,100)
   m=c(0,0,0)
   sd=c(1,0,0)
-  expect_equal(real,my_etruncnorm(a,b,m,sd))
+  expect_equal(real,my_etruncnorm(a,b,m,sd),tolerance=0.01)
   real = matrix(real,3,4)
   m = matrix(m,3,4)
   sd = matrix(sd,3,4)
-  expect_equal(real,my_etruncnorm(a,b,m,sd))
+  expect_equal(real,my_etruncnorm(a,b,m,sd),tolerance=0.01)
   a=c(0,0)
   b=c(1,2)
   m = rbind(c(0,2,4),c(0,0,0))
@@ -23,4 +23,35 @@ test_that("some test about my_etrucnorm function", {
   
   expect_equal(my_etruncnorm(0,99,-2,3),truncnorm::etruncnorm(0,99,-2,3))
   expect_equal(my_etruncnorm(0,9999,-2,3),my_etruncnorm(0,Inf,-2,3),tol=1e-3)
+  expect_error(my_etruncnorm(0, 1:2, mean = 0, sd = 1))
+  expect_error(my_etruncnorm(1, 0, mean = 0, sd = 1))
+})
+
+context("my_vtruncnorm")
+
+test_that("my_vtruncnorm returns expected results", {
+  expect_equal(0, my_vtruncnorm(-Inf, -100), tolerance = 0.01)
+  expect_equal(0, my_vtruncnorm(-Inf, -100, sd = 0))
+  expect_equal(0, my_vtruncnorm(30, 100, sd = 0))
+  real = c(0, 0, 0)
+  a = c(-Inf, -Inf, 30)
+  b = c(-100, -100, 100)
+  m = c(0, 0, 0)
+  sd = c(1, 0, 0)
+  expect_equal(real, my_vtruncnorm(a, b, m, sd), tolerance = 0.01)
+  real = matrix(real, 3, 4)
+  m = matrix(m, 3, 4)
+  sd = matrix(sd, 3, 4)
+  expect_equal(real, my_vtruncnorm(a, b, m, sd), tolerance = 0.01)
+  a = c(0, 0)
+  b = c(1, 2)
+  m = rbind(c(0, 2, 4), c(0, 0, 0))
+  sd = 0
+  real = rbind(c(0, 0, 0), c(0, 0, 0))
+  expect_equal(real, my_vtruncnorm(a,b,m,sd))
+  
+  expect_equal(my_vtruncnorm(-2, 3), truncnorm::vtruncnorm(-2, 3))
+  expect_equal(my_vtruncnorm(6, 7, sd = 9), truncnorm::vtruncnorm(6, 7, sd = 9))
+  expect_equal(my_vtruncnorm(0, 9999, -2, 3),
+               my_vtruncnorm(0, Inf, -2, 3), tol = 1e-3)
 })

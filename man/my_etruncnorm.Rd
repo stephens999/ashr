@@ -2,19 +2,39 @@
 % Please edit documentation in R/truncnorm.R
 \name{my_etruncnorm}
 \alias{my_etruncnorm}
-\title{my_etruncnorm}
+\title{Expected Value of Truncated Normal}
 \usage{
 my_etruncnorm(a, b, mean = 0, sd = 1)
 }
 \arguments{
-\item{a}{Left limit of distribution.}
+\item{a}{The lower limit for the support of the truncated normal. Can be
+\code{-Inf}.}
 
-\item{b}{Right limit of distribution.}
+\item{b}{The upper limit for the support. Can be \code{Inf}. \code{a} and 
+\code{b} must have the same length, and each element of \code{a} should 
+be less than or equal to the corresponding element of \code{b}.}
 
 \item{mean}{The mean of the untruncated normal.}
 
-\item{sd}{The standard deviation of the untruncated normal.}
+\item{sd}{The standard deviation of the untruncated normal. Standard
+deviations of zero are interpreted as numerically (rather than exactly)
+zero, so that the untruncated mean is returned if it lies within 
+\code{[a, b]} and the nearer of \code{a} and \code{b} is returned
+otherwise.}
+}
+\value{
+The expected values of truncated normal distributions with
+  parameters \code{a}, \code{b}, \code{mean}, and \code{sd}. If any of the
+  arguments is a matrix, then a matrix will be returned.
 }
 \description{
-Compute expectation of truncated normal.
+Computes the means of truncated normal distributions with
+  parameters \code{a}, \code{b}, \code{mean}, and \code{sd}. Arguments
+  can be scalars, vectors, or matrices. Arguments of shorter length will
+  be recycled according to the usual recycling rules, but \code{a} and 
+  \code{b} must have the same length. Missing values are accepted for all 
+  arguments.
+}
+\seealso{
+\code{\link{my_e2truncnorm}}, \code{\link{my_vtruncnorm}}
 }
