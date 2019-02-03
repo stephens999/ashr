@@ -12,7 +12,6 @@ calc_pm = function(g,data){
   return(PosteriorMean)
 }
 
-
 # Posterior Standard Deviation
 calc_psd = function(g,data){
   exclude  = get_exclusions(data)
@@ -41,7 +40,6 @@ calc_np = function(g,data){
   return(NegativeProb)
 }
 
-
 #positive probability
 calc_pp = function(g,data){
   pp=(1-calc_np(g,data)-calc_lfdr(g,data))
@@ -61,39 +59,34 @@ calc_qvalue = function(g,data){
   return(qval.from.lfdr(calc_lfdr(g,data)))
 }
 
-
-# Data for flash package
-calc_flash_data = function(g,data,penloglik){
+# Data for flashr package
+calc_flash_data = function(g, data, penloglik) {
   kk = ncomp(g)
   n = n_obs(data)
   exclude = get_exclusions(data)
-  comp_postprob = matrix(0,nrow = kk, ncol = n)
-  comp_postmean = matrix(0,nrow = kk, ncol = n)
-  comp_postmean2 =  matrix(0,nrow = kk, ncol = n)
+  comp_postprob = matrix(0, nrow = kk, ncol = n)
+  comp_postmean = matrix(0, nrow = kk, ncol = n)
+  comp_postmean2 =  matrix(0, nrow = kk, ncol = n)
   
-  comp_postprob[,!exclude] = comp_postprob(g,data)[,!exclude]
-  comp_postmean[,!exclude] = comp_postmean(g,data)[,!exclude]
-  comp_postmean2[,!exclude] = comp_postmean2(g,data)[,!exclude]
+  comp_postprob[, !exclude] = comp_postprob(g, data)[, !exclude]
+  comp_postmean[, !exclude] = comp_postmean(g, data)[, !exclude]
+  comp_postmean2[, !exclude] = comp_postmean2(g, data)[, !exclude]
   
-  #FOR MISSING OBSERVATIONS, USE THE PRIOR INSTEAD OF THE POSTERIOR
-  comp_postprob[,exclude] = mixprop(g)
-  comp_postmean[,exclude] = comp_mean(g)
-  comp_postmean2[,exclude] = comp_mean2(g)
+  # For missing observations, use the prior instead of the posterior.
+  comp_postprob[, exclude] = mixprop(g)
+  comp_postmean[, exclude] = comp_mean(g)
+  comp_postmean2[, exclude] = comp_mean2(g)
   
-  postmean = colSums(comp_postprob*comp_postmean)
-  postmean2 = colSums(comp_postprob*comp_postmean2)
-  postmean2[postmean2<0]=0 # avoid potential negatives due to numeric rounding errors
+  postmean = colSums(comp_postprob * comp_postmean)
+  postmean2 = colSums(comp_postprob * comp_postmean2)
+  # Avoid potential negatives due to numeric rounding errors.
+  postmean2[postmean2 < 0] = 0 
   
   return(list(fitted_g = g,
-              comp_postprob = comp_postprob,
-              comp_postmean = comp_postmean,
-              comp_postmean2 = comp_postmean2,
               postmean = postmean,
               postmean2 = postmean2,
               penloglik = penloglik))
 }
-
-
 
 # if outputlevel an integer, produce a vector of character strings naming output to be produced
 # (otherwise return outputlevel)
@@ -107,7 +100,7 @@ set_output=function(outputlevel){
     if(outputlevel>1){output=c("data","NegativeProb","PositiveProb","lfsr","svalue","lfdr","qvalue",output)}
     if(outputlevel>2){output=c(output,"fit_details")}
     
-    # this is a special flag for output used by flashr
+    # These are special flags for output used by flashr.
     if(outputlevel==4){output=c("fitted_g","PosteriorMean", "PosteriorSD","flash_data")}
     if(outputlevel==5){output=c("flash_data")}
     
