@@ -558,48 +558,89 @@ ColsumModified = function(matrix_l){
 #' @export
 #' 
 estimate_mixprop = function (data, g, prior,
-  optmethod = c("mixSQP","mixEM","mixVBEM","cxxMixSquarem","mixIP","w_mixEM"),
-  control, weights = NULL) {
+                             optmethod = c("mixSQP", "mixEM", "mixVBEM",
+                                           "cxxMixSquarem", "mixIP", "w_mixEM"),
+                             control, weights = NULL) {
     
-  optmethod <- match.arg(optmethod)
+  optmethod = match.arg(optmethod)
 
   pi_init = g$pi
-  if(optmethod=="mixVBEM"){pi_init=NULL}  #for some reason pi_init doesn't work with mixVBEM
-  k=ncomp(g)
+  # In rare cases, a mixture proportion that is initialized to zero can cause
+  #   optimization to fail. So we ensure that all proportions are positive.
+  if (!all(pi_init > 0)) {
+    pi_init = pmax(pi_init, 1e-6)
+    pi_init = pi_init / sum(pi_init)
+  }
+  # For some reason pi_init doesn't work with mixVBEM.
+  if (optmethod=="mixVBEM") {
+    pi_init = NULL
+  }
 
-  matrix_llik = t(log_comp_dens_conv(g,data)) #an n by k matrix
-  matrix_llik = matrix_llik[!get_exclusions(data),,drop=FALSE] #remove any rows corresponding to excluded cases; saves time in situations where most data are missing
-  lnorm = apply(matrix_llik,1,max) # normalization values
-  matrix_llik = matrix_llik - lnorm #avoid numerical issues by subtracting max of each row
+  matrix_llik = t(log_comp_dens_conv(g, data)) # an n by k matrix
+  # Remove excluded cases; saves time when most data is missing.
+  matrix_llik = matrix_llik[!get_exclusions(data), , drop=FALSE]
+  # Avoid numerical issues by subtracting the max of each row.
+  lnorm = apply(matrix_llik, 1, max)
+  matrix_llik = matrix_llik - lnorm 
   matrix_lik = exp(matrix_llik)
 
-  if(!is.null(weights) && !is.element(optmethod,c("w_mixEM","mixIP","mixSQP")))
-    stop("weights can only be used with optmethod w_mixEM, mixIP or mixSQP")
-  if(optmethod == "w_mixEM" | optmethod == "mixSQP"){
-    if (is.null(weights))
-      weights = rep(1,nrow(matrix_lik))
-  }
-  if(!is.null(weights)){
-    fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=control, weights=weights))
-  }  else {   
-    # the last of these conditions checks whether the gradient at the null is negative wrt pi0
-    # to avoid running the optimization when the global null (pi0=1) is the optimal.
-    if(optmethod=="mixVBEM" || max(prior[-1])>1 || min(gradient(matrix_lik)+prior[1]-1,na.rm=TRUE)<0){
-      if(optmethod=="cxxMixSquarem"){control=set_control_squarem(control,nrow(matrix_lik))}
-      fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=control))
-    } else {
-      fit = list(converged=TRUE,pihat=c(1,rep(0,k-1)),optmethod="gradient_check")
-    }
+  # All-zero columns pose problems for most optimization methods.
+  nonzero_cols = (apply(matrix_lik, 2, max) > 0)
+  if (!all(nonzero_cols)) {
+    prior = prior[nonzero_cols]
+    weights = weights[nonzero_cols]
+    pi_init = pi_init[nonzero_cols]
+    matrix_lik = matrix_lik[, nonzero_cols]
   }
   
-  if(!fit$converged){
-      warning("Optimization failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
+  ncomponents = length(prior)
+  
+  if (!is.null(weights) && !(optmethod %in% c("w_mixEM", "mixIP", "mixSQP")))
+    stop("Weights can only be used with optmethod w_mixEM, mixIP or mixSQP.")
+  if (optmethod %in% c("w_mixEM", "mixSQP") && is.null(weights)) {
+    weights = rep(1, nrow(matrix_lik))
+  }
+  if (ncomponents > 1 && !is.null(weights)) {
+    fit = do.call(optmethod, args = list(matrix_lik = matrix_lik, 
+                                         prior = prior, 
+                                         pi_init = pi_init, 
+                                         control = control, 
+                                         weights = weights))
+  } else if (ncomponents > 1
+             && (optmethod == "mixVBEM"
+                 || max(prior[-1]) > 1
+                 || min(gradient(matrix_lik) + prior[1] - 1, na.rm = TRUE) < 0)) {
+    # The last condition checks whether the gradient at the null is negative 
+    #   wrt pi0. This avoids running the optimization when the global null 
+    #   (pi0 = 1) is optimal.
+    if (optmethod == "cxxMixSquarem") {
+      control = set_control_squarem(control, nrow(matrix_lik))
+    }
+    fit = do.call(optmethod, args = list(matrix_lik = matrix_lik, 
+                                         prior = prior, 
+                                         pi_init = pi_init, 
+                                         control = control))
+  } else {
+    fit = list(converged = TRUE, 
+               pihat = c(1, rep(0, ncomponents - 1)), 
+               optmethod = "gradient_check")
+  }
+  
+  if (!fit$converged) {
+      warning("Optimization failed to converge. Results may be unreliable. ",
+              "Try increasing maxiter and rerunning.")
   }
 
-  g$pi=fit$pihat
-  penloglik = penloglik(g$pi,matrix_lik,prior) + sum(lnorm) #objective value
+  g$pi = rep(0, ncomp(g))
+  g$pi[nonzero_cols] = fit$pihat
+  # Value of objective function:
+  penloglik = penloglik(fit$pihat, matrix_lik, prior) + sum(lnorm)
     
-  return(list(penloglik = penloglik, matrix_lik=matrix_lik,g=g,optreturn=fit,optmethod=optmethod))
+  return(list(penloglik = penloglik, 
+              matrix_lik = matrix_lik,
+              g = g,
+              optreturn = fit,
+              optmethod = optmethod))
 }
 
 #' @title Compute Posterior
