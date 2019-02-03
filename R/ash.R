@@ -254,11 +254,12 @@ ash.workhorse <-
     if (method == "fdr"){pointmass =TRUE; prior= "nullbiased"}
   }
 
-  ## Check to see if is Inf, then switch to NULL.
-  if (!is.null(df)) {
-    if (df == Inf) {
-      df <- NULL
-    }
+  ## Check to see whether df is Inf. If so, switch to NULL.
+  if (length(df) > 1) {
+    stop("Only one value can be specified for df.")
+  }
+  if (!is.null(df) && is.infinite(df)) {
+    df <- NULL
   }
   
   # set likelihood based on defaults if missing
@@ -336,83 +337,88 @@ ash.workhorse <-
 
   ##2. Generating mixture distribution g
 
-  if(fixg & missing(g)){stop("if fixg=TRUE then you must specify g!")}
+  if (fixg & missing(g)) {
+    stop("If fixg = TRUE then you must specify g!")
+  }
 
-  if(!is.null(g)){
-    k=ncomp(g)
-    null.comp=1 #null.comp not actually used
-    prior = setprior(prior,k,nullweight,null.comp)
+  if (!missing(g) && (fixg || gsanity_check(data, g))) {
+    k = ncomp(g)
+    null.comp = 1 # null.comp not actually used
+    prior = setprior(prior, k, nullweight, null.comp)
   } else {
-    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","halfnormal"))) 
-      stop("Error: invalid type of mixcompdist")
-    if(mixcompdist!="normal"){
-      # for unimix prior, if mode is the exactly the boundry of g's range,
-      # have to use "+uniform" or "-uniform"
-      if(min(grange)==mode){
+    if (!missing(g)) {
+      warning("Initial value of g is poor. Ignoring g.")
+    }
+    
+    if (mixcompdist %in% c("uniform", "halfuniform", "+uniform", "-uniform")) {
+      # For unimix prior, if mode is exactly the boundary of g's range, have
+      #   to use "+uniform" or "-uniform"
+      if (min(grange) == mode) {
         mixcompdist = "+uniform"
-      }else if(max(grange)==mode){
+      } else if (max(grange) == mode) {
         mixcompdist = "-uniform"
       }
     }
     
-    if(is.null(mixsd)){
-      mixsd = autoselect.mixsd(data,gridmult,mode,grange,mixcompdist)
+    if (is.null(mixsd)) {
+      mixsd = autoselect.mixsd(data, gridmult, mode, grange, mixcompdist)
     }
-    if(pointmass){
-      mixsd = c(0,mixsd)
+    if (pointmass) {
+      mixsd = c(0, mixsd)
     }
-    null.comp = which.min(mixsd) #which component is the "null"
+    null.comp = which.min(mixsd) # which component is the "null"
 
     k = length(mixsd)
-    prior = setprior(prior,k,nullweight,null.comp)
-    pi = initpi(k,length(data$x),null.comp)
+    prior = setprior(prior, k, nullweight, null.comp)
+    pi = initpi(k, length(data$x), null.comp)
     
-    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","halfnormal")))
-      stop("Error: invalid type of mixcompdist")
-    
-    if(mixcompdist == "normal") g=normalmix(pi,rep(mode,k),mixsd)
-    if(mixcompdist == "uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
-    if(mixcompdist == "+uniform") g = unimix(pi,rep(mode,k),mode+mixsd)
-    if(mixcompdist == "-uniform") g = unimix(pi,mode-mixsd,rep(mode,k))
-    if(mixcompdist == "halfuniform"){
-      
-      if(min(mixsd)>0){ #simply reflect the components
-        pi = c(pi,pi)
-        pi = pi/sum(pi)
-        g = unimix(pi,c(mode-mixsd,rep(mode,k)),
-                   c(rep(mode,k),mode+mixsd))
+    if (mixcompdist == "normal") 
+      g = normalmix(pi, rep(mode, k), mixsd)
+    if (mixcompdist == "uniform") 
+      g = unimix(pi, mode - mixsd, mode + mixsd)
+    if (mixcompdist == "+uniform") 
+      g = unimix(pi, rep(mode, k), mode + mixsd)
+    if (mixcompdist == "-uniform") 
+      g = unimix(pi, mode - mixsd, rep(mode, k))
+    if (mixcompdist == "halfuniform") {
+      if (min(mixsd) > 0) {
+        # Simply reflect the components.
+        g = unimix(c(pi, pi) / 2, 
+                   c(mode - mixsd, rep(mode, k)), 
+                   c(rep(mode, k), mode + mixsd))
         prior = c(prior, prior)
-      } else { #define two sets of components, but don't duplicate null component
-        null.comp=which.min(mixsd)
-        pi = c(pi,pi[-null.comp])
-        pi = pi/sum(pi)
-        g = unimix(pi,
-                   c(mode-mixsd,rep(mode,k-1)),
-                   c(rep(mode,k),(mode+mixsd)[-null.comp]))
-        prior = c(prior,prior[-null.comp])
-        #pi = c(pi,pi[-null.comp])
+      } else { 
+        # Define two sets of components, but don't duplicate null component.
+        null.comp = which.min(mixsd)
+        g = unimix(c(pi, pi[-null.comp]) / (2 - pi[null.comp]),
+                   c(mode - mixsd, rep(mode, k-1)),
+                   c(rep(mode, k), (mode + mixsd)[-null.comp]))
+        prior = c(prior, prior[-null.comp])
+      }
+    }
+    if (mixcompdist == "halfnormal") {
+      if (min(mixsd) > 0) {
+        g = tnormalmix(c(pi, pi) / 2,
+                       rep(mode, 2 * k), 
+                       c(mixsd, mixsd),
+                       c(rep(-Inf, k), rep(0, k)),
+                       c(rep(0, k), rep(Inf, k)))
+        prior = c(prior, prior)
+      } else {
+        null.comp = which.min(mixsd)
+        g = tnormalmix(c(pi, pi[-null.comp]) / (2 - pi[null.comp]),
+                       rep(mode, 2 * k - 1),
+                       c(mixsd, mixsd[-null.comp]),
+                       c(rep(-Inf, k), rep(0, k - 1)),
+                       c(rep(0, k), rep(Inf, k - 1)))
+        prior = c(prior, prior[-null.comp])
       }
     }
     
-    # constrain g within grange
-    gconstrain = constrain_mix(g, pi, prior, grange, mixcompdist)
+    # Constrain g within grange.
+    gconstrain = constrain_mix(g, prior, grange, mixcompdist)
     g = gconstrain$g
     prior = gconstrain$prior
-    pi = gconstrain$pi
-    
-    if(mixcompdist=="halfnormal"){
-      if(min(mixsd)>0){
-        g = tnormalmix(c(pi,pi)/2,rep(mode,2*k),c(mixsd,mixsd),c(rep(-Inf,k),rep(0,k)),c(rep(0,k),rep(Inf,k)))
-        prior = rep(prior, 2)
-        pi = rep(pi, 2)
-      }
-      else{
-        null.comp=which.min(mixsd)
-        g = tnormalmix(c(pi,pi[-null.comp])/2,rep(mode,2*k-1),c(mixsd,mixsd[-null.comp]),c(rep(-Inf,k),rep(0,k-1)),c(rep(0,k),rep(Inf,k-1)))
-        prior = c(prior,prior[-null.comp])
-        pi = c(pi,pi[-null.comp])
-      }
-    }
   }
 
   #check that all prior are >=1 (as otherwise have problems with infinite penalty)
@@ -773,17 +779,6 @@ autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
     sigmaamax = 2*sqrt(max(betahat^2-sebetahat^2)) #this computes a rough largest value you'd want to use, based on idea that sigmaamax^2 + sebetahat^2 should be at least betahat^2
   }
   
-  if(mixcompdist=="halfuniform"){
-    sigmaamax = min(max(abs(grange-mode)), sigmaamax)
-  }else if(mixcompdist=="+uniform"){
-    sigmaamax = min(max(grange)-mode, sigmaamax)
-  }else if(mixcompdist=="-uniform"){
-    sigmaamax = min(mode-min(grange), sigmaamax)
-  }else{
-    sigmaamax = min(min(abs(grange-mode)), sigmaamax)
-  }
-  
-  
   if(mult==0){
     return(c(0,sigmaamax/2))
   }else{
@@ -792,31 +787,87 @@ autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
   }
 }
 
-# constrain g within grange
-# g: unimix or normalmix prior
-# prior: k vector
-# grange: two dimension numeric vector indicating the left and right limit of the prior g
-constrain_mix = function(g, pi, prior, grange, mixcompdist){
-  if(mixcompdist == "normal") {
-    # normal mixture prior always lies on (-Inf, Inf), so ignore grange specifications
-    if (max(grange)<Inf | min(grange)>-Inf){
-      warning("Can't constrain grange for the normal mixture prior case")
-    }
+# Check that an initial value of g has a fighting chance of fitting the data.
+gsanity_check = function(data, g) {
+  # Currently only implemented for normal likelihoods.
+  if (!is_normal(data$lik))
+    return(TRUE)
+  
+  # Find rough limits for the region where g can have significantly positive
+  #   density (pi can be ignored because it will be re-estimated).
+  if (is(g, "unimix")) {
+    upper.grange = max(g$b)
+    lower.grange = min(g$a)
+  } else if (is(g, "normalmix")) {
+    # In the normal and halfnormal cases, use an anti-conservative range. It's
+    #   better to re-estimate the grid than to use a bad one.
+    upper.grange = 2 * max(g$sd)
+    lower.grange = -upper.grange
+  } else if (is(g, "tnormalmix")) {
+    upper.grange = 2 * max(g$sd[is.infinite(g$b)])
+    lower.grange = -2 * max(g$sd[is.infinite(g$a)])
+  } else {
+    stop("gsanity_check does not recognize that prior type.")
   }
   
-  if(mixcompdist %in% c("uniform","+uniform","-uniform","halfuniform")) {
-    # truncate the uniform mixture components that are out of grange
-    g$a = pmax(g$a, min(grange)) # change g$a to at least min(grange)
-    g$b = pmin(g$b, max(grange)) # change g$b to at most max(grange)
+  # Find the most outlying data points and calculate p-values conditional
+  #   on the true values lying at the limits of g's range.
+  worst.lower = min((data$x - lower.grange) / data$s)
+  lower.p = exp(data$lik$lcdfFUN(worst.lower))
+  worst.upper = max((data$x - upper.grange) / data$s)
+  upper.p = 1 - exp(data$lik$lcdfFUN(worst.upper))
+
+  # In the +uniform case, the worst lower point is ignored because we can't
+  #   do anything about it.
+  if (length(g$a) > 1 && min(g$a) == max(g$a)) {
+    lower.p = 1
+  }
+  # And similarly for the -uniform case.
+  if (length(g$b) > 1 && min(g$b) == max(g$b)) {
+    upper.p = 1
+  }  
+  
+  worst.p = min(lower.p, upper.p)
+  
+  # The case where g is a single (null) component and the data comes from
+  #   the null model should pass with 95% probability.
+  n = length(data$x)
+  passes.sanity.check = (worst.p > 1 - 0.95^(1/n))
+  
+  return(passes.sanity.check)
+}
+
+# Constrain g within grange.
+# g: unimix, normalmix, or tnormalmix prior
+# prior: k-vector
+# grange: two-dimensional numeric vector indicating the left and right limit 
+#   of the prior g.
+constrain_mix = function(g, prior, grange, mixcompdist) {
+  pi = g$pi
+  if (is(g, "normalmix") || is(g, "tnormalmix")) {
+    # Normal mixture priors always lie on (-Inf, Inf), so ignore grange.
+    if (max(grange) < Inf | min(grange) > -Inf) {
+      warning("Can't constrain grange for normal/halfnormal mixture prior ", 
+              "case.")
+    }
+  } else if (is(g, "unimix")) {
+    # Truncate the uniform mixture components that are out of grange.
+    g$a = pmax(g$a, min(grange))
+    g$b = pmin(g$b, max(grange))
     compidx = !duplicated(cbind(g$a, g$b)) # remove duplicated components
     pi = pi[compidx]
-    pi = pi/sum(pi)
-    g = unimix(pi,g$a[compidx],g$b[compidx])
-    
-    # also keep the corresponding mixture components for prior
+    if (sum(pi) == 0) {
+      stop("No component has positive mixture probability after constraining ",
+           "range.")
+    }
+    pi = pi / sum(pi)
+    g = unimix(pi, g$a[compidx], g$b[compidx])
     prior = prior[compidx]
+  } else {
+    stop("constrain_mix does not recognize that prior type.")
   }
-  return(list(g=g, prior=prior, pi=pi))
+  
+  return(list(g = g, prior = prior))
 }
 
 
