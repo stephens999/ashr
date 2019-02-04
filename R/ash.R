@@ -84,14 +84,13 @@
 #' @param gridmult the multiplier by which the default grid values for
 #' mixsd differ by one another. (Smaller values produce finer grids.)
 #' 
-#' @param outputlevel determines amount of output. There are several
-#' numeric options [0=just fitted g; 1=also PosteriorMean and
-#' PosteriorSD; 2= everything usually needed; 3=also include results
-#' of mixture fitting procedure (includes matrix of log-likelihoods
-#' used to fit mixture); 4 and 5 are reserved for outputting additional things 
-#' data required by the (in-development) flashr package.
-#' The user can also specify the output they
-#' require in detail (see Examples).
+#' @param outputlevel Determines amount of output. There are several
+#' numeric options: 0 = just fitted g; 1 = also PosteriorMean and
+#' PosteriorSD; 2 = everything usually needed; 3 = also include results
+#' of mixture fitting procedure (including matrix of log-likelihoods
+#' used to fit mixture). 4 and 5 are reserved for outputting additional 
+#' data required by the (in-development) flashr package. The user can 
+#' also specify the output they require in detail (see Examples).
 #' 
 #' @param g The prior distribution for beta. Usually this is unspecified (NULL) and 
 #' estimated from the data. However, it can be used in conjuction with fixg=TRUE 
@@ -119,10 +118,11 @@
 #' @param weights a vector of weights for observations; use with
 #' optmethod = "w_mixEM"; this is currently beta-functionality.
 #'
-#' @param pi_thresh a threshold below which to prune out mixture components before 
-#' computing summaries (speeds computation since empirically many components are usually assigned negligible weight)
-#' The current implementation still returns the full fitted distribution; this only affects the posterior summaries
-#' (The exception is if output includes flash_data, used by the flashr package, in which case the output fitted g is pruned so as to match the flash data)
+#' @param pi_thresh a threshold below which to prune out mixture 
+#' components before computing summaries (speeds up computation since 
+#' empirically many components are usually assigned negligible 
+#' weight). The current implementation still returns the full fitted 
+#' distribution; this only affects the posterior summaries.
 #' 
 #' @param ... Further arguments of function \code{ash} to be passed to
 #' \code{\link{ash.workhorse}}.
@@ -254,11 +254,12 @@ ash.workhorse <-
     if (method == "fdr"){pointmass =TRUE; prior= "nullbiased"}
   }
 
-  ## Check to see if is Inf, then switch to NULL.
-  if (!is.null(df)) {
-    if (df == Inf) {
-      df <- NULL
-    }
+  ## Check to see whether df is Inf. If so, switch to NULL.
+  if (length(df) > 1) {
+    stop("Only one value can be specified for df.")
+  }
+  if (!is.null(df) && is.infinite(df)) {
+    df <- NULL
   }
   
   # set likelihood based on defaults if missing
@@ -336,83 +337,88 @@ ash.workhorse <-
 
   ##2. Generating mixture distribution g
 
-  if(fixg & missing(g)){stop("if fixg=TRUE then you must specify g!")}
+  if (fixg & missing(g)) {
+    stop("If fixg = TRUE then you must specify g!")
+  }
 
-  if(!is.null(g)){
-    k=ncomp(g)
-    null.comp=1 #null.comp not actually used
-    prior = setprior(prior,k,nullweight,null.comp)
+  if (!missing(g) && (fixg || gsanity_check(data, g))) {
+    k = ncomp(g)
+    null.comp = 1 # null.comp not actually used
+    prior = setprior(prior, k, nullweight, null.comp)
   } else {
-    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","halfnormal"))) 
-      stop("Error: invalid type of mixcompdist")
-    if(mixcompdist!="normal"){
-      # for unimix prior, if mode is the exactly the boundry of g's range,
-      # have to use "+uniform" or "-uniform"
-      if(min(grange)==mode){
+    if (!missing(g)) {
+      warning("Initial value of g is poor. Ignoring g.")
+    }
+    
+    if (mixcompdist %in% c("uniform", "halfuniform", "+uniform", "-uniform")) {
+      # For unimix prior, if mode is exactly the boundary of g's range, have
+      #   to use "+uniform" or "-uniform"
+      if (min(grange) == mode) {
         mixcompdist = "+uniform"
-      }else if(max(grange)==mode){
+      } else if (max(grange) == mode) {
         mixcompdist = "-uniform"
       }
     }
     
-    if(is.null(mixsd)){
-      mixsd = autoselect.mixsd(data,gridmult,mode,grange,mixcompdist)
+    if (is.null(mixsd)) {
+      mixsd = autoselect.mixsd(data, gridmult, mode, grange, mixcompdist)
     }
-    if(pointmass){
-      mixsd = c(0,mixsd)
+    if (pointmass) {
+      mixsd = c(0, mixsd)
     }
-    null.comp = which.min(mixsd) #which component is the "null"
+    null.comp = which.min(mixsd) # which component is the "null"
 
     k = length(mixsd)
-    prior = setprior(prior,k,nullweight,null.comp)
-    pi = initpi(k,length(data$x),null.comp)
+    prior = setprior(prior, k, nullweight, null.comp)
+    pi = initpi(k, length(data$x), null.comp)
     
-    if(!is.element(mixcompdist,c("normal","uniform","halfuniform","+uniform","-uniform","halfnormal")))
-      stop("Error: invalid type of mixcompdist")
-    
-    if(mixcompdist == "normal") g=normalmix(pi,rep(mode,k),mixsd)
-    if(mixcompdist == "uniform") g=unimix(pi,mode - mixsd,mode + mixsd)
-    if(mixcompdist == "+uniform") g = unimix(pi,rep(mode,k),mode+mixsd)
-    if(mixcompdist == "-uniform") g = unimix(pi,mode-mixsd,rep(mode,k))
-    if(mixcompdist == "halfuniform"){
-      
-      if(min(mixsd)>0){ #simply reflect the components
-        pi = c(pi,pi)
-        pi = pi/sum(pi)
-        g = unimix(pi,c(mode-mixsd,rep(mode,k)),
-                   c(rep(mode,k),mode+mixsd))
+    if (mixcompdist == "normal") 
+      g = normalmix(pi, rep(mode, k), mixsd)
+    if (mixcompdist == "uniform") 
+      g = unimix(pi, mode - mixsd, mode + mixsd)
+    if (mixcompdist == "+uniform") 
+      g = unimix(pi, rep(mode, k), mode + mixsd)
+    if (mixcompdist == "-uniform") 
+      g = unimix(pi, mode - mixsd, rep(mode, k))
+    if (mixcompdist == "halfuniform") {
+      if (min(mixsd) > 0) {
+        # Simply reflect the components.
+        g = unimix(c(pi, pi) / 2, 
+                   c(mode - mixsd, rep(mode, k)), 
+                   c(rep(mode, k), mode + mixsd))
         prior = c(prior, prior)
-      } else { #define two sets of components, but don't duplicate null component
-        null.comp=which.min(mixsd)
-        pi = c(pi,pi[-null.comp])
-        pi = pi/sum(pi)
-        g = unimix(pi,
-                   c(mode-mixsd,rep(mode,k-1)),
-                   c(rep(mode,k),(mode+mixsd)[-null.comp]))
-        prior = c(prior,prior[-null.comp])
-        #pi = c(pi,pi[-null.comp])
+      } else { 
+        # Define two sets of components, but don't duplicate null component.
+        null.comp = which.min(mixsd)
+        g = unimix(c(pi, pi[-null.comp]) / (2 - pi[null.comp]),
+                   c(mode - mixsd, rep(mode, k-1)),
+                   c(rep(mode, k), (mode + mixsd)[-null.comp]))
+        prior = c(prior, prior[-null.comp])
+      }
+    }
+    if (mixcompdist == "halfnormal") {
+      if (min(mixsd) > 0) {
+        g = tnormalmix(c(pi, pi) / 2,
+                       rep(mode, 2 * k), 
+                       c(mixsd, mixsd),
+                       c(rep(-Inf, k), rep(0, k)),
+                       c(rep(0, k), rep(Inf, k)))
+        prior = c(prior, prior)
+      } else {
+        null.comp = which.min(mixsd)
+        g = tnormalmix(c(pi, pi[-null.comp]) / (2 - pi[null.comp]),
+                       rep(mode, 2 * k - 1),
+                       c(mixsd, mixsd[-null.comp]),
+                       c(rep(-Inf, k), rep(0, k - 1)),
+                       c(rep(0, k), rep(Inf, k - 1)))
+        prior = c(prior, prior[-null.comp])
       }
     }
     
-    # constrain g within grange
-    gconstrain = constrain_mix(g, pi, prior, grange, mixcompdist)
+    # Constrain g within grange.
+    gconstrain = constrain_mix(g, prior, grange, mixcompdist)
     g = gconstrain$g
     prior = gconstrain$prior
-    pi = gconstrain$pi
-    
-    if(mixcompdist=="halfnormal"){
-      if(min(mixsd)>0){
-        g = tnormalmix(c(pi,pi)/2,rep(mode,2*k),c(mixsd,mixsd),c(rep(-Inf,k),rep(0,k)),c(rep(0,k),rep(Inf,k)))
-        prior = rep(prior, 2)
-        pi = rep(pi, 2)
-      }
-      else{
-        null.comp=which.min(mixsd)
-        g = tnormalmix(c(pi,pi[-null.comp])/2,rep(mode,2*k-1),c(mixsd,mixsd[-null.comp]),c(rep(-Inf,k),rep(0,k-1)),c(rep(0,k),rep(Inf,k-1)))
-        prior = c(prior,prior[-null.comp])
-        pi = c(pi,pi[-null.comp])
-      }
-    }
   }
 
   #check that all prior are >=1 (as otherwise have problems with infinite penalty)
@@ -431,13 +437,9 @@ ash.workhorse <-
   val = list() # val will hold the return value
   ghat = pi.fit$g
   output = set_output(outputlevel) #sets up flags for what to output
-  if("flash_data" %in% output){ # if outputting flash data, need to 
-    # return the pruned g so that the flash data lines up with the returned g
-      prior = prior[ghat$pi > pi_thresh]
-      ghat = prune(ghat, pi_thresh)
-      flash_data=c(list(prior=prior),
-                   calc_flash_data(ghat,data, pi.fit$penloglik))
-      val = c(val, list(flash_data=flash_data))
+  if("flash_data" %in% output){
+    flash_data = calc_flash_data(ghat, data, pi.fit$penloglik)
+    val = c(val, list(flash_data = flash_data))
   }
   if("fitted_g" %in% output){val = c(val,list(fitted_g=ghat))}
   if("loglik" %in% output){val = c(val,list(loglik =calc_loglik(ghat,data)))}
@@ -558,48 +560,89 @@ ColsumModified = function(matrix_l){
 #' @export
 #' 
 estimate_mixprop = function (data, g, prior,
-  optmethod = c("mixSQP","mixEM","mixVBEM","cxxMixSquarem","mixIP","w_mixEM"),
-  control, weights = NULL) {
+                             optmethod = c("mixSQP", "mixEM", "mixVBEM",
+                                           "cxxMixSquarem", "mixIP", "w_mixEM"),
+                             control, weights = NULL) {
     
-  optmethod <- match.arg(optmethod)
+  optmethod = match.arg(optmethod)
 
   pi_init = g$pi
-  if(optmethod=="mixVBEM"){pi_init=NULL}  #for some reason pi_init doesn't work with mixVBEM
-  k=ncomp(g)
+  # In rare cases, a mixture proportion that is initialized to zero can cause
+  #   optimization to fail. So we ensure that all proportions are positive.
+  if (!all(pi_init > 0)) {
+    pi_init = pmax(pi_init, 1e-6)
+    pi_init = pi_init / sum(pi_init)
+  }
+  # For some reason pi_init doesn't work with mixVBEM.
+  if (optmethod=="mixVBEM") {
+    pi_init = NULL
+  }
 
-  matrix_llik = t(log_comp_dens_conv(g,data)) #an n by k matrix
-  matrix_llik = matrix_llik[!get_exclusions(data),,drop=FALSE] #remove any rows corresponding to excluded cases; saves time in situations where most data are missing
-  lnorm = apply(matrix_llik,1,max) # normalization values
-  matrix_llik = matrix_llik - lnorm #avoid numerical issues by subtracting max of each row
+  matrix_llik = t(log_comp_dens_conv(g, data)) # an n by k matrix
+  # Remove excluded cases; saves time when most data is missing.
+  matrix_llik = matrix_llik[!get_exclusions(data), , drop=FALSE]
+  # Avoid numerical issues by subtracting the max of each row.
+  lnorm = apply(matrix_llik, 1, max)
+  matrix_llik = matrix_llik - lnorm 
   matrix_lik = exp(matrix_llik)
 
-  if(!is.null(weights) && !is.element(optmethod,c("w_mixEM","mixIP","mixSQP")))
-    stop("weights can only be used with optmethod w_mixEM, mixIP or mixSQP")
-  if(optmethod == "w_mixEM" | optmethod == "mixSQP"){
-    if (is.null(weights))
-      weights = rep(1,nrow(matrix_lik))
-  }
-  if(!is.null(weights)){
-    fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=control, weights=weights))
-  }  else {   
-    # the last of these conditions checks whether the gradient at the null is negative wrt pi0
-    # to avoid running the optimization when the global null (pi0=1) is the optimal.
-    if(optmethod=="mixVBEM" || max(prior[-1])>1 || min(gradient(matrix_lik)+prior[1]-1,na.rm=TRUE)<0){
-      if(optmethod=="cxxMixSquarem"){control=set_control_squarem(control,nrow(matrix_lik))}
-      fit=do.call(optmethod,args = list(matrix_lik= matrix_lik, prior=prior, pi_init=pi_init, control=control))
-    } else {
-      fit = list(converged=TRUE,pihat=c(1,rep(0,k-1)),optmethod="gradient_check")
-    }
+  # All-zero columns pose problems for most optimization methods.
+  nonzero_cols = (apply(matrix_lik, 2, max) > 0)
+  if (!all(nonzero_cols)) {
+    prior = prior[nonzero_cols]
+    weights = weights[nonzero_cols]
+    pi_init = pi_init[nonzero_cols]
+    matrix_lik = matrix_lik[, nonzero_cols]
   }
   
-  if(!fit$converged){
-      warning("Optimization failed to converge. Results may be unreliable. Try increasing maxiter and rerunning.")
+  ncomponents = length(prior)
+  
+  if (!is.null(weights) && !(optmethod %in% c("w_mixEM", "mixIP", "mixSQP")))
+    stop("Weights can only be used with optmethod w_mixEM, mixIP or mixSQP.")
+  if (optmethod %in% c("w_mixEM", "mixSQP") && is.null(weights)) {
+    weights = rep(1, nrow(matrix_lik))
+  }
+  if (ncomponents > 1 && !is.null(weights)) {
+    fit = do.call(optmethod, args = list(matrix_lik = matrix_lik, 
+                                         prior = prior, 
+                                         pi_init = pi_init, 
+                                         control = control, 
+                                         weights = weights))
+  } else if (ncomponents > 1
+             && (optmethod == "mixVBEM"
+                 || max(prior[-1]) > 1
+                 || min(gradient(matrix_lik) + prior[1] - 1, na.rm = TRUE) < 0)) {
+    # The last condition checks whether the gradient at the null is negative 
+    #   wrt pi0. This avoids running the optimization when the global null 
+    #   (pi0 = 1) is optimal.
+    if (optmethod == "cxxMixSquarem") {
+      control = set_control_squarem(control, nrow(matrix_lik))
+    }
+    fit = do.call(optmethod, args = list(matrix_lik = matrix_lik, 
+                                         prior = prior, 
+                                         pi_init = pi_init, 
+                                         control = control))
+  } else {
+    fit = list(converged = TRUE, 
+               pihat = c(1, rep(0, ncomponents - 1)), 
+               optmethod = "gradient_check")
+  }
+  
+  if (!fit$converged) {
+      warning("Optimization failed to converge. Results may be unreliable. ",
+              "Try increasing maxiter and rerunning.")
   }
 
-  g$pi=fit$pihat
-  penloglik = penloglik(g$pi,matrix_lik,prior) + sum(lnorm) #objective value
+  g$pi = rep(0, ncomp(g))
+  g$pi[nonzero_cols] = fit$pihat
+  # Value of objective function:
+  penloglik = penloglik(fit$pihat, matrix_lik, prior) + sum(lnorm)
     
-  return(list(penloglik = penloglik, matrix_lik=matrix_lik,g=g,optreturn=fit,optmethod=optmethod))
+  return(list(penloglik = penloglik, 
+              matrix_lik = matrix_lik,
+              g = g,
+              optreturn = fit,
+              optmethod = optmethod))
 }
 
 #' @title Compute Posterior
@@ -732,17 +775,6 @@ autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
     sigmaamax = 2*sqrt(max(betahat^2-sebetahat^2)) #this computes a rough largest value you'd want to use, based on idea that sigmaamax^2 + sebetahat^2 should be at least betahat^2
   }
   
-  if(mixcompdist=="halfuniform"){
-    sigmaamax = min(max(abs(grange-mode)), sigmaamax)
-  }else if(mixcompdist=="+uniform"){
-    sigmaamax = min(max(grange)-mode, sigmaamax)
-  }else if(mixcompdist=="-uniform"){
-    sigmaamax = min(mode-min(grange), sigmaamax)
-  }else{
-    sigmaamax = min(min(abs(grange-mode)), sigmaamax)
-  }
-  
-  
   if(mult==0){
     return(c(0,sigmaamax/2))
   }else{
@@ -751,31 +783,87 @@ autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
   }
 }
 
-# constrain g within grange
-# g: unimix or normalmix prior
-# prior: k vector
-# grange: two dimension numeric vector indicating the left and right limit of the prior g
-constrain_mix = function(g, pi, prior, grange, mixcompdist){
-  if(mixcompdist == "normal") {
-    # normal mixture prior always lies on (-Inf, Inf), so ignore grange specifications
-    if (max(grange)<Inf | min(grange)>-Inf){
-      warning("Can't constrain grange for the normal mixture prior case")
-    }
+# Check that an initial value of g has a fighting chance of fitting the data.
+gsanity_check = function(data, g) {
+  # Currently only implemented for normal likelihoods.
+  if (!is_normal(data$lik))
+    return(TRUE)
+  
+  # Find rough limits for the region where g can have significantly positive
+  #   density (pi can be ignored because it will be re-estimated).
+  if (is(g, "unimix")) {
+    upper.grange = max(g$b)
+    lower.grange = min(g$a)
+  } else if (is(g, "normalmix")) {
+    # In the normal and halfnormal cases, use an anti-conservative range. It's
+    #   better to re-estimate the grid than to use a bad one.
+    upper.grange = 2 * max(g$sd)
+    lower.grange = -upper.grange
+  } else if (is(g, "tnormalmix")) {
+    upper.grange = 2 * max(g$sd[is.infinite(g$b)])
+    lower.grange = -2 * max(g$sd[is.infinite(g$a)])
+  } else {
+    stop("gsanity_check does not recognize that prior type.")
   }
   
-  if(mixcompdist %in% c("uniform","+uniform","-uniform","halfuniform")) {
-    # truncate the uniform mixture components that are out of grange
-    g$a = pmax(g$a, min(grange)) # change g$a to at least min(grange)
-    g$b = pmin(g$b, max(grange)) # change g$b to at most max(grange)
+  # Find the most outlying data points and calculate p-values conditional
+  #   on the true values lying at the limits of g's range.
+  worst.lower = min((data$x - lower.grange) / data$s)
+  lower.p = exp(data$lik$lcdfFUN(worst.lower))
+  worst.upper = max((data$x - upper.grange) / data$s)
+  upper.p = 1 - exp(data$lik$lcdfFUN(worst.upper))
+
+  # In the +uniform case, the worst lower point is ignored because we can't
+  #   do anything about it.
+  if (length(g$a) > 1 && min(g$a) == max(g$a)) {
+    lower.p = 1
+  }
+  # And similarly for the -uniform case.
+  if (length(g$b) > 1 && min(g$b) == max(g$b)) {
+    upper.p = 1
+  }  
+  
+  worst.p = min(lower.p, upper.p)
+  
+  # The case where g is a single (null) component and the data comes from
+  #   the null model should pass with 95% probability.
+  n = length(data$x)
+  passes.sanity.check = (worst.p > 1 - 0.95^(1/n))
+  
+  return(passes.sanity.check)
+}
+
+# Constrain g within grange.
+# g: unimix, normalmix, or tnormalmix prior
+# prior: k-vector
+# grange: two-dimensional numeric vector indicating the left and right limit 
+#   of the prior g.
+constrain_mix = function(g, prior, grange, mixcompdist) {
+  pi = g$pi
+  if (is(g, "normalmix") || is(g, "tnormalmix")) {
+    # Normal mixture priors always lie on (-Inf, Inf), so ignore grange.
+    if (max(grange) < Inf | min(grange) > -Inf) {
+      warning("Can't constrain grange for normal/halfnormal mixture prior ", 
+              "case.")
+    }
+  } else if (is(g, "unimix")) {
+    # Truncate the uniform mixture components that are out of grange.
+    g$a = pmax(g$a, min(grange))
+    g$b = pmin(g$b, max(grange))
     compidx = !duplicated(cbind(g$a, g$b)) # remove duplicated components
     pi = pi[compidx]
-    pi = pi/sum(pi)
-    g = unimix(pi,g$a[compidx],g$b[compidx])
-    
-    # also keep the corresponding mixture components for prior
+    if (sum(pi) == 0) {
+      stop("No component has positive mixture probability after constraining ",
+           "range.")
+    }
+    pi = pi / sum(pi)
+    g = unimix(pi, g$a[compidx], g$b[compidx])
     prior = prior[compidx]
+  } else {
+    stop("constrain_mix does not recognize that prior type.")
   }
-  return(list(g=g, prior=prior, pi=pi))
+  
+  return(list(g = g, prior = prior))
 }
 
 
