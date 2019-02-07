@@ -45,8 +45,6 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(),
   w = c(prior-1,weights)
   A = A[w!=0,]    #remove zero weight entries, as these otherwise cause errors
   w = w[w!=0]
-                                        #w = rep(1,n+k)
-  check_mosek_license()
   res = REBayes::KWDual(A, rep(1,k), normalize(w), control=control)
 
   # Fix any mixture weights that are less than the minimum allowed value.
