@@ -89,6 +89,7 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(),
 #' 
 mixSQP <- function (matrix_lik, prior, pi_init = NULL,
                     control = list(), weights = NULL) {
+  mixsqp.status.converged <- "converged to optimal solution"
   n <- nrow(matrix_lik)
   k <- ncol(matrix_lik)
 
@@ -116,7 +117,7 @@ mixSQP <- function (matrix_lik, prior, pi_init = NULL,
   # about the optimization step.
   return(list(pihat     = out$x,
               niter     = nrow(out$data),
-              converged = (out$status == mixsqp:::mixsqp.status.converged),
+              converged = (out$status == mixsqp.status.converged),
               control   = control))
 }
 

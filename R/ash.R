@@ -791,15 +791,16 @@ gsanity_check = function(data, g) {
   
   # Find rough limits for the region where g can have significantly positive
   #   density (pi can be ignored because it will be re-estimated).
-  if (is(g, "unimix")) {
+  if (inherits(g,"unimix")) {
     upper.grange = max(g$b)
     lower.grange = min(g$a)
-  } else if (is(g, "normalmix")) {
+} else if (inherits(g, "normalmix")) {
+    
     # In the normal and halfnormal cases, use an anti-conservative range. It's
     #   better to re-estimate the grid than to use a bad one.
     upper.grange = 2 * max(g$sd)
     lower.grange = -upper.grange
-  } else if (is(g, "tnormalmix")) {
+  } else if (inherits(g, "tnormalmix")) {
     upper.grange = 2 * max(g$sd[is.infinite(g$b)])
     lower.grange = -2 * max(g$sd[is.infinite(g$a)])
   } else {
@@ -840,13 +841,13 @@ gsanity_check = function(data, g) {
 #   of the prior g.
 constrain_mix = function(g, prior, grange, mixcompdist) {
   pi = g$pi
-  if (is(g, "normalmix") || is(g, "tnormalmix")) {
+  if (inherits(g, "normalmix") || inherits(g, "tnormalmix")) {
     # Normal mixture priors always lie on (-Inf, Inf), so ignore grange.
     if (max(grange) < Inf | min(grange) > -Inf) {
       warning("Can't constrain grange for normal/halfnormal mixture prior ", 
               "case.")
     }
-  } else if (is(g, "unimix")) {
+  } else if (inherits(g, "unimix")) {
     # Truncate the uniform mixture components that are out of grange.
     g$a = pmax(g$a, min(grange))
     g$b = pmin(g$b, max(grange))

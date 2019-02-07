@@ -23,9 +23,10 @@ within \code{[a, b]} and the square of the nearer of \code{a} and
 \code{b} is returned otherwise.}
 }
 \value{
-The expected squared values of truncated normal distributions with
-  parameters \code{a}, \code{b}, \code{mean}, and \code{sd}. If any of the
-  arguments is a matrix, then a matrix will be returned.
+The expected squared values of truncated normal
+  distributions with parameters \code{a}, \code{b}, \code{mean}, and
+  \code{sd}. If any of the arguments is a matrix, then a matrix will
+  be returned.
 }
 \description{
 Computes the expected squared values of truncated normal 
