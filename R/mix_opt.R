@@ -364,29 +364,3 @@ VBpenloglik = function(pipost, matrix_lik, prior){
   B= sum(classprob*log(avgpipost*matrix_lik),na.rm=TRUE) - diriKL(prior,pipost) - sum(classprob*log(classprob)) 
   return(B)
 }
-
-check_mosek_license <- function() {
-
-  # Create a simple test problem to optimize.
-  x       <- list()
-  x$sense <- "max"
-  x$c <- c(3,1,5,1)
-  x$A <- Matrix::Matrix(c(3,1,2,0,
-                  2,1,3,1,
-                  0,2,0,3),
-                nrow=3,byrow = TRUE,sparse = TRUE)
-  x$bc <- rbind(blc = c(30,15,-Inf),
-                buc = c(30,Inf,25))
-  x$bx <- rbind(blx = c(0,0,0,0),
-                bux = c(Inf,10,Inf,Inf))
-
-  # If the optimization problem is not solved successfully, report an error.
-  tryCatch({
-    out <- Rmosek::mosek(x,opts = list(verbose = 0))
-    if (out$response$code != 0)
-      stop(paste("MOSEK is installed, but failed to run. A common issue\n",
-                 "is that the license is expired unavailable. For more",
-                 "information on installing MOSEK and Rmosek, see",
-                 "https://www.mosek.com/documentation"))
-  })
-}

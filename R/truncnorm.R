@@ -1,4 +1,5 @@
 #' @title Expected Value of Truncated Normal
+#' 
 #' @description Computes the means of truncated normal distributions with
 #'   parameters \code{a}, \code{b}, \code{mean}, and \code{sd}. Arguments
 #'   can be scalars, vectors, or matrices. Arguments of shorter length will
@@ -8,10 +9,13 @@
 #'
 #' @param a The lower limit for the support of the truncated normal. Can be
 #'   \code{-Inf}.
+#' 
 #' @param b The upper limit for the support. Can be \code{Inf}. \code{a} and 
 #'   \code{b} must have the same length, and each element of \code{a} should 
-#'   be less than or equal to the corresponding element of \code{b}. 
+#'   be less than or equal to the corresponding element of \code{b}.
+#' 
 #' @param mean The mean of the untruncated normal.
+#' 
 #' @param sd The standard deviation of the untruncated normal. Standard
 #'   deviations of zero are interpreted as numerically (rather than exactly)
 #'   zero, so that the untruncated mean is returned if it lies within 
@@ -89,6 +93,7 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
 }
 
 #' @title Expected Squared Value of Truncated Normal
+#' 
 #' @description Computes the expected squared values of truncated normal 
 #'   distributions with parameters \code{a}, \code{b}, \code{mean}, and 
 #'   \code{sd}. Arguments can be scalars, vectors, or matrices. Arguments of 
@@ -97,15 +102,17 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
 #'   accepted for all arguments.
 #'
 #' @inheritParams my_etruncnorm
+#' 
 #' @param sd The standard deviation of the untruncated normal. Standard
 #'   deviations of zero are interpreted as numerically (rather than exactly)
 #'   zero, so that the square of the untruncated mean is returned if it lies 
 #'   within \code{[a, b]} and the square of the nearer of \code{a} and 
 #'   \code{b} is returned otherwise.
 #' 
-#' @return The expected squared values of truncated normal distributions with
-#'   parameters \code{a}, \code{b}, \code{mean}, and \code{sd}. If any of the
-#'   arguments is a matrix, then a matrix will be returned.
+#' @return The expected squared values of truncated normal
+#'   distributions with parameters \code{a}, \code{b}, \code{mean}, and
+#'   \code{sd}. If any of the arguments is a matrix, then a matrix will
+#'   be returned.
 #'  
 #' @seealso \code{\link{my_etruncnorm}}, \code{\link{my_vtruncnorm}}
 #'     
