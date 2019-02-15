@@ -4,4 +4,4 @@
 ^appveyor\.yml$
 ^codecov\.yml$
 ^README\.md$
-
+^LICENSE$
