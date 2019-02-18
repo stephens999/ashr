@@ -6,7 +6,8 @@ test_that("lik_pois (identity link) fitted g is close to true g",{
   trueg = unimix(c(0.5,0.5),c(1,1),c(1,5)) # true prior g: 0.5*U(1,5)+0.5*delta(1)
   lambda = c(rep(1,500), runif(500,1,5)) # generate lambda from g
   x = rpois(1000,lambda) # Poisson observations
-  ash.pois.out = ash(rep(0,length(x)),1,lik=lik_pois(x),g=trueg)
+  ash.pois.out = ash(rep(0,length(x)),1,lik=lik_pois(x),g=trueg,
+                     control = list(verbose = TRUE))
   
   # Check if the estimated mixture proportion for components delta(0.5) and U(0.1,0.9)
   # is close to the true mixture proportion (0.5,0.5)
@@ -53,7 +54,8 @@ test_that("lik_pois (log link) fitted g is close to true g",{
   loglambda = c(rep(0,800), runif(200,-3,3)) 
   lambda = exp(loglambda)
   x = rpois(1000,lambda) # Poisson observations
-  ash.pois.out = ash(rep(0,length(x)),1,lik=lik_pois(x,link="log"),g=trueg)
+  ash.pois.out = ash(rep(0,length(x)),1,lik = lik_pois(x,link="log"),
+                     g = trueg,control = list(verbose = TRUE))
   
   # Check if the estimated mixture proportion for components delta(0) and U(-3,3)
   # is close to the true mixture proportion (0.8,0.2)
