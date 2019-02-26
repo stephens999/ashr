@@ -57,8 +57,8 @@ test_that("lik_pois (log link) fitted g is close to true g",{
   ash.pois.out = ash(rep(0,length(x)),1,lik = lik_pois(x,link="log"),
                      g = trueg,control = list(verbose = TRUE))
   
-  # Check if the estimated mixture proportion for components delta(0) and U(-3,3)
-  # is close to the true mixture proportion (0.8,0.2)
+  # Check if the estimated mixture proportion for components delta(0)
+  # and U(-3,3) is close to the true mixture proportion (0.8,0.2)
   expect_equal(ash.pois.out$fitted_g$pi, c(0.8,0.2), tolerance = 0.05)
 })
 
