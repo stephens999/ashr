@@ -211,15 +211,15 @@
 #' beta.ash = ash(betahat, sebetahat, optmethod="w_mixEM",
 #'                weights = c(rep(0.5,100),rep(1,100)))
 #'
-#' # Small example in which the interior-point method (implemented in
-#' # MOSEK) yields negative mixture weights. These mixture weights are
-#' # automatically set to zero and the weights are re-normalized. The
-#' # EM algorithm does not suffer from this problem.
+#' # Different algorithms can be used to compute maximum-likelihood
+#' # estimates of the mixture weights. Here, we illustrate use of the
+#' # EM algorithm and the (default) SQP algorithm.
 #' set.seed(1)
-#' betahat <- c(8.115,9.027,9.289,10.097,9.463)
-#' sebeta  <- c(0.6157,0.4129,0.3197,0.3920,0.5496)
-#' fit.em  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixEM")
-#' fit.ip  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixSQP")
+#' betahat  <- c(8.115,9.027,9.289,10.097,9.463)
+#' sebeta   <- c(0.6157,0.4129,0.3197,0.3920,0.5496)
+#' fit.em   <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixEM")
+#' fit.sqp  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixSQP")
+#' range(fit.em$fitted$pi - fit.sqp$fitted$pi)
 ash <- function (betahat, sebetahat,
                  mixcompdist = c("uniform","halfuniform","normal","+uniform",
                                  "-uniform","halfnormal"),
