@@ -632,6 +632,8 @@ estimate_mixprop = function (data, g, prior,
       warning("Optimization failed to converge. Results may be unreliable. ",
               "Try increasing maxiter and rerunning.")
   }
+  
+  fit$pihat = pmax(fit$pihat, 0)
 
   g$pi = rep(0, ncomp(g))
   g$pi[nonzero_cols] = fit$pihat
