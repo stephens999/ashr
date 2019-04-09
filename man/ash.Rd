@@ -5,17 +5,18 @@
 \alias{ash.workhorse}
 \title{Adaptive Shrinkage}
 \usage{
-ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform", "normal",
-  "+uniform", "-uniform", "halfnormal"), df = NULL, ...)
+ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform",
+  "normal", "+uniform", "-uniform", "halfnormal"), df = NULL, ...)
 
 ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
-  mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform",
-  "halfnormal"), optmethod = c("mixSQP", "mixIP", "cxxMixSquarem", "mixEM",
-  "mixVBEM", "w_mixEM"), df = NULL, nullweight = 10, pointmass = TRUE,
-  prior = c("nullbiased", "uniform", "unit"), mixsd = NULL,
-  gridmult = sqrt(2), outputlevel = 2, g = NULL, fixg = FALSE,
-  mode = 0, alpha = 0, grange = c(-Inf, Inf), control = list(),
-  lik = NULL, weights = NULL, pi_thresh = 1e-10)
+  mixcompdist = c("uniform", "halfuniform", "normal", "+uniform",
+  "-uniform", "halfnormal"), optmethod = c("mixSQP", "mixIP",
+  "cxxMixSquarem", "mixEM", "mixVBEM", "w_mixEM"), df = NULL,
+  nullweight = 10, pointmass = TRUE, prior = c("nullbiased",
+  "uniform", "unit"), mixsd = NULL, gridmult = sqrt(2),
+  outputlevel = 2, g = NULL, fixg = FALSE, mode = 0, alpha = 0,
+  grange = c(-Inf, Inf), control = list(), lik = NULL,
+  weights = NULL, pi_thresh = 1e-10)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}
@@ -229,15 +230,15 @@ beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
 beta.ash = ash(betahat, sebetahat, optmethod="w_mixEM",
                weights = c(rep(0.5,100),rep(1,100)))
 
-# Small example in which the interior-point method (implemented in
-# MOSEK) yields negative mixture weights. These mixture weights are
-# automatically set to zero and the weights are re-normalized. The
-# EM algorithm does not suffer from this problem.
+# Different algorithms can be used to compute maximum-likelihood
+# estimates of the mixture weights. Here, we illustrate use of the
+# EM algorithm and the (default) SQP algorithm.
 set.seed(1)
-betahat <- c(8.115,9.027,9.289,10.097,9.463)
-sebeta  <- c(0.6157,0.4129,0.3197,0.3920,0.5496)
-fit.em  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixEM")
-fit.ip  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixSQP")
+betahat  <- c(8.115,9.027,9.289,10.097,9.463)
+sebeta   <- c(0.6157,0.4129,0.3197,0.3920,0.5496)
+fit.em   <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixEM")
+fit.sqp  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixSQP")
+range(fit.em$fitted$pi - fit.sqp$fitted$pi)
 }
 \seealso{
 \code{\link{ashci}} for computation of credible intervals

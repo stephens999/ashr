@@ -1,6 +1,6 @@
 context("ashr with Binomial likelihoods")
 
-test_that("lik_binom (identity link) fitted g is close to true g",{
+test_that("lik_binom (identity link) fittced g is close to true g",{
     
   # Simulate a Binomial dataset
   set.seed(1)
@@ -8,7 +8,9 @@ test_that("lik_binom (identity link) fitted g is close to true g",{
   p = c(rep(0.5,500), runif(500,0.1,0.9)) # generate p from g
   n = rep(100,1000)
   x = rbinom(1000,n,p) # Binomial observations
-  ash.binom.out = ash(rep(0,length(x)),1,lik=lik_binom(x,n),g=trueg)
+  ash.binom.out = ash(rep(0,length(x)),1,lik = lik_binom(x,n),g = trueg,
+                      control = list(delta = 0,maxiter.sqp = 40,
+                                     verbose = TRUE))
   
   # Check if the estimated mixture proportion for components delta(0.5) and U(0.1,0.9)
   # is close to the true mixture proportion (0.5,0.5)
@@ -52,6 +54,7 @@ test_that("lik_binom (identity link) with big n gives similar answers to normal 
 })
 
 test_that("lik_binom (logit link) fitted g is close to true g",{
+    
   # Simulate a Binomial dataset
   set.seed(1)
   trueg = unimix(c(0.5,0.5),c(0,-3),c(0,3)) 
@@ -59,11 +62,13 @@ test_that("lik_binom (logit link) fitted g is close to true g",{
   p = 1/(1+exp(-logitp))
   n = rep(1000,1000)
   x = rbinom(1000,n,p) # Binomial observations
-  ash.binom.out = ash(rep(0,length(x)),1,lik=lik_binom(x,n,link="logit"),
-                      g=trueg,prior="uniform")
+  ash.binom.out = ash(rep(0,length(x)),1,lik = lik_binom(x,n,link = "logit"),
+                      g = trueg,prior = "uniform",
+                      control = list(verbose = TRUE))
   
-  # Check if the estimated mixture proportion for components delta(0.5) and U(-3,3)
-  # is close to the true mixture proportion (0.5,0.5)
+  # Check if the estimated mixture proportion for components
+  # delta(0.5) and U(-3,3) is close to the true mixture proportion
+  # (0.5,0.5).
   expect_equal(ash.binom.out$fitted_g$pi, c(0.5,0.5), tolerance = 0.05)
 })
 
