@@ -104,7 +104,7 @@ mixSQP <- function (matrix_lik, prior, pi_init = NULL,
 
   # Always as a small "tweak" to the initial estimates of the mixture
   # weights to ensure more reliable convergence.
-  pi_init <- pi_init + 0.0001
+  pi_init <- pi_init + 0.01
   pi_init <- pi_init/sum(pi_init)
   
   # Add in observations corresponding to the prior.
