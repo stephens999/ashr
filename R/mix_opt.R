@@ -97,10 +97,15 @@ mixSQP <- function (matrix_lik, prior, pi_init = NULL,
   if (is.null(weights))
     weights <- rep(1,n)
 
-  # It the initial estimate of the mixture weights is not provided,
+  # If the initial estimate of the mixture weights is not provided,
   # set to uniform.
   if (is.null(pi_init))
     pi_init <- rep(1,k)
+
+  # Always as a small "tweak" to the initial estimates of the mixture
+  # weights to ensure more reliable convergence.
+  pi_init <- pi_init + 0.0001
+  pi_init <- pi_init/sum(pi_init)
   
   # Add in observations corresponding to the prior.
   A <- rbind(diag(k),matrix_lik) 
