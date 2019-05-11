@@ -225,9 +225,8 @@ ash <- function (betahat, sebetahat,
                                  "-uniform","halfnormal"),
                  df = NULL,...){
   # This calls ash.workhorse, but then modifies the returned list so that the call is the original ash call
-  utils::modifyList(ash.workhorse(betahat,sebetahat,
-                                  mixcompdist = mixcompdist,df = df,...),
-                    list(call = match.call()))
+  a = ash.workhorse(betahat,sebetahat,mixcompdist = mixcompdist,df = df,...)
+  utils::modifyList(a,list(call = match.call()))
 }
 
 #' @describeIn ash Adaptive Shrinkage with full set of options.
@@ -587,7 +586,7 @@ estimate_mixprop = function (data, g, prior,
     prior = prior[nonzero_cols]
     weights = weights[nonzero_cols]
     pi_init = pi_init[nonzero_cols]
-    matrix_lik = matrix_lik[, nonzero_cols]
+    matrix_lik = matrix_lik[, nonzero_cols, drop=FALSE]
   }
 
   ncomponents = length(prior)
