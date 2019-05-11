@@ -619,7 +619,7 @@ estimate_mixprop = function (data, g, prior,
                                          control = control))
   } else {
     fit = list(converged = TRUE,
-               pihat = c(1, rep(0, max(ncomponents - 1, 0))),
+               pihat = c(1, rep(0, ncomponents - 1)),
                optmethod = "gradient_check")
   }
 
