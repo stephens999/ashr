@@ -1,39 +1,39 @@
 #' @useDynLib ashr
 #' @import Matrix truncnorm SQUAREM doParallel pscl Rcpp foreach parallel
 #' @title Adaptive Shrinkage
-#' 
-#' @description Implements Empirical Bayes shrinkage and false discovery rate 
+#'
+#' @description Implements Empirical Bayes shrinkage and false discovery rate
 #' methods based on unimodal prior distributions.
 #'
 #' @details The ash function provides a number of ways to perform Empirical Bayes shrinkage
-#' estimation and false discovery rate estimation. The main assumption is that 
+#' estimation and false discovery rate estimation. The main assumption is that
 #' the underlying distribution of effects is unimodal. Novice users are recommended
 #' to start with the examples provided below.
-#' 
+#'
 #' In the simplest case the inputs to ash are a vector of estimates (betahat)
 #' and their corresponding standard errors (sebetahat), and degrees of freedom (df).
-#' The method assumes that for some (unknown) "true" vector of effects beta, the statistic 
+#' The method assumes that for some (unknown) "true" vector of effects beta, the statistic
 #' (betahat[j]-beta[j])/sebetahat[j] has a $t$ distribution on $df$ degrees of freedom.
 #' (The default of df=NULL assumes a normal distribution instead of a t.)
-#' 
+#'
 #' By default the method estimates the vector beta under the assumption that beta ~ g for a distribution
 #' g in G, where G is some unimodal family of distributions to be specified (see parameter \code{mixcompdist}).
 #' By default is to assume the mode is 0, and this is suitable for settings where you are interested in testing which beta[j]
 #' are non-zero. To estimate the mode see parameter \code{mode}.
-#'  
-#' As is standard in empirical Bayes methods, the fitting proceeds in two stages: 
-#' i) estimate g by maximizing a (possibly penalized) likelihood; 
-#' ii) compute the posterior distribution for each beta[j] | betahat[j],sebetahat[j] 
+#'
+#' As is standard in empirical Bayes methods, the fitting proceeds in two stages:
+#' i) estimate g by maximizing a (possibly penalized) likelihood;
+#' ii) compute the posterior distribution for each beta[j] | betahat[j],sebetahat[j]
 #' using the estimated g as the prior distribution.
-#' 
+#'
 #' A more general case allows that beta[j]/sebetahat[j]^alpha | sebetahat[j] ~ g.
-#' 
+#'
 #' @param betahat a p vector of estimates
-#' 
+#'
 #' @param sebetahat a p vector of corresponding standard errors
-#' 
+#'
 #' @param mixcompdist distribution of components in mixture used to represent the family G.
-#' Depending on the choice of mixture component, the family G becomes more or less flexible. 
+#' Depending on the choice of mixture component, the family G becomes more or less flexible.
 #' Options are:\cr
 #' \describe{
 #' \item{uniform}{G is (approximately) any symmetric unimodal distribution}
@@ -61,69 +61,69 @@
 #'
 #' @param optmethod specifies the function implementing an
 #' optimization method.
-#' 
+#'
 #' @param nullweight scalar, the weight put on the prior under
 #' "nullbiased" specification, see \code{prior}
-#' 
+#'
 #' @param mode either numeric (indicating mode of g) or string
 #' "estimate", to indicate mode should be estimated, or a two
 #' dimension numeric vector to indicate the interval to be searched
 #' for the mode.
-#' 
+#'
 #' @param pointmass Logical, indicating whether to use a point mass at
 #' zero as one of components for a mixture distribution.
-#' 
+#'
 #' @param prior string, or numeric vector indicating Dirichlet prior
 #' on mixture proportions (defaults to "uniform", or (1,1...,1); also
 #' can be "nullbiased" (nullweight,1,...,1) to put more weight on
 #' first component), or "unit" (1/K,...,1/K) [for optmethod=mixVBEM
 #' version only].
-#' 
+#'
 #' @param mixsd Vector of standard deviations for underlying mixture components.
-#' 
+#'
 #' @param gridmult the multiplier by which the default grid values for
 #' mixsd differ by one another. (Smaller values produce finer grids.)
-#' 
+#'
 #' @param outputlevel Determines amount of output. There are several
 #' numeric options: 0 = just fitted g; 1 = also PosteriorMean and
 #' PosteriorSD; 2 = everything usually needed; 3 = also include results
 #' of mixture fitting procedure (including matrix of log-likelihoods
-#' used to fit mixture). 4 and 5 are reserved for outputting additional 
-#' data required by the (in-development) flashr package. The user can 
+#' used to fit mixture). 4 and 5 are reserved for outputting additional
+#' data required by the (in-development) flashr package. The user can
 #' also specify the output they require in detail (see Examples).
-#' 
-#' @param g The prior distribution for beta. Usually this is unspecified (NULL) and 
-#' estimated from the data. However, it can be used in conjuction with fixg=TRUE 
+#'
+#' @param g The prior distribution for beta. Usually this is unspecified (NULL) and
+#' estimated from the data. However, it can be used in conjuction with fixg=TRUE
 #' to specify the g to use (e.g. useful in simulations to do computations with the "true" g).
 #' Or, if g is specified but fixg=FALSE, the g specifies the initial value of g used before optimization,
-#' (which also implicitly specifies mixcompdist). 
-#' 
+#' (which also implicitly specifies mixcompdist).
+#'
 #' @param fixg If TRUE, don't estimate g but use the specified g -
 #' useful for computations under the "true" g in simulations.
-#' 
+#'
 #' @param alpha Numeric value of alpha parameter in the model.
-#' 
+#'
 #' @param grange Two dimension numeric vector indicating the left and
 #' right limit of g. Default is c(-Inf, Inf).
-#' 
+#'
 #' @param control A list of control parameters passed to optmethod.
-#' 
+#'
 #' @param lik Contains details of the likelihood used; for general
 #' ash. Currently, the following choices are allowed: normal (see
 #' function lik_normal(); binomial likelihood (see function
 #' lik_binom); likelihood based on logF error distribution (see
 #' function lik_logF); mixture of normals likelihood (see function
 #' lik_normalmix); and Poisson likelihood (see function lik_pois).
-#' 
+#'
 #' @param weights a vector of weights for observations; use with
 #' optmethod = "w_mixEM"; this is currently beta-functionality.
 #'
-#' @param pi_thresh a threshold below which to prune out mixture 
-#' components before computing summaries (speeds up computation since 
-#' empirically many components are usually assigned negligible 
-#' weight). The current implementation still returns the full fitted 
+#' @param pi_thresh a threshold below which to prune out mixture
+#' components before computing summaries (speeds up computation since
+#' empirically many components are usually assigned negligible
+#' weight). The current implementation still returns the full fitted
 #' distribution; this only affects the posterior summaries.
-#' 
+#'
 #' @param ... Further arguments of function \code{ash} to be passed to
 #' \code{\link{ash.workhorse}}.
 #'
@@ -160,9 +160,9 @@
 #'
 #' @export ash
 #' @export ash.workhorse
-#' 
+#'
 #' @examples
-#' 
+#'
 #' beta = c(rep(0,100),rnorm(100))
 #' sebetahat = abs(rnorm(200,0,1))
 #' betahat = rnorm(200,beta,sebetahat)
@@ -178,7 +178,7 @@
 #' CIMatrix=ashci(beta.ash,level=0.95)
 #' print(CIMatrix)
 #' }
-#' 
+#'
 #' # Illustrating the non-zero mode feature.
 #' betahat=betahat+5
 #' beta.ash = ash(betahat, sebetahat)
@@ -206,7 +206,7 @@
 #' ## for each component from this g, and ii) initialize pi to the value
 #' ## from this g.
 #' beta.ash = ash(betahat, sebetahat,g=true_g,fixg=TRUE)
-#' 
+#'
 #' # running with weights
 #' beta.ash = ash(betahat, sebetahat, optmethod="w_mixEM",
 #'                weights = c(rep(0.5,100),rep(1,100)))
@@ -261,14 +261,14 @@ ash.workhorse <-
   if (!is.null(df) && is.infinite(df)) {
     df <- NULL
   }
-  
+
   # set likelihood based on defaults if missing
-  if(is.null(lik)){ 
+  if(is.null(lik)){
     if(is.null(df)){
       lik = lik_normal()
     } else {lik = lik_t(df)}
   }
-  
+
   # poisson likelihood has non-negative g
   # do not put big weight on null component
   # automatically estimate the mode if not specified
@@ -287,7 +287,7 @@ ash.workhorse <-
     if(missing(nullweight)){nullweight = 1}
     if(missing(mode) & missing(g)){mode = "estimate"}
   }
-  
+
   #if length of mode is 2 then the numeric values give the range of values to search
   if(sum(mode=="estimate") | length(mode)==2){ #just pass everything through to ash.estmode for non-zero-mode
     args <- as.list(environment())
@@ -296,7 +296,7 @@ ash.workhorse <-
     args$method=NULL # avoid specifying method as well as prior/pointmass
     args$g = NULL # avoid specifying g as well as mode
     mode = ifelse(is.numeric(mode),mode,NA)
-    
+
     # set range to search the mode
     if (lik$name=="pois"){
       if (lik$data$link=="identity"){
@@ -315,7 +315,7 @@ ash.workhorse <-
         args$modemin = min(logitp)
         args$modemax = max(logitp)
       }
-      
+
     }else{
       args$modemin = min(mode, min(betahat),na.rm = TRUE)
       args$modemax = max(mode, max(betahat),na.rm = TRUE)
@@ -326,7 +326,6 @@ ash.workhorse <-
   ##1.Handling Input Parameters
   mixcompdist = match.arg(mixcompdist)
   optmethod   = match.arg(optmethod)
-  prior       = match.arg(prior)
 
   # Set optimization method
   optmethod = set_optmethod(optmethod)
@@ -341,15 +340,11 @@ ash.workhorse <-
     stop("If fixg = TRUE then you must specify g!")
   }
 
-  if (!missing(g) && (fixg || gsanity_check(data, g))) {
+  if (!is.null(g)) {
     k = ncomp(g)
     null.comp = 1 # null.comp not actually used
     prior = setprior(prior, k, nullweight, null.comp)
   } else {
-    if (!missing(g)) {
-      warning("Initial value of g is poor. Ignoring g.")
-    }
-    
     if (mixcompdist %in% c("uniform", "halfuniform", "+uniform", "-uniform")) {
       # For unimix prior, if mode is exactly the boundary of g's range, have
       #   to use "+uniform" or "-uniform"
@@ -359,7 +354,7 @@ ash.workhorse <-
         mixcompdist = "-uniform"
       }
     }
-    
+
     if (is.null(mixsd)) {
       mixsd = autoselect.mixsd(data, gridmult, mode, grange, mixcompdist)
     }
@@ -371,23 +366,23 @@ ash.workhorse <-
     k = length(mixsd)
     prior = setprior(prior, k, nullweight, null.comp)
     pi = initpi(k, length(data$x), null.comp)
-    
-    if (mixcompdist == "normal") 
+
+    if (mixcompdist == "normal")
       g = normalmix(pi, rep(mode, k), mixsd)
-    if (mixcompdist == "uniform") 
+    if (mixcompdist == "uniform")
       g = unimix(pi, mode - mixsd, mode + mixsd)
-    if (mixcompdist == "+uniform") 
+    if (mixcompdist == "+uniform")
       g = unimix(pi, rep(mode, k), mode + mixsd)
-    if (mixcompdist == "-uniform") 
+    if (mixcompdist == "-uniform")
       g = unimix(pi, mode - mixsd, rep(mode, k))
     if (mixcompdist == "halfuniform") {
       if (min(mixsd) > 0) {
         # Simply reflect the components.
-        g = unimix(c(pi, pi) / 2, 
-                   c(mode - mixsd, rep(mode, k)), 
+        g = unimix(c(pi, pi) / 2,
+                   c(mode - mixsd, rep(mode, k)),
                    c(rep(mode, k), mode + mixsd))
         prior = c(prior, prior)
-      } else { 
+      } else {
         # Define two sets of components, but don't duplicate null component.
         null.comp = which.min(mixsd)
         g = unimix(c(pi, pi[-null.comp]) / (2 - pi[null.comp]),
@@ -399,7 +394,7 @@ ash.workhorse <-
     if (mixcompdist == "halfnormal") {
       if (min(mixsd) > 0) {
         g = tnormalmix(c(pi, pi) / 2,
-                       rep(mode, 2 * k), 
+                       rep(mode, 2 * k),
                        c(mixsd, mixsd),
                        c(rep(-Inf, k), rep(0, k)),
                        c(rep(0, k), rep(Inf, k)))
@@ -414,7 +409,7 @@ ash.workhorse <-
         prior = c(prior, prior[-null.comp])
       }
     }
-    
+
     # Constrain g within grange.
     gconstrain = constrain_mix(g, prior, grange, mixcompdist)
     g = gconstrain$g
@@ -431,7 +426,7 @@ ash.workhorse <-
   } else {
     pi.fit = list(g=g,penloglik = calc_loglik(g,data)+penalty(prior, g$pi))
   }
-  
+
   ##4. Computing the return values
 
   val = list() # val will hold the return value
@@ -449,7 +444,7 @@ ash.workhorse <-
   if("post_sampler" %in% output){
     val = c(val,list(post_sampler=function(nsamp){post_sample(ghat, data, nsamp)}))
   }
-  
+
   # Compute the result component of value -
   # result is a dataframe containing lfsr, etc
   # resfns is a list of functions used to produce columns of that dataframe
@@ -556,14 +551,14 @@ ColsumModified = function(matrix_l){
 #' an n by k likelihood matrix with (j,k)th element equal to \eqn{f_k(x_j)},
 #' the fit
 #' and results of optmethod
-#' 
+#'
 #' @export
-#' 
+#'
 estimate_mixprop = function (data, g, prior,
                              optmethod = c("mixSQP", "mixEM", "mixVBEM",
                                            "cxxMixSquarem", "mixIP", "w_mixEM"),
                              control, weights = NULL) {
-    
+
   optmethod = match.arg(optmethod)
 
   pi_init = g$pi
@@ -583,7 +578,7 @@ estimate_mixprop = function (data, g, prior,
   matrix_llik = matrix_llik[!get_exclusions(data), , drop=FALSE]
   # Avoid numerical issues by subtracting the max of each row.
   lnorm = apply(matrix_llik, 1, max)
-  matrix_llik = matrix_llik - lnorm 
+  matrix_llik = matrix_llik - lnorm
   matrix_lik = exp(matrix_llik)
 
   # All-zero columns pose problems for most optimization methods.
@@ -594,53 +589,53 @@ estimate_mixprop = function (data, g, prior,
     pi_init = pi_init[nonzero_cols]
     matrix_lik = matrix_lik[, nonzero_cols]
   }
-  
+
   ncomponents = length(prior)
-  
+
   if (!is.null(weights) && !(optmethod %in% c("w_mixEM", "mixIP", "mixSQP")))
     stop("Weights can only be used with optmethod w_mixEM, mixIP or mixSQP.")
   if (optmethod %in% c("w_mixEM", "mixSQP") && is.null(weights)) {
     weights = rep(1, nrow(matrix_lik))
   }
   if (ncomponents > 1 && !is.null(weights)) {
-    fit = do.call(optmethod, args = list(matrix_lik = matrix_lik, 
-                                         prior = prior, 
-                                         pi_init = pi_init, 
-                                         control = control, 
+    fit = do.call(optmethod, args = list(matrix_lik = matrix_lik,
+                                         prior = prior,
+                                         pi_init = pi_init,
+                                         control = control,
                                          weights = weights))
   } else if (ncomponents > 1
              && (optmethod == "mixVBEM"
                  || max(prior[-1]) > 1
                  || min(gradient(matrix_lik) + prior[1] - 1, na.rm = TRUE) < 0)) {
-    # The last condition checks whether the gradient at the null is negative 
-    #   wrt pi0. This avoids running the optimization when the global null 
+    # The last condition checks whether the gradient at the null is negative
+    #   wrt pi0. This avoids running the optimization when the global null
     #   (pi0 = 1) is optimal.
     if (optmethod == "cxxMixSquarem") {
       control = set_control_squarem(control, nrow(matrix_lik))
     }
-    fit = do.call(optmethod, args = list(matrix_lik = matrix_lik, 
-                                         prior = prior, 
-                                         pi_init = pi_init, 
+    fit = do.call(optmethod, args = list(matrix_lik = matrix_lik,
+                                         prior = prior,
+                                         pi_init = pi_init,
                                          control = control))
   } else {
-    fit = list(converged = TRUE, 
-               pihat = c(1, rep(0, ncomponents - 1)), 
+    fit = list(converged = TRUE,
+               pihat = c(1, rep(0, max(ncomponents - 1, 0))),
                optmethod = "gradient_check")
   }
-  
+
   if (!fit$converged) {
       warning("Optimization failed to converge. Results may be unreliable. ",
               "Try increasing maxiter and rerunning.")
   }
-  
+
   fit$pihat = pmax(fit$pihat, 0)
 
   g$pi = rep(0, ncomp(g))
   g$pi[nonzero_cols] = fit$pihat
   # Value of objective function:
   penloglik = penloglik(fit$pihat, matrix_lik, prior) + sum(lnorm)
-    
-  return(list(penloglik = penloglik, 
+
+  return(list(penloglik = penloglik,
               matrix_lik = matrix_lik,
               g = g,
               optreturn = fit,
@@ -763,7 +758,7 @@ autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
   if (data$lik$name %in% c("pois","binom")){
     data$x = data$lik$data$y
   }
-  
+
   betahat = data$x - mode
   sebetahat = data$s
   exclude = get_exclusions(data)
@@ -776,7 +771,7 @@ autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
   }else{
     sigmaamax = 2*sqrt(max(betahat^2-sebetahat^2)) #this computes a rough largest value you'd want to use, based on idea that sigmaamax^2 + sebetahat^2 should be at least betahat^2
   }
-  
+
   if(mult==0){
     return(c(0,sigmaamax/2))
   }else{
@@ -785,68 +780,17 @@ autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
   }
 }
 
-# Check that an initial value of g has a fighting chance of fitting the data.
-gsanity_check = function(data, g) {
-  # Currently only implemented for normal likelihoods.
-  if (!is_normal(data$lik))
-    return(TRUE)
-  
-  # Find rough limits for the region where g can have significantly positive
-  #   density (pi can be ignored because it will be re-estimated).
-  if (inherits(g,"unimix")) {
-    upper.grange = max(g$b)
-    lower.grange = min(g$a)
-} else if (inherits(g, "normalmix")) {
-    
-    # In the normal and halfnormal cases, use an anti-conservative range. It's
-    #   better to re-estimate the grid than to use a bad one.
-    upper.grange = 2 * max(g$sd)
-    lower.grange = -upper.grange
-  } else if (inherits(g, "tnormalmix")) {
-    upper.grange = 2 * max(g$sd[is.infinite(g$b)])
-    lower.grange = -2 * max(g$sd[is.infinite(g$a)])
-  } else {
-    stop("gsanity_check does not recognize that prior type.")
-  }
-  
-  # Find the most outlying data points and calculate p-values conditional
-  #   on the true values lying at the limits of g's range.
-  worst.lower = min((data$x - lower.grange) / data$s)
-  lower.p = exp(data$lik$lcdfFUN(worst.lower))
-  worst.upper = max((data$x - upper.grange) / data$s)
-  upper.p = 1 - exp(data$lik$lcdfFUN(worst.upper))
-
-  # In the +uniform case, the worst lower point is ignored because we can't
-  #   do anything about it.
-  if (length(g$a) > 1 && min(g$a) == max(g$a)) {
-    lower.p = 1
-  }
-  # And similarly for the -uniform case.
-  if (length(g$b) > 1 && min(g$b) == max(g$b)) {
-    upper.p = 1
-  }  
-  
-  worst.p = min(lower.p, upper.p)
-  
-  # The case where g is a single (null) component and the data comes from
-  #   the null model should pass with 95% probability.
-  n = length(data$x)
-  passes.sanity.check = (worst.p > 1 - 0.95^(1/n))
-  
-  return(passes.sanity.check)
-}
-
 # Constrain g within grange.
 # g: unimix, normalmix, or tnormalmix prior
 # prior: k-vector
-# grange: two-dimensional numeric vector indicating the left and right limit 
+# grange: two-dimensional numeric vector indicating the left and right limit
 #   of the prior g.
 constrain_mix = function(g, prior, grange, mixcompdist) {
   pi = g$pi
   if (inherits(g, "normalmix") || inherits(g, "tnormalmix")) {
     # Normal mixture priors always lie on (-Inf, Inf), so ignore grange.
     if (max(grange) < Inf | min(grange) > -Inf) {
-      warning("Can't constrain grange for normal/halfnormal mixture prior ", 
+      warning("Can't constrain grange for normal/halfnormal mixture prior ",
               "case.")
     }
   } else if (inherits(g, "unimix")) {
@@ -865,7 +809,7 @@ constrain_mix = function(g, prior, grange, mixcompdist) {
   } else {
     stop("constrain_mix does not recognize that prior type.")
   }
-  
+
   return(list(g = g, prior = prior))
 }
 
