@@ -97,11 +97,11 @@ mixSQP <- function (matrix_lik, prior, pi_init = NULL,
   if (is.null(weights))
     weights <- rep(1,n)
 
-  # It the initial estimate of the mixture weights is not provided,
+  # If the initial estimate of the mixture weights is not provided,
   # set to uniform.
   if (is.null(pi_init))
     pi_init <- rep(1,k)
-  
+
   # Add in observations corresponding to the prior.
   A <- rbind(diag(k),matrix_lik) 
   w <- c(prior - 1,weights)
@@ -111,11 +111,16 @@ mixSQP <- function (matrix_lik, prior, pi_init = NULL,
   # Fit the mixture weights using the mix-SQP algorithm.
   control0 <- list(verbose = FALSE)
   control  <- modifyList(control0,control,keep.null = TRUE)
-  out <- mixsqp::mixsqp(A,w,pi_init,control = control)
-  
+  out      <- mixsqp::mixsqp(A,w,pi_init,control = control)
+
   # Return the fitted mixture weights, and some other information
   # about the optimization step.
-  return(list(pihat     = out$x,
+  #
+  # Note that the mixture weights may not be normalized (i.e., they
+  # may not sum to 1) if the mix-SQP algorithm terminates prematurely,
+  # so to be extra cautious, the mix-SQP solution is normalized before
+  # returning it.
+  return(list(pihat     = out$x/sum(out$x),
               niter     = nrow(out$data),
               converged = (out$status == mixsqp.status.converged),
               control   = control))
