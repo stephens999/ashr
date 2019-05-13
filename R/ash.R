@@ -252,6 +252,9 @@ ash.workhorse <-
     if (method == "shrink"){pointmass =FALSE; prior="uniform"}
     if (method == "fdr"){pointmass =TRUE; prior= "nullbiased"}
   }
+  if(!is.numeric(prior)){
+    prior = match.arg(prior)
+  }
 
   ## Check to see whether df is Inf. If so, switch to NULL.
   if (length(df) > 1) {
