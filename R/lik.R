@@ -85,7 +85,7 @@ lik_pois = function(y, scale=1, link=c("identity","log")){
          lpdfFUN = function(x){dgamma(abs(x),shape=y+1,rate=scale,log=TRUE)-log(scale)},
          etruncFUN = function(a,b){-my_etruncgamma(-b,-a,y+1,scale)},
          e2truncFUN = function(a,b){my_e2truncgamma(-b,-a,y+1,scale)},
-         data=list(y=y,link=link))
+         data=list(y=y, scale=scale, link=link))
   }else if (link=="log"){
     y1 = y+1e-5 # add pseudocount
     list(name = "pois",
@@ -94,7 +94,7 @@ lik_pois = function(y, scale=1, link=c("identity","log")){
          lpdfFUN = function(x){dgamma(exp(-x),shape=y1,rate=scale,log=TRUE)-log(y1)},
          etruncFUN = function(a,b){-my_etruncgamma(exp(-b),exp(-a),y1,scale)},
          e2truncFUN = function(a,b){my_e2truncgamma(exp(-b),exp(-a),y1,scale)},
-         data=list(y=y,link=link))
+         data=list(y=y, scale=scale, link=link))
   }
 }
 

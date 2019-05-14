@@ -299,8 +299,9 @@ ash.workhorse <-
     # set range to search the mode
     if (lik$name=="pois"){
       if (lik$data$link=="identity"){
-        args$modemin = min(mode, min(lik$data$y),na.rm = TRUE)
-        args$modemax = max(mode, max(lik$data$y),na.rm = TRUE)
+        lam = lik$data$y / lik$data$scale
+        args$modemin = min(mode, min(lam), na.rm = TRUE)
+        args$modemax = max(mode, max(lam), na.rm = TRUE)
       }else if (lik$data$link=="log"){
         args$modemin = min(log(lik$data$y+0.01))
         args$modemax = max(log(lik$data$y+0.01))
