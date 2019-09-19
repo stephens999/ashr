@@ -24,7 +24,7 @@ ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
 \item{sebetahat}{a p vector of corresponding standard errors}
 
 \item{mixcompdist}{distribution of components in mixture used to represent the family G.
-Depending on the choice of mixture component, the family G becomes more or less flexible. 
+Depending on the choice of mixture component, the family G becomes more or less flexible.
 Options are:\cr
 \describe{
 \item{uniform}{G is (approximately) any symmetric unimodal distribution}
@@ -77,12 +77,12 @@ mixsd differ by one another. (Smaller values produce finer grids.)}
 numeric options: 0 = just fitted g; 1 = also PosteriorMean and
 PosteriorSD; 2 = everything usually needed; 3 = also include results
 of mixture fitting procedure (including matrix of log-likelihoods
-used to fit mixture). 4 and 5 are reserved for outputting additional 
-data required by the (in-development) flashr package. The user can 
+used to fit mixture). 4 and 5 are reserved for outputting additional
+data required by the (in-development) flashr package. The user can
 also specify the output they require in detail (see Examples).}
 
-\item{g}{The prior distribution for beta. Usually this is unspecified (NULL) and 
-estimated from the data. However, it can be used in conjuction with fixg=TRUE 
+\item{g}{The prior distribution for beta. Usually this is unspecified (NULL) and
+estimated from the data. However, it can be used in conjuction with fixg=TRUE
 to specify the g to use (e.g. useful in simulations to do computations with the "true" g).
 Or, if g is specified but fixg=FALSE, the g specifies the initial value of g used before optimization,
 (which also implicitly specifies mixcompdist).}
@@ -112,10 +112,10 @@ lik_normalmix); and Poisson likelihood (see function lik_pois).}
 \item{weights}{a vector of weights for observations; use with
 optmethod = "w_mixEM"; this is currently beta-functionality.}
 
-\item{pi_thresh}{a threshold below which to prune out mixture 
-components before computing summaries (speeds up computation since 
-empirically many components are usually assigned negligible 
-weight). The current implementation still returns the full fitted 
+\item{pi_thresh}{a threshold below which to prune out mixture
+components before computing summaries (speeds up computation since
+empirically many components are usually assigned negligible
+weight). The current implementation still returns the full fitted
 distribution; this only affects the posterior summaries.}
 }
 \value{
@@ -148,18 +148,18 @@ outputlevel) \cr
   and matrix of component log-likelihoods used in this optimization}
 }
 \description{
-Implements Empirical Bayes shrinkage and false discovery rate 
+Implements Empirical Bayes shrinkage and false discovery rate
 methods based on unimodal prior distributions.
 }
 \details{
 The ash function provides a number of ways to perform Empirical Bayes shrinkage
-estimation and false discovery rate estimation. The main assumption is that 
+estimation and false discovery rate estimation. The main assumption is that
 the underlying distribution of effects is unimodal. Novice users are recommended
 to start with the examples provided below.
 
 In the simplest case the inputs to ash are a vector of estimates (betahat)
 and their corresponding standard errors (sebetahat), and degrees of freedom (df).
-The method assumes that for some (unknown) "true" vector of effects beta, the statistic 
+The method assumes that for some (unknown) "true" vector of effects beta, the statistic
 (betahat[j]-beta[j])/sebetahat[j] has a $t$ distribution on $df$ degrees of freedom.
 (The default of df=NULL assumes a normal distribution instead of a t.)
 
@@ -167,10 +167,10 @@ By default the method estimates the vector beta under the assumption that beta ~
 g in G, where G is some unimodal family of distributions to be specified (see parameter \code{mixcompdist}).
 By default is to assume the mode is 0, and this is suitable for settings where you are interested in testing which beta[j]
 are non-zero. To estimate the mode see parameter \code{mode}.
- 
-As is standard in empirical Bayes methods, the fitting proceeds in two stages: 
-i) estimate g by maximizing a (possibly penalized) likelihood; 
-ii) compute the posterior distribution for each beta[j] | betahat[j],sebetahat[j] 
+
+As is standard in empirical Bayes methods, the fitting proceeds in two stages:
+i) estimate g by maximizing a (possibly penalized) likelihood;
+ii) compute the posterior distribution for each beta[j] | betahat[j],sebetahat[j]
 using the estimated g as the prior distribution.
 
 A more general case allows that beta[j]/sebetahat[j]^alpha | sebetahat[j] ~ g.
