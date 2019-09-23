@@ -19,5 +19,5 @@
 #' @export
 ash_pois = function(y, scale=1, link=c("identity","log"), ...){
   link = match.arg(link)
-  ash(rep(0,length(y)),1,lik=lik_pois(y,scale,link))
+  ash(rep(0,length(y)), 1, lik=lik_pois(y,scale,link), ...)
 }
