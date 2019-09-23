@@ -11,6 +11,7 @@
 #' @param y vector of Poisson observations.
 #' @param scale vector of scale factors for Poisson observations: the model is \eqn{y[j]~Pois(scale[j]*lambda[j])}.
 #' @param link string, either "identity" or "log", indicating the link function. 
+#' @param ... other parameters to be passed to ash
 #' 
 #' @examples 
 #'    beta = c(rep(0,50),rexp(50))

@@ -12,6 +12,8 @@ ash_pois(y, scale = 1, link = c("identity", "log"), ...)
 \item{scale}{vector of scale factors for Poisson observations: the model is \eqn{y[j]~Pois(scale[j]*lambda[j])}.}
 
 \item{link}{string, either "identity" or "log", indicating the link function.}
+
+\item{...}{other parameters to be passed to ash}
 }
 \description{
 Uses Empirical Bayes to fit the model \deqn{y_j | \lambda_j ~ Poi(c_j \lambda_j)} with \deqn{h(lambda_j) ~ g()}
