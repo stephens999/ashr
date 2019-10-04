@@ -302,12 +302,11 @@ ash.workhorse <-
     # set range to search the mode
     if (lik$name=="pois"){
       if (lik$data$link=="identity"){
-        lam = lik$data$y / lik$data$scale
-        args$modemin = min(mode, min(lam), na.rm = TRUE)
-        args$modemax = max(mode, max(lam), na.rm = TRUE)
+        args$modemin = min(mode, min(lik$data$y/lik$data$scale),na.rm = TRUE)
+        args$modemax = max(mode, max(lik$data$y/lik$data$scale),na.rm = TRUE)
       }else if (lik$data$link=="log"){
-        args$modemin = min(log(lik$data$y+0.01))
-        args$modemax = max(log(lik$data$y+0.01))
+        args$modemin = min(log(lik$data$y/lik$data$scale+0.01))
+        args$modemax = max(log(lik$data$y/lik$data$scale+0.01))
       }
     }else if(lik$name=="binom"){
       if (lik$data$link=="identity"){
@@ -323,8 +322,8 @@ ash.workhorse <-
       args$modemin = min(mode, min(betahat),na.rm = TRUE)
       args$modemax = max(mode, max(betahat),na.rm = TRUE)
     }
-    #args = as.list( match.call() )
-    mode = do.call(ash.estmode,args)}
+    mode = do.call(ash.estmode,args)
+  }
 
   ##1.Handling Input Parameters
   mixcompdist = match.arg(mixcompdist)
@@ -343,6 +342,7 @@ ash.workhorse <-
     stop("If fixg = TRUE then you must specify g!")
   }
 
+  
   if (!is.null(g)) {
     k = ncomp(g)
     null.comp = 1 # null.comp not actually used
@@ -379,7 +379,7 @@ ash.workhorse <-
     if (mixcompdist == "-uniform")
       g = unimix(pi, mode - mixsd, rep(mode, k))
     if (mixcompdist == "halfuniform") {
-      if (min(mixsd) > 0) {
+      if (min(mixsd) > 0) { #no point mass
         # Simply reflect the components.
         g = unimix(c(pi, pi) / 2,
                    c(mode - mixsd, rep(mode, k)),
@@ -395,7 +395,7 @@ ash.workhorse <-
       }
     }
     if (mixcompdist == "halfnormal") {
-      if (min(mixsd) > 0) {
+      if (min(mixsd) > 0) { #no point mass
         g = tnormalmix(c(pi, pi) / 2,
                        rep(mode, 2 * k),
                        c(mixsd, mixsd),
@@ -423,6 +423,7 @@ ash.workhorse <-
   if(!all(prior>=1) & optmethod != "mixVBEM"){
     stop("Error: prior must all be >=1 (unless using optmethod mixVBEM)")}
 
+  
   ##3. Fitting the mixture
   if(!fixg){
     pi.fit=estimate_mixprop(data,g,prior,optmethod=optmethod,control=control,weights=weights)
@@ -758,10 +759,15 @@ qval.from.lfdr = function(lfdr){
 # mult is the multiplier by which the sds differ across the grid
 # grange is the user-specified range of mixsd
 autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
-  if (data$lik$name %in% c("pois","binom")){
+  if (data$lik$name %in% c("pois")){
+    data$x = data$lik$data$y/data$lik$data$scale #estimate of lambda
+    data$s = sqrt(data$x)/data$lik$data$scale #standard error of estimate
+    # if the link is log we probably want to take the log of this?
+  }
+  if (data$lik$name %in% c("binom")){
     data$x = data$lik$data$y
   }
-
+  
   betahat = data$x - mode
   sebetahat = data$s
   exclude = get_exclusions(data)
