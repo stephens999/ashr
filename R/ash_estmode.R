@@ -6,6 +6,6 @@ ash.estmode = function(betahat, modemin, modemax, ...){
   }
   opt = stats::optimize(opt.fn, 
                         interval = c(modemin, modemax),
-                        tol = (modemax - modemin) * .Machine$double.eps^0.25)
+                        tol = abs(modemax - modemin) * .Machine$double.eps^0.25)
   return(opt$minimum)
 }
