@@ -14,9 +14,6 @@ library(devtools)
 install_github("stephens999/ashr")
 ```
 
-To use the interior-point solver (`optmethod = "mixIP"`), you need to
-install [MOSEK](http://www.mosek.com/products/mosek) and the 
-[Rmosek package](https://www.mosek.com/documentation).
 
 ## Running Adaptive Shrinkage
 
