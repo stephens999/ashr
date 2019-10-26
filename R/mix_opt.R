@@ -105,7 +105,7 @@ mixSQP <- function (matrix_lik, prior, pi_init = NULL,
   # Add in observations corresponding to the prior.
   A <- rbind(diag(k),matrix_lik) 
   w <- c(prior - 1,weights)
-  A <- A[w != 0,]
+  A <- A[w != 0,,drop=FALSE]
   w <- w[w != 0]
 
   # Fit the mixture weights using the mix-SQP algorithm.
