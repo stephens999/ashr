@@ -753,16 +753,23 @@ qval.from.lfdr = function(lfdr){
   return(qvalue)
 }
 
-# try to select a default range for the sigmaa values
+# try to select a default range for the sigma values
 # that should be used, based on the values of betahat and sebetahat
 # mode is the location about which inference is going to be centered
 # mult is the multiplier by which the sds differ across the grid
 # grange is the user-specified range of mixsd
 autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
   if (data$lik$name %in% c("pois")){
-    data$x = data$lik$data$y/data$lik$data$scale #estimate of lambda
-    data$s = sqrt(data$x)/data$lik$data$scale #standard error of estimate
-    # if the link is log we probably want to take the log of this?
+    lam = data$lik$data$y / data$lik$data$scale
+    if (data$lik$data$link == "identity"){
+      data$x = lam
+      data$s = sqrt(data$x) / data$lik$data$scale
+    }
+    else {
+      eps = 1 / mean(data$lik$data$scale)
+      data$x = log(lam + eps)
+      data$s = sqrt(var(lam) / (lam + eps)^2)
+    }
   }
   if (data$lik$name %in% c("binom")){
     data$x = data$lik$data$y
