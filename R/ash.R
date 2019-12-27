@@ -301,12 +301,16 @@ ash.workhorse <-
 
     # set range to search the mode
     if (lik$name=="pois"){
+      lam = lik$data$y / lik$data$scale
       if (lik$data$link=="identity"){
-        args$modemin = min(mode, min(lik$data$y/lik$data$scale),na.rm = TRUE)
-        args$modemax = max(mode, max(lik$data$y/lik$data$scale),na.rm = TRUE)
-      }else if (lik$data$link=="log"){
-        args$modemin = min(log(lik$data$y/lik$data$scale+0.01))
-        args$modemax = max(log(lik$data$y/lik$data$scale+0.01))
+        args$modemin = min(mode, min(lam), na.rm = TRUE)
+        args$modemax = max(mode, max(lam), na.rm = TRUE)
+      }
+      else if (lik$data$link=="log"){
+        eps = 1 / mean(lik$data$scale)
+        log_lam = log(lam + eps)
+        args$modemin = min(log_lam)
+        args$modemax = max(log_lam)
       }
     }else if(lik$name=="binom"){
       if (lik$data$link=="identity"){

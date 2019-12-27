@@ -77,7 +77,7 @@ test_that("lik_pois (log link) fitted mode is close to true mode",{
   expect_equal(ash.pois.out$fitted_g$a[1], truemode, tolerance = 0.05, scale=truemode)
 })
 
-test_that("Mode estimation for pois_lik finds an acceptable solution", {
+test_that("Mode estimation for lik_pois finds an acceptable solution", {
   set.seed(1)
   ## Load example 10X Genomics data
   dat = readRDS("test_pois_data.Rds")
@@ -85,4 +85,20 @@ test_that("Mode estimation for pois_lik finds an acceptable solution", {
   lam = dat$x / dat$scale
   m1 = ashr::ash(rep(0, nrow(dat)), 1, lik=ashr::lik_pois(dat$x, scale=dat$scale, link="identity"), mode=c(min(lam), max(lam)))
   expect_equal(m0$loglik, m1$loglik, tolerance=1, scale=1)
+})
+
+test_that("Mode estimation for lik_pois gives same answer under identity and log link", {
+  set.seed(1)
+  ## Typical values for scRNA-seq data from Sarkar et al. 2019
+  s = 1e5
+  log_mu = runif(n=1, min=-12, max=-8)
+  log_phi = runif(n=1, min=-6, max=0)
+  N = 1000
+  lam = rgamma(n=N, shape=exp(-log_phi), scale=exp(log_mu + log_phi))
+  x = rpois(n=N, lambda=s * lam)
+  dat = data.frame(cbind(x, s))
+  fit0 = ashr::ash_pois(dat$x, dat$s, link="identity", mixcompdist="halfuniform")
+  fit1 = ashr::ash_pois(dat$x, dat$s, link="log", mixcompdist="halfuniform")
+  expect_equal(fit0$loglik, fit1$loglik, tolerance=1e-2, scale=1)
+  expect_equal(fit0$fitted_g$a[1], exp(fit1$fitted_g$a[1]), tolerance=1e-6, scale=1)
 })
