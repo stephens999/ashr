@@ -58,7 +58,7 @@ lik_logF = function(df1,df2){
 #' @details Suppose we have Poisson observations \code{y} where \eqn{y_i\sim Poisson(c_i\lambda_i)}. 
 #'    We either put an unimodal prior g on the (scaled) intensities \eqn{\lambda_i\sim g} 
 #'    (by specifying \code{link="identity"}) or on the log intensities 
-#'    \eqn{logit(\lambda_i)\sim g} (by specifying \code{link="log"}). Either way, 
+#'    \eqn{log(\lambda_i)\sim g} (by specifying \code{link="log"}). Either way, 
 #'    ASH with this Poisson likelihood function will compute the posterior mean of the 
 #'    intensities \eqn{\lambda_i}.
 #' @param y Poisson observations.
@@ -81,17 +81,26 @@ lik_pois = function(y, scale=1, link=c("identity","log")){
   if (link=="identity"){
     list(name = "pois",
          const = TRUE,
+         ## Important: in comp_dens_conv, this will be called like
+         ##
+         ## lcdfFUN((data$x - a) / data$s)
+         ##
+         ## where data is an ash data object with data$x = 0 and data$s =
+         ## 1. Therefore, we need to take absolute values
          lcdfFUN = function(x){pgamma(abs(x),shape=y+1,rate=scale,log.p=TRUE)-log(scale)},
          lpdfFUN = function(x){dgamma(abs(x),shape=y+1,rate=scale,log=TRUE)-log(scale)},
          etruncFUN = function(a,b){-my_etruncgamma(-b,-a,y+1,scale)},
          e2truncFUN = function(a,b){my_e2truncgamma(-b,-a,y+1,scale)},
          data=list(y=y, scale=scale, link=link))
-  }else if (link=="log"){
+  }
+  else if (link=="log"){
     y1 = y+1e-5 # add pseudocount
     list(name = "pois",
          const = TRUE,
+         ## comp_dens_conv calls this with negative of the expected arguments
          lcdfFUN = function(x){pgamma(exp(-x),shape=y1,rate=scale,log.p=TRUE)-log(y1)},
-         lpdfFUN = function(x){dgamma(exp(-x),shape=y1,rate=scale,log=TRUE)-log(y1)},
+         ## This is PMF marginalizing over a point mass on x
+         lpdfFUN = function(x){dpois(y, exp(-x), log=TRUE)},
          etruncFUN = function(a,b){-my_etruncgamma(exp(-b),exp(-a),y1,scale)},
          e2truncFUN = function(a,b){my_e2truncgamma(exp(-b),exp(-a),y1,scale)},
          data=list(y=y, scale=scale, link=link))

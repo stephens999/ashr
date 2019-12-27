@@ -30,6 +30,86 @@ test_that("general likelihood with multiple df works", {
   
   data =set_data(betahat,s,lik = lik_t(df),alpha=0)
   expect_equal(calc_null_loglik(data),sum(dt(betahat/s,df=df,log=TRUE)-log(s)))
-  
+})
 
+test_that("Poisson (identity link) marginal PMF is correct", {
+  y = seq(0, 100)
+  g = unimix(1, .1, .2)
+  lik = lik_pois(y=y, link="identity")
+  data = set_data(rep(0, length(y)), 1, lik)
+  py = drop(comp_dens_conv(g, data))
+  true_py = unlist(lapply(y, function (z) {integrate(function(lam) {dpois(z, lam)}, g$a[1], g$b[1])$value / (g$b[1] - g$a[1])}))
+  expect_equal(py, true_py)
+})
+
+test_that("Poisson (identity link) marginal PMF for point mass is correct", {
+  y = seq(0, 100)
+  g = unimix(1, .1, .1)
+  lik = lik_pois(y=y, link="identity")
+  data = set_data(rep(0, length(y)), 1, lik)
+  py = drop(comp_dens_conv(g, data))
+  true_py = unlist(lapply(y, function(x) {dpois(x, g$a[1])}))
+  expect_equal(py, true_py)
+})
+
+test_that("Poisson (identity link) marginal PMF is correct with scale factors", {
+  y = seq(0, 100)
+  s = 100
+  g = unimix(1, 1e-3, 2e-3)
+  lik = lik_pois(y=y, scale=s, link="identity")
+  data = set_data(rep(0, length(y)), 1, lik)
+  py = drop(comp_dens_conv(g, data))
+  true_py = unlist(lapply(y, function (z) {integrate(function(lam) {dpois(z, s * lam)}, g$a[1], g$b[1])$value / (g$b[1] - g$a[1])}))
+  expect_equal(py, true_py, tolerance=1e-5, scale=1)
+})
+
+test_that("Poisson (log link) marginal PMF is correct", {
+  y = seq(0, 100)
+  g = unimix(1, log(.1), log(.2))
+  lik = lik_pois(y=y, link="log")
+  data = set_data(rep(0, length(y)), 1, lik)
+  py = drop(comp_dens_conv(g, data))
+  true_py = unlist(lapply(y, function (z) {integrate(function(log_lam) {dpois(z, exp(log_lam))}, g$a[1], g$b[1])$value / (g$b[1] - g$a[1])}))
+  expect_equal(py, true_py, tolerance=1e-5, scale=1)
+})
+
+test_that("Poisson (log link) marginal PMF for point mass is correct", {
+  y = seq(0, 100)
+  g = unimix(1, log(.1), log(.1))
+  lik = lik_pois(y=y, link="log")
+  data = set_data(rep(0, length(y)), 1, lik)
+  py = drop(comp_dens_conv(g, data))
+  true_py = unlist(lapply(y, function(x) {dpois(x, exp(g$a[1]))}))
+  expect_equal(py, true_py)
+})
+
+test_that("Poisson (log link) marginal PMF is correct with scale factors", {
+  y = seq(0, 100)
+  s = 100
+  g = unimix(1, log(1e-3), log(2e-3))
+  lik = lik_pois(y=y, scale=s, link="log")
+  data = set_data(rep(0, length(y)), 1, lik)
+  py = drop(comp_dens_conv(g, data))
+  true_py = unlist(lapply(y, function (z) {integrate(function(log_lam) {dpois(z, s * exp(log_lam))}, g$a[1], g$b[1])$value / (g$b[1] - g$a[1])}))
+  expect_equal(py, true_py, tolerance=1e-5, scale=1)
+})
+
+test_that("Poisson (identity link) returns sensible marginal PMF on real data", {
+  skip("save time")
+  dat = readRDS("test_pois_data.Rds")
+  fit <- ash_pois(dat$x, dat$scale, link="identity", mixcompdist="halfuniform")
+  F = comp_dens_conv(fit$fitted_g, fit$data)
+  expect_true(all(F < 1))
+})
+
+test_that("Poisson (log link) returns sensible marginal PMF on real data", {
+  dat = readRDS("test_pois_data.Rds")
+  lam <- dat$x / dat$scale
+  eps = 1 / mean(dat$scale)
+  log_lam <- log(lam + eps)
+  se_log_lam <- sqrt(var(lam) / (lam + eps)^2)
+  mixsd <- seq(.1 * min(se_log_lam), max(2 * sqrt(log_lam^2 - se_log_lam^2)), by=.5 * log(2))
+  fit <- ash_pois(dat$x, dat$scale, link="log", mixcompdist="halfuniform", mixsd=mixsd)
+  F = comp_dens_conv(fit$fitted_g, fit$data)
+  expect_true(all(F < 1))
 })

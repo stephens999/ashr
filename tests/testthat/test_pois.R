@@ -78,11 +78,11 @@ test_that("lik_pois (log link) fitted mode is close to true mode",{
 })
 
 test_that("Mode estimation for pois_lik finds an acceptable solution", {
-    set.seed(1)
-    # Load example 10X Genomics data
-    dat = readRDS("test_pois_data.Rds")
-    m0 = ashr::ash(rep(0, nrow(dat)), 1, lik=ashr::lik_pois(dat$x, scale=dat$scale, link="identity"), mode="estimate")
-    lam = dat$x / dat$scale
-    m1 = ashr::ash(rep(0, nrow(dat)), 1, lik=ashr::lik_pois(dat$x, scale=dat$scale, link="identity"), mode=c(min(lam), max(lam)))
-    expect_equal(m0$loglik, m1$loglik, tolerance=1, scale=1)
+  set.seed(1)
+  ## Load example 10X Genomics data
+  dat = readRDS("test_pois_data.Rds")
+  m0 = ashr::ash(rep(0, nrow(dat)), 1, lik=ashr::lik_pois(dat$x, scale=dat$scale, link="identity"), mode="estimate")
+  lam = dat$x / dat$scale
+  m1 = ashr::ash(rep(0, nrow(dat)), 1, lik=ashr::lik_pois(dat$x, scale=dat$scale, link="identity"), mode=c(min(lam), max(lam)))
+  expect_equal(m0$loglik, m1$loglik, tolerance=1, scale=1)
 })
