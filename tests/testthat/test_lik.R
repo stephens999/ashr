@@ -94,6 +94,21 @@ test_that("Poisson (log link) marginal PMF is correct with scale factors", {
   expect_equal(py, true_py, tolerance=1e-5, scale=1)
 })
 
+test_that("ln p(x = 0 | s) is correct for Poisson likelihood (log link)", {
+  s = 10 ^ seq(log10(1e3), log10(1e6), .1)
+  y = rep(0, length(s))
+  g = unimix(1, log(1e-3), log(2e-3))
+  lik = lik_pois(y=y, scale=s, link="log")
+  data = set_data(rep(0, length(y)), 1, lik)
+  log_py = drop(log(comp_dens_conv(g, data)))
+  true_log_py = log(unlist(lapply(s, function (z) {integrate(function(log_lam) {dpois(0, z * exp(log_lam))}, g$a[1], g$b[1])$value / (g$b[1] - g$a[1])})))
+  ## Work around a recent bug comparing Inf (called from expect_equal)
+  ##
+  ## https://github.com/r-lib/testthat/issues/789
+  ## https://github.com/r-lib/testthat/commit/992ddd82fd7b6f1fdc5bb66c31db94277f3df126
+  expect_true(all((true_log_py == log_py | abs(true_log_py - log_py) < 1e-5)))
+})
+
 test_that("Poisson (identity link) returns sensible marginal PMF on real data", {
   skip("save time")
   dat = readRDS("test_pois_data.Rds")
