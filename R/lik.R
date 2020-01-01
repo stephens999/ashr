@@ -89,6 +89,11 @@ lik_pois = function(y, scale=1, link=c("identity","log")){
          ## 1. Therefore, we need to take absolute values
          lcdfFUN = function(x){pgamma(abs(x),shape=y+1,rate=scale,log.p=TRUE)-log(scale)},
          lpdfFUN = function(x){dgamma(abs(x),shape=y+1,rate=scale,log=TRUE)-log(scale)},
+         ## Important: in comp_postmean, this will be called like
+         ##
+         ## x - s * do.call(lik$etruncFUN, list(alpha, beta))
+         ##
+         ## so we need to return the negative
          etruncFUN = function(a,b){-my_etruncgamma(-b,-a,y+1,scale)},
          e2truncFUN = function(a,b){my_e2truncgamma(-b,-a,y+1,scale)},
          data=list(y=y, scale=scale, link=link))
