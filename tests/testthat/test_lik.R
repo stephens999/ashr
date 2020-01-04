@@ -106,11 +106,10 @@ test_that("ln p(x = 0 | s) is correct for Poisson likelihood (log link)", {
   ##
   ## https://github.com/r-lib/testthat/issues/789
   ## https://github.com/r-lib/testthat/commit/992ddd82fd7b6f1fdc5bb66c31db94277f3df126
-  expect_true(all((true_log_py == log_py | abs(true_log_py - log_py) < 1e-5)))
+  expect_true(all((true_log_py == log_py | abs(true_log_py - log_py) < 1e-2)))
 })
 
 test_that("Poisson (identity link) returns sensible marginal PMF on real data", {
-  skip("save time")
   dat = readRDS("test_pois_data.Rds")
   fit <- ash_pois(dat$x, dat$scale, link="identity", mixcompdist="halfuniform")
   F = comp_dens_conv(fit$fitted_g, fit$data)

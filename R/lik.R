@@ -81,15 +81,15 @@ lik_pois = function(y, scale=1, link=c("identity","log")){
   if (link=="identity"){
     list(name = "pois",
          const = TRUE,
-         ## Important: in comp_dens_conv, this will be called like
+         ## log_comp_dens_conv.unimix calls this like
          ##
          ## lcdfFUN((data$x - a) / data$s)
          ##
-         ## where data is an ash data object with data$x = 0 and data$s =
-         ## 1. Therefore, we need to take absolute values
+         ## where data is an ash data object with data$x = 0 and data$s = 1, so
+         ## we need to take absolute values
          lcdfFUN = function(x){pgamma(abs(x),shape=y+1,rate=scale,log.p=TRUE)-log(scale)},
          lpdfFUN = function(x){dgamma(abs(x),shape=y+1,rate=scale,log=TRUE)-log(scale)},
-         ## Important: in comp_postmean, this will be called like
+         ## comp_postmean.unimix calls this like
          ##
          ## x - s * do.call(lik$etruncFUN, list(alpha, beta))
          ##
@@ -99,15 +99,12 @@ lik_pois = function(y, scale=1, link=c("identity","log")){
          data=list(y=y, scale=scale, link=link))
   }
   else if (link=="log"){
-    y1 = y+1e-5 # add pseudocount
     list(name = "pois",
          const = TRUE,
-         ## comp_dens_conv calls this with negative of the expected arguments
-         lcdfFUN = function(x){pgamma(exp(-x),shape=y1,rate=scale,log.p=TRUE)-log(y1)},
-         ## This is PMF marginalizing over a point mass on x
+         lcdfFUN = function(x) {log(expint::gammainc(y, scale * exp(-x))) - lgamma(y + 1)},
          lpdfFUN = function(x){dpois(y, exp(-x), log=TRUE)},
-         etruncFUN = function(a,b){-my_etruncgamma(exp(-b),exp(-a),y1,scale)},
-         e2truncFUN = function(a,b){my_e2truncgamma(exp(-b),exp(-a),y1,scale)},
+         etruncFUN = function(a,b){-my_etruncgamma(exp(-b),exp(-a),y,scale)},
+         e2truncFUN = function(a,b){my_e2truncgamma(exp(-b),exp(-a),y,scale)},
          data=list(y=y, scale=scale, link=link))
   }
 }
