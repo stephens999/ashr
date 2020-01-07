@@ -43,7 +43,8 @@ Imports:
     pscl,
     Rcpp (>= 0.10.5),
     foreach,
-    etrunct
+    etrunct,
+    expint
 LinkingTo: Rcpp
 Suggests:
     testthat,
