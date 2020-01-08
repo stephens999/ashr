@@ -57,6 +57,7 @@ comp_dens_conv.unimix = function(m,data){
 }
 
 #' log density of convolution of each component of a unif mixture 
+#'
 #' @inheritParams comp_dens_conv.unimix
 #' @return a k by n matrix of densities
 log_comp_dens_conv.unimix = function(m,data){
@@ -74,8 +75,12 @@ log_comp_dens_conv.unimix = function(m,data){
   }
    
   lcomp_dens = t(lpa + log(1-exp(lpb-lpa))) - log(b-a)
+  # Handle the case lpa = -Inf, lpb = -Inf, lpb - lpa = NaN. This can happen
+  # for Poisson likelihood with log link
+  lcomp_dens[lpa == -Inf & lpb == -Inf] = -Inf
   lcomp_dens[a==b,] = t(do.call(lik$lpdfFUN, list(outer(data$x,b,FUN="-")/data$s))
                        -log(data$s))[a==b,]
+
   return(lcomp_dens)
 }
 

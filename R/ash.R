@@ -301,12 +301,16 @@ ash.workhorse <-
 
     # set range to search the mode
     if (lik$name=="pois"){
+      lam = lik$data$y / lik$data$scale
       if (lik$data$link=="identity"){
-        args$modemin = min(mode, min(lik$data$y/lik$data$scale),na.rm = TRUE)
-        args$modemax = max(mode, max(lik$data$y/lik$data$scale),na.rm = TRUE)
-      }else if (lik$data$link=="log"){
-        args$modemin = min(log(lik$data$y/lik$data$scale+0.01))
-        args$modemax = max(log(lik$data$y/lik$data$scale+0.01))
+        args$modemin = min(mode, min(lam), na.rm = TRUE)
+        args$modemax = max(mode, max(lam), na.rm = TRUE)
+      }
+      else if (lik$data$link=="log"){
+        eps = 1 / mean(lik$data$scale)
+        log_lam = log(lam + eps)
+        args$modemin = min(log_lam)
+        args$modemax = max(log_lam)
       }
     }else if(lik$name=="binom"){
       if (lik$data$link=="identity"){
@@ -753,16 +757,23 @@ qval.from.lfdr = function(lfdr){
   return(qvalue)
 }
 
-# try to select a default range for the sigmaa values
+# try to select a default range for the sigma values
 # that should be used, based on the values of betahat and sebetahat
 # mode is the location about which inference is going to be centered
 # mult is the multiplier by which the sds differ across the grid
 # grange is the user-specified range of mixsd
 autoselect.mixsd = function(data,mult,mode,grange,mixcompdist){
   if (data$lik$name %in% c("pois")){
-    data$x = data$lik$data$y/data$lik$data$scale #estimate of lambda
-    data$s = sqrt(data$x)/data$lik$data$scale #standard error of estimate
-    # if the link is log we probably want to take the log of this?
+    lam = data$lik$data$y / data$lik$data$scale
+    if (data$lik$data$link == "identity"){
+      data$x = lam
+      data$s = sqrt(data$x) / data$lik$data$scale
+    }
+    else {
+      eps = 1 / mean(data$lik$data$scale)
+      data$x = log(lam + eps)
+      data$s = sqrt(var(lam) / (lam + eps)^2)
+    }
   }
   if (data$lik$name %in% c("binom")){
     data$x = data$lik$data$y
