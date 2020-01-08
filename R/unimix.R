@@ -58,7 +58,6 @@ comp_dens_conv.unimix = function(m,data){
 
 #' log density of convolution of each component of a unif mixture 
 #'
-#' @importFrom expint expint_Ei
 #' @inheritParams comp_dens_conv.unimix
 #' @return a k by n matrix of densities
 log_comp_dens_conv.unimix = function(m,data){

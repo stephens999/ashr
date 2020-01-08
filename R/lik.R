@@ -73,6 +73,7 @@ lik_logF = function(df1,df2){
 #'
 #' @importFrom stats pgamma
 #' @importFrom stats dgamma
+#' @importFrom expint gammainc
 #' 
 #' @export
 #'
