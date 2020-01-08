@@ -55,9 +55,9 @@ test_that("Mode estimation for lik_pois finds an acceptable solution", {
   set.seed(1)
   ## Load example 10X Genomics data
   dat = readRDS("test_pois_data.Rds")
-  m0 = ashr::ash(rep(0, nrow(dat)), 1, lik=ashr::lik_pois(dat$x, scale=dat$scale, link="identity"), mode="estimate")
+  m0 = ash_pois(dat$x, dat$scale, mode="estimate")
   lam = dat$x / dat$scale
-  m1 = ashr::ash(rep(0, nrow(dat)), 1, lik=ashr::lik_pois(dat$x, scale=dat$scale, link="identity"), mode=c(min(lam), max(lam)))
+  m1 = ash_pois(dat$x, dat$scale, mode=c(min(lam), max(lam)))
   expect_equal(m0$loglik, m1$loglik, tolerance=1, scale=1)
 })
 
@@ -71,8 +71,8 @@ test_that("Mode estimation for lik_pois gives same answer under identity and log
   lam = rgamma(n=N, shape=exp(-log_phi), scale=exp(log_mu + log_phi))
   x = rpois(n=N, lambda=s * lam)
   dat = data.frame(cbind(x, s))
-  fit0 = ashr::ash_pois(dat$x, dat$s, link="identity", mixcompdist="halfuniform")
-  fit1 = ashr::ash_pois(dat$x, dat$s, link="log", mixcompdist="halfuniform")
+  fit0 = ash_pois(dat$x, dat$s, link="identity", mixcompdist="halfuniform")
+  fit1 = ash_pois(dat$x, dat$s, link="log", mixcompdist="halfuniform")
   expect_equal(fit0$loglik, fit1$loglik, tolerance=1e-2, scale=1)
   expect_equal(fit0$fitted_g$a[1], exp(fit1$fitted_g$a[1]), tolerance=1e-6, scale=1)
 })
