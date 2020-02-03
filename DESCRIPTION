@@ -27,7 +27,7 @@ Description: The R package 'ashr' implements an Empirical Bayes
     provided: ash(), which is more user-friendly; and ash.workhorse(),
     which has more options and is geared toward advanced users. The
     ash() and ash.workhorse() also provides a flexible modeling
-    interface that can accomodate a variety of likelihoods (e.g.,
+    interface that can accommodate a variety of likelihoods (e.g.,
     normal, Poisson) and mixture priors (e.g., uniform, normal).
 Depends:
     R (>= 3.1.0)
