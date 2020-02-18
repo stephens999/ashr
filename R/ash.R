@@ -369,6 +369,10 @@ ash.workhorse <-
     k = length(mixsd)
     prior = setprior(prior, k, nullweight, null.comp)
     pi = initpi(k, length(data$x), null.comp)
+    if(optmethod=="mixSQP"){ # we found that using a constant initialization for mixSQP works better than
+      #initpi, which was aimed at initializing EM algorithm
+      pi = rep(1,k)
+    }
 
     if (mixcompdist == "normal")
       g = normalmix(pi, rep(mode, k), mixsd)
