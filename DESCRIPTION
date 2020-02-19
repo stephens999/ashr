@@ -41,13 +41,13 @@ Imports:
     SQUAREM,
     etrunct,
     invgamma
-LinkingTo: Rcpp
 Suggests:
     testthat,
     knitr,
     rmarkdown,
     ggplot2,
     REBayes
+LinkingTo: Rcpp
 License: GPL (>=3)
 NeedsCompilation: yes
 LazyData: true

@@ -1,4 +1,5 @@
 context("ashr optimization algorithms")
+source("helper_functions.R")
 
 test_that("control is passed to optmethod correctly when method is mixIP", {
   skip_if_mixkwdual_doesnt_work()

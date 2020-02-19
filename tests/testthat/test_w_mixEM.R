@@ -1,4 +1,5 @@
 context("ashr with weighted samples")
+source("helper_functions.R")
 
 test_that("optimization with weights matches expectations", {
   set.seed(1)
