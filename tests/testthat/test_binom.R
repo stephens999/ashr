@@ -75,11 +75,12 @@ test_that("lik_binom (logit link) fitted g is close to true g",{
 })
 
 test_that("lik_binom (logit link) fitted g is close to true g",{
+    
   # Simulate a Binomial dataset
   set.seed(1)
   truemode = 0
   logitp = c(rep(0,800), runif(200,-3,3))
-  p = 1/(1+exp(-logitp))
+  p = 1/(1 + exp(-logitp))
   n = rep(100,1000)
   x = rbinom(1000,n,p) # Binomial observations
   ash.binom.out = ash(rep(0,length(x)),1,lik=lik_binom(x,n,link="logit"),

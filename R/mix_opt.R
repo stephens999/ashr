@@ -109,7 +109,9 @@ mixSQP <- function (matrix_lik, prior, pi_init = NULL,
   w <- w[w != 0]
 
   # Fit the mixture weights using the mix-SQP algorithm.
-  control0 <- list(verbose = FALSE)
+  control0 <- list(verbose    = FALSE,
+                   eps        = 1e-6,
+                   numiter.em = 20)
   control  <- modifyList(control0,control,keep.null = TRUE)
   out      <- mixsqp::mixsqp(A,w,pi_init,control = control)
   
