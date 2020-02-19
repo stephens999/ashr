@@ -112,7 +112,7 @@ mixSQP <- function (matrix_lik, prior, pi_init = NULL,
   control0 <- list(verbose = FALSE)
   control  <- modifyList(control0,control,keep.null = TRUE)
   out      <- mixsqp::mixsqp(A,w,pi_init,control = control)
-
+  
   # Return the fitted mixture weights, and some other information
   # about the optimization step.
   #

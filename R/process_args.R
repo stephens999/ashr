@@ -12,8 +12,10 @@ set_optmethod = function(optmethod){
     }
   }
   
-  if (optmethod == "mixIP")
-    assertthat::assert_that(requireNamespace("REBayes", quietly = TRUE))
+  if (optmethod == "mixIP") {
+    if (!requireNamespace("REBayes",quietly = TRUE))
+      stop("optmethod = \"mixIP\" requires package REBayes")
+  }
   return(optmethod)
 }
 

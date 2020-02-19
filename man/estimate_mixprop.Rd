@@ -4,9 +4,14 @@
 \alias{estimate_mixprop}
 \title{Estimate mixture proportions of a mixture g given noisy (error-prone) data from that mixture.}
 \usage{
-estimate_mixprop(data, g, prior, optmethod = c("mixSQP", "mixEM",
-  "mixVBEM", "cxxMixSquarem", "mixIP", "w_mixEM"), control,
-  weights = NULL)
+estimate_mixprop(
+  data,
+  g,
+  prior,
+  optmethod = c("mixSQP", "mixEM", "mixVBEM", "cxxMixSquarem", "mixIP", "w_mixEM"),
+  control,
+  weights = NULL
+)
 }
 \arguments{
 \item{data}{list to be passed to log_comp_dens_conv; details depend on model}

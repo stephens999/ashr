@@ -4,8 +4,7 @@
 \alias{w_mixEM}
 \title{Estimate mixture proportions of a mixture model by EM algorithm (weighted version)}
 \usage{
-w_mixEM(matrix_lik, prior, pi_init = NULL, weights = NULL,
-  control = list())
+w_mixEM(matrix_lik, prior, pi_init = NULL, weights = NULL, control = list())
 }
 \arguments{
 \item{matrix_lik, }{a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.}

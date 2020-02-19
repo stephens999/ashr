@@ -5,18 +5,39 @@
 \alias{ash.workhorse}
 \title{Adaptive Shrinkage}
 \usage{
-ash(betahat, sebetahat, mixcompdist = c("uniform", "halfuniform",
-  "normal", "+uniform", "-uniform", "halfnormal"), df = NULL, ...)
+ash(
+  betahat,
+  sebetahat,
+  mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform",
+    "halfnormal"),
+  df = NULL,
+  ...
+)
 
-ash.workhorse(betahat, sebetahat, method = c("fdr", "shrink"),
-  mixcompdist = c("uniform", "halfuniform", "normal", "+uniform",
-  "-uniform", "halfnormal"), optmethod = c("mixSQP", "mixIP",
-  "cxxMixSquarem", "mixEM", "mixVBEM", "w_mixEM"), df = NULL,
-  nullweight = 10, pointmass = TRUE, prior = c("nullbiased",
-  "uniform", "unit"), mixsd = NULL, gridmult = sqrt(2),
-  outputlevel = 2, g = NULL, fixg = FALSE, mode = 0, alpha = 0,
-  grange = c(-Inf, Inf), control = list(), lik = NULL,
-  weights = NULL, pi_thresh = 1e-10)
+ash.workhorse(
+  betahat,
+  sebetahat,
+  method = c("fdr", "shrink"),
+  mixcompdist = c("uniform", "halfuniform", "normal", "+uniform", "-uniform",
+    "halfnormal"),
+  optmethod = c("mixSQP", "mixIP", "cxxMixSquarem", "mixEM", "mixVBEM", "w_mixEM"),
+  df = NULL,
+  nullweight = 10,
+  pointmass = TRUE,
+  prior = c("nullbiased", "uniform", "unit"),
+  mixsd = NULL,
+  gridmult = sqrt(2),
+  outputlevel = 2,
+  g = NULL,
+  fixg = FALSE,
+  mode = 0,
+  alpha = 0,
+  grange = c(-Inf, Inf),
+  control = list(),
+  lik = NULL,
+  weights = NULL,
+  pi_thresh = 1e-10
+)
 }
 \arguments{
 \item{betahat}{a p vector of estimates}

@@ -55,20 +55,25 @@ comp_dens_conv.igmix = function(m,data,FUN="+"){
   
 }
 
+#' @importFrom invgamma pinvgamma
+#' 
 #' @export
+#' 
 comp_cdf.igmix = function(m,y,lower.tail=TRUE){
-  vapply(y,pigamma,m$alpha,m$alpha,m$beta,lower.tail)
+  vapply(y,pinvgamma,m$alpha,m$alpha,m$beta,lower.tail)
 }
 
-
+#' @importFrom invgamma pinvgamma
+#'
 #' @export
+#' 
 comp_cdf_post.igmix=function(m,c,data){
   #compute posterior shape (alpha1) and rate (beta1)
   alpha1 = m$alpha+data$v/2
   beta1 = outer(m$beta,data$v/2*data$s^2,FUN="+")
   ismissing = is.na(data$s)
   beta1[,ismissing]=m$beta
-  return(t(pigamma(c,alpha1,beta1)))
+  return(t(pinvgamma(c,alpha1,beta1)))
 }
 
 
@@ -92,12 +97,15 @@ comp_postsd.igmix = function(m,data){
   return(t(beta1/(alpha1-1)/sqrt(alpha1-2)))
 }
 
+#' @importFrom invgamma dinvgamma
+#' 
 #' @export
+#' 
 comp_dens.igmix = function(m,y,log=FALSE){
   k=ncomp(m)
   n=length(y)
   d = matrix(rep(y,rep(k,n)),nrow=k)
-  ig_dens=matrix(densigamma(d, m$alpha, m$beta),nrow=k)
+  ig_dens=matrix(dinvgamma(d, m$alpha, m$beta),nrow=k)
   if(log==TRUE){ig_dens=log(ig_dens)}
   return(ig_dens)
 }

@@ -4,9 +4,18 @@
 \alias{plot_diagnostic}
 \title{Diagnostic plots for ash object}
 \usage{
-plot_diagnostic(x, plot.it = TRUE, sebetahat.tol = 0.001, plot.hist,
-  xmin, xmax, breaks = "Sturges", alpha = 0.01, pch = 19,
-  cex = 0.25)
+plot_diagnostic(
+  x,
+  plot.it = TRUE,
+  sebetahat.tol = 0.001,
+  plot.hist,
+  xmin,
+  xmax,
+  breaks = "Sturges",
+  alpha = 0.01,
+  pch = 19,
+  cex = 0.25
+)
 }
 \arguments{
 \item{x}{the fitted ash object}

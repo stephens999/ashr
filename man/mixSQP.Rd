@@ -5,8 +5,7 @@
 \title{Estimate mixture proportions of a mixture model using
 mix-SQP algorithm.}
 \usage{
-mixSQP(matrix_lik, prior, pi_init = NULL, control = list(),
-  weights = NULL)
+mixSQP(matrix_lik, prior, pi_init = NULL, control = list(), weights = NULL)
 }
 \arguments{
 \item{matrix_lik}{A matrix containing the conditional likelihood

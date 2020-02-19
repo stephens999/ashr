@@ -1,5 +1,5 @@
 #' @useDynLib ashr
-#' @import Matrix truncnorm SQUAREM doParallel pscl Rcpp foreach parallel
+#' @import Matrix truncnorm SQUAREM Rcpp
 #' @title Adaptive Shrinkage
 #'
 #' @description Implements Empirical Bayes shrinkage and false discovery rate

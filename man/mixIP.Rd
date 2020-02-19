@@ -4,8 +4,7 @@
 \alias{mixIP}
 \title{Estimate mixture proportions of a mixture model by Interior Point method}
 \usage{
-mixIP(matrix_lik, prior, pi_init = NULL, control = list(),
-  weights = NULL)
+mixIP(matrix_lik, prior, pi_init = NULL, control = list(), weights = NULL)
 }
 \arguments{
 \item{matrix_lik, }{a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.}
