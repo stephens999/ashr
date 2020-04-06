@@ -1,3 +1,22 @@
+#' @title Constructor for tnormalmix class
+#'
+#' @description Creates an object of class tnormalmix (finite mixture
+#'     of truncated univariate normals)
+#'
+#' @details None
+#'
+#' @param pi vector of mixture proportions (length k say)
+#' @param mean vector of means (length k)
+#' @param sd vector of standard deviations (length k)
+#' @param a vector of left truncation points of each component (length k)
+#' @param b vector of right truncation points of each component (length k)
+#'
+#' @return an object of class tnormalmix
+#'
+#' @export
+#'
+#' @examples tnormalmix(c(0.5,0.5),c(0,0),c(1,2),c(-10,0),c(0,10))
+#'
 tnormalmix = function(pi,mean,sd,a,b){
   structure(data.frame(pi,mean,sd,a,b),class="tnormalmix")
 }
