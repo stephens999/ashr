@@ -21,6 +21,7 @@ tnormalmix = function(pi,mean,sd,a,b){
   structure(data.frame(pi,mean,sd,a,b),class="tnormalmix")
 }
 
+#' @export
 comp_sd.tnormalmix = function(m){
   #tnormalvar = numeric(length(m$pi))
   #for(k in 1:length(m$pi)){
@@ -30,6 +31,7 @@ comp_sd.tnormalmix = function(m){
   sqrt(tnormalvar)
 }
 
+#' @export
 comp_mean.tnormalmix = function(m){
   #tnormalmean = rep(0,length(m$pi))
   #for(k in 1:length(m$pi)){
@@ -39,6 +41,7 @@ comp_mean.tnormalmix = function(m){
   tnormalmean  
 }
 
+#' @export
 compdens.tnormalmix = function(m,y,log=FALSE){
   k = ncomp(m)
   n = length(y)
@@ -49,6 +52,7 @@ compdens.tnormalmix = function(m,y,log=FALSE){
   return(matrix(stats::dnorm(d,m$mean,m$sd))/(stats::pnorm(m$b)-stats::pnorm(m$a)))
 }
 
+#' @export
 comp_dens_conv.tnormalmix = function(m,data){
   if(!is_normal(data$lik)){
     stop("Error: truncated normal mixture for non-normal likelihood is not yet implemented")
@@ -69,6 +73,7 @@ comp_dens_conv.tnormalmix = function(m,data){
   result[m$sd==0,] = denx[m$sd==0,]
   return(result)
 }
+
 
 log_comp_dens_conv.tnormalmix = function(m,data) {
   if(!is_normal(data$lik)){
@@ -93,6 +98,7 @@ log_comp_dens_conv.tnormalmix = function(m,data) {
   return(result)
 }
 
+#' @export
 #vapply(1:10, pnorm, c(1,2,3), c(1,2,3),c(1,2,3))
 comp_cdf.tnormalmix = function(m,y,lower.tail=TRUE){
   k = length(m$pi)
@@ -124,6 +130,7 @@ comp_cdf.tnormalmix = function(m,y,lower.tail=TRUE){
   tmp
 }
   
+#' @export
 comp_cdf_post.tnormalmix = function(m,c,data){
   if(!is_normal(data$lik)){
     stop("Error: truncated normal mixture for non-normal likelihood is not yet implemented")
