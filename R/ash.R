@@ -520,7 +520,8 @@ setprior=function(prior,k,nullweight,null.comp){
 #' @return The local false sign rate.
 #' @export
 compute_lfsr = function(NegativeProb,ZeroProb){
-  ifelse(NegativeProb> 0.5*(1-ZeroProb),1-NegativeProb,NegativeProb+ZeroProb)
+  lfsr = ifelse(NegativeProb> 0.5*(1-ZeroProb),1-NegativeProb,NegativeProb+ZeroProb)
+  ifelse(lfsr<0,0,lfsr)
 }
 
 

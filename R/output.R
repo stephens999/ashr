@@ -28,7 +28,7 @@ calc_lfdr = function(g,data){
   ZeroProb = rep(0,length = n_obs(data))
   ZeroProb[!exclude] = colSums(comp_postprob(g,data)[pm_on_zero(g),,drop = FALSE])[!exclude]
   ZeroProb[exclude] = sum(mixprop(g)[pm_on_zero(g)])
-  return(ZeroProb)
+  ifelse(ZeroProb<0,0,ZeroProb) #deal with numerical issues that lead to numbers <0
 }
 
 #negative probability
@@ -37,7 +37,7 @@ calc_np = function(g,data){
   NegativeProb = rep(0,length = n_obs(data))
   NegativeProb[!exclude] = cdf_post(g, 0, data)[!exclude] - calc_lfdr(g,data)[!exclude]
   NegativeProb[exclude] = mixcdf(g,0)
-  return(NegativeProb)
+  ifelse(NegativeProb<0,0,NegativeProb) #deal with numerical issues that lead to numbers <0
 }
 
 #positive probability

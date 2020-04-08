@@ -13,7 +13,7 @@ Authors@R: c(person("Matthew","Stephens",role="aut",
              person("Jason","Willwerscheid",role="aut"),
              person("Nan","Xiao",role="aut"),
              person("Mazon","Zeng",role="ctb"))
-Version: 2.2-49
+Version: 2.2-50
 Date: 2020-04-06
 Title: Methods for Adaptive Shrinkage, using Empirical Bayes
 Description: The R package 'ashr' implements an Empirical Bayes
