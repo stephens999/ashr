@@ -591,7 +591,7 @@ estimate_mixprop = function (data, g, prior,
   matrix_lik = exp(matrix_llik)
 
   # All-zero columns pose problems for most optimization methods.
-  nonzero_cols = (apply(matrix_lik, 2, max) > 0)
+  nonzero_cols = (apply(matrix_lik, 2, max) > 0) | (prior > 1)
   if (!all(nonzero_cols)) {
     prior = prior[nonzero_cols]
     weights = weights[nonzero_cols]

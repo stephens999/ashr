@@ -19,5 +19,19 @@ test_that("numeric and (partial) string arguments both work", {
                          g = normalmix(rep(0, 5), rep(0, 5), 0:4), fixg = FALSE,
                          prior = "null")
   expect_false(identical(aout1$result$PosteriorMean, aout3$result$PosteriorMean))
-}
-)
+})
+
+test_that("pi is nonzero for mixture components where prior > 1", {
+  x <- 10:20
+  s <- rep(1, 11)
+  g <- unimix(rep(0, 3), c(0, -1, -20), c(0, 1, 20))
+  aout1 <- ash(x, s, g = g, fixg = FALSE, prior = c(1, 1, 1), mixcompdist = "uniform")
+  expect_false(all(aout1$fitted_g$pi > 0))
+  
+  aout2 <- ash(x, s, g = g, fixg = FALSE, prior = c(10, 10, 10), mixcompdist = "uniform")
+  expect_true(all(aout2$fitted_g$pi > 0))
+  
+  aout3 <- ash(x, s, g = g, fixg = FALSE, prior = c(10, 1, 10), mixcompdist = "uniform")
+  expect_true(aout3$fitted_g$pi[1] > 0)
+  expect_false(aout3$fitted_g$pi[2] > 0)
+})
