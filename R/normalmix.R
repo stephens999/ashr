@@ -167,7 +167,7 @@ post_sample.normalmix = function(m,data,nsamp){
     sample(1:k, nsamp, replace=TRUE, prob=prob)
   })
   # Use samples to index into postmean and postsd matrices
-  idx = mixcomp + rep(k*(0:(n-1)), each=nsamp)
+  idx = as.vector(mixcomp + rep(k*(0:(n-1)), each=nsamp))
   samp = rnorm(nsamp*n, postmean[idx], postsd[idx])
   matrix(samp, nrow=nsamp, ncol=n)
 }
