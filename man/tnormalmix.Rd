@@ -7,25 +7,22 @@
 tnormalmix(pi, mean, sd, a, b)
 }
 \arguments{
-\item{pi}{vector of mixture proportions (length k say)}
+\item{pi}{Cector of mixture proportions (length k say).}
 
-\item{mean}{vector of means (length k)}
+\item{mean}{Vector of means (length k).}
 
-\item{sd}{vector of standard deviations (length k)}
+\item{sd}{Vector of standard deviations (length k).}
 
-\item{a}{vector of left truncation points of each component (length k)}
+\item{a}{Vector of left truncation points of each component (length k).}
 
-\item{b}{vector of right truncation points of each component (length k)}
+\item{b}{Cector of right truncation points of each component (length k).}
 }
 \value{
-an object of class tnormalmix
+An object of class \dQuote{tnormalmix}.
 }
 \description{
 Creates an object of class tnormalmix (finite mixture
-    of truncated univariate normals)
-}
-\details{
-None
+  of truncated univariate normals).
 }
 \examples{
 tnormalmix(c(0.5,0.5),c(0,0),c(1,2),c(-10,0),c(0,10))

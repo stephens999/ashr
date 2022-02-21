@@ -1,5 +1,3 @@
-############################### METHODS FOR normalmix class ###########################
-
 #' @title Constructor for normalmix class
 #'
 #' @description Creates an object of class normalmix (finite mixture
@@ -21,7 +19,6 @@ normalmix = function(pi,mean,sd){
   structure(data.frame(pi,mean,sd),class="normalmix")
 }
 
-
 #' @title comp_sd.normalmix
 #' @description returns sds of the normal mixture
 #' @param m a normal mixture distribution with k components
@@ -36,24 +33,26 @@ comp_sd.normalmix = function(m){
 #' @param m a normal mixture distribution with k components
 #' @return a vector of length k
 #' @export
-comp_mean.normalmix = function(m){
+comp_mean.normalmix = function(m)
   m$mean
-}
 
+#' @importFrom stats dnorm
+#' 
 #' @export
-comp_dens.normalmix = function(m,y,log=FALSE){
-  k=ncomp(m)
-  n=length(y)
+#' 
+comp_dens.normalmix = function (m, y, log = FALSE) {
+  k = ncomp(m)
+  n = length(y)
   d = matrix(rep(y,rep(k,n)),nrow=k)
-  return(matrix(stats::dnorm(d, m$mean, m$sd, log),nrow=k))
+  return(matrix(dnorm(d,m$mean,m$sd,log),nrow = k))
 }
 
+#' @importFrom stats pnorm
+#' 
 #' @export
-comp_cdf.normalmix = function(m,y,lower.tail=TRUE){
-  vapply(y,stats::pnorm,m$mean,m$mean,m$sd,lower.tail)
-}
-
-
+#' 
+comp_cdf.normalmix = function (m, y, lower.tail = TRUE)
+  vapply(y,pnorm,m$mean,m$mean,m$sd,lower.tail)
 
 #' @title comp_dens_conv.normalmix
 #' @description returns density of convolution of each component of a
@@ -84,7 +83,6 @@ log_comp_dens_conv.normalmix = function(m,data){
   return(t(stats::dnorm(outer(data$x,m$mean,FUN="-")/sdmat,log=TRUE) - log(sdmat)))
 }
 
-
 #' @title comp_cdf_conv.normalmix
 #' @description returns cdf of convolution of each component of a
 #'     normal mixture with N(0,s^2) at x. Note that
@@ -99,7 +97,6 @@ comp_cdf_conv.normalmix = function (m, data) {
   sdmat = sqrt(outer(data$s^2, m$sd^2, FUN="+")) #n by k matrix of standard deviations of convolutions
   return(t(stats::pnorm(outer(data$x, m$mean, FUN="-") / sdmat)))
 }
-
 
 #' @export
 comp_cdf_post.normalmix=function(m,c,data){
@@ -116,7 +113,6 @@ comp_cdf_post.normalmix=function(m,c,data){
   m1 = t(comp_postmean(m,data))
   t(stats::pnorm(c,mean=m1,sd=s1))
 }
-
 
 #' @export
 comp_postmean.normalmix = function(m,data){

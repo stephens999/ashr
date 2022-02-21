@@ -1,201 +1,218 @@
 #' @title Constructor for tnormalmix class
 #'
 #' @description Creates an object of class tnormalmix (finite mixture
-#'     of truncated univariate normals)
+#'   of truncated univariate normals).
 #'
-#' @details None
+#' @param pi Cector of mixture proportions (length k say).
+#' 
+#' @param mean Vector of means (length k).
+#' 
+#' @param sd Vector of standard deviations (length k).
+#' 
+#' @param a Vector of left truncation points of each component (length k).
+#' 
+#' @param b Cector of right truncation points of each component (length k).
 #'
-#' @param pi vector of mixture proportions (length k say)
-#' @param mean vector of means (length k)
-#' @param sd vector of standard deviations (length k)
-#' @param a vector of left truncation points of each component (length k)
-#' @param b vector of right truncation points of each component (length k)
-#'
-#' @return an object of class tnormalmix
+#' @return An object of class \dQuote{tnormalmix}.
 #'
 #' @export
 #'
 #' @examples tnormalmix(c(0.5,0.5),c(0,0),c(1,2),c(-10,0),c(0,10))
 #'
-tnormalmix = function(pi,mean,sd,a,b){
-  structure(data.frame(pi,mean,sd,a,b),class="tnormalmix")
-}
+tnormalmix = function (pi, mean, sd, a, b)
+  structure(data.frame(pi,mean,sd,a,b),class = "tnormalmix")
 
+#' @title comp_sd.normalmix
+#' 
+#' @description Returns standard deviations of the truncated normal mixture.
+#' 
+#' @param m A truncated normal mixture distribution with k components.
+#' 
+#' @return A vector of length k.
+#' 
 #' @export
-comp_sd.tnormalmix = function(m){
-  #tnormalvar = numeric(length(m$pi))
-  #for(k in 1:length(m$pi)){
-  #  tnormalvar[k] = my_vtruncnorm(m$a[k],m$b[k],m$mean[k],m$sd[k])
-  #}
-  tnormalvar = my_vtruncnorm(m$a,m$b,m$mean,m$sd)
-  sqrt(tnormalvar)
-}
+#' 
+comp_sd.tnormalmix = function(m)
+  sqrt(my_vtruncnorm(m$a,m$b,m$mean,m$sd))
 
+#' @title comp_mean.tnormalmix
+#' 
+#' @description Returns mean of the truncated-normal mixture.
+#' 
+#' @param m A truncated normal mixture distribution with k components.
+#' 
+#' @return A vector of length k.
+#' 
 #' @export
-comp_mean.tnormalmix = function(m){
-  #tnormalmean = rep(0,length(m$pi))
-  #for(k in 1:length(m$pi)){
-  #  tnormalmean[k] = my_etruncnorm(m$a[k],m$b[k],m$mean[k],m$sd[k])
-  #}
-  tnormalmean = my_etruncnorm(m$a,m$b,m$mean,m$sd)
-  tnormalmean  
-}
+#' 
+comp_mean.tnormalmix = function (m)
+  my_etruncnorm(m$a,m$b,m$mean,m$sd)
 
+#' @importFrom stats dnorm
+#' @importFrom stats pnorm
+#' 
 #' @export
-compdens.tnormalmix = function(m,y,log=FALSE){
+#' 
+comp_dens.tnormalmix = function (m, y, log = FALSE) {
   k = ncomp(m)
   n = length(y)
-  d = matrix(rep(y,rep(k,n)),nrow=k)
-  ### use package truncnorm
-  ##return(matrix(truncnorm::dtruncnorm(d,m$a,m$b,m$mean,m$sd,log),nrow=k))
-  ## no cases of b=a
-  return(matrix(stats::dnorm(d,m$mean,m$sd))/(stats::pnorm(m$b)-stats::pnorm(m$a)))
+  d = matrix(rep(y,rep(k,n)),nrow = k)
+  # No cases of b = a.
+  return(matrix(dnorm(d,m$mean,m$sd))/(pnorm(m$b) - pnorm(m$a)))
 }
 
+#' @importFrom stats pnorm
+#' @importFrom stats dnorm
+#' 
 #' @export
-comp_dens_conv.tnormalmix = function(m,data){
-  if(!is_normal(data$lik)){
-    stop("Error: truncated normal mixture for non-normal likelihood is not yet implemented")
-  }
-  if(length(data$s)==1){data$s=rep(data$s,length(data$x))}
-  A = sqrt(outer(1/m$sd^2,1/data$s^2,FUN="+"))
-  B = 1/sqrt(outer(m$sd^2,data$s^2,FUN="+"))
-  C = outer(m$sd,data$s,"/")
-  D = stats::pnorm(m$b/m$sd)-stats::pnorm(m$a/m$sd)
-  varmat = outer(m$sd^2,data$s^2,FUN="+")
-  left = stats::pnorm(A*m$b-t(t(B*C)*data$x))
-  right = stats::pnorm(A*m$a-t(t(B*C)*data$x))
-  denx = stats::dnorm(matrix(data$x,length(m$sd),length(data$x),byrow=TRUE)/sqrt(varmat))/sqrt(varmat)
-  result = ((left-right)*denx)/D
-  DD = stats::dnorm(m$b/m$sd)
-  lleft = stats::dnorm(A*m$b-t(t(B*C)*data$x))
-  result[m$a==m$b,] = (((lleft)*denx/varmat)/DD)[m$a==m$b,]
-  result[m$sd==0,] = denx[m$sd==0,]
+#' 
+comp_dens_conv.tnormalmix = function (m, data) {
+  if (!is_normal(data$lik))
+    stop("Error: truncated normal mixture for non-normal likelihood is not ",
+         "yet implemented")
+  if (length(data$s) == 1)
+    data$s = rep(data$s,length(data$x))
+  A      = sqrt(outer(1/m$sd^2,1/data$s^2,FUN = "+"))
+  B      = 1/sqrt(outer(m$sd^2,data$s^2,FUN = "+"))
+  C      = outer(m$sd,data$s,"/")
+  D      = pnorm(m$b/m$sd) - pnorm(m$a/m$sd)
+  varmat = outer(m$sd^2,data$s^2,FUN = "+")
+  left   = pnorm(A*m$b - t(t(B*C)*data$x))
+  right  = pnorm(A*m$a - t(t(B*C)*data$x))
+  denx   = dnorm(matrix(data$x,length(m$sd),length(data$x),
+                        byrow = TRUE)/sqrt(varmat))/sqrt(varmat)
+  result = ((left - right)*denx)/D
+  DD     = dnorm(m$b/m$sd)
+  lleft  = dnorm(A*m$b - t(t(B*C)*data$x))
+  result[m$a == m$b,] = ((lleft*denx/varmat)/DD)[m$a == m$b,]
+  result[m$sd == 0,] = denx[m$sd == 0,]
   return(result)
 }
 
-
-log_comp_dens_conv.tnormalmix = function(m,data) {
-  if(!is_normal(data$lik)){
-    stop("Error: truncated normal mixture for non-normal likelihood is not yet implemented")
-  }
-  #### use previous function directly
-  #return(log(compdens_conv.tnormalmix(m,x,s,v)))
-  if(length(data$s)==1){data$s=rep(data$s,length(data$x))}
-  A = sqrt(outer(1/m$sd^2,1/data$s^2,FUN="+"))
-  B = 1/sqrt(outer(m$sd^2,data$s^2,FUN="+"))
+#' @importFrom stats pnorm
+#' @importFrom stats dnorm
+#' 
+#' @export
+#' 
+log_comp_dens_conv.tnormalmix = function (m, data) {
+  if (!is_normal(data$lik))
+    stop("Error: truncated normal mixture for non-normal likelihood is not ",
+         "yet implemented")
+  
+  # Use previous function directly.
+  if (length(data$s) == 1)
+    data$s = rep(data$s,length(data$x))
+  A = sqrt(outer(1/m$sd^2,1/data$s^2,FUN = "+"))
+  B = 1/sqrt(outer(m$sd^2,data$s^2,FUN = "+"))
   C = outer(m$sd,data$s,"/")
-  D = stats::pnorm(m$b/m$sd)-stats::pnorm(m$a/m$sd)
-  varmat = outer(m$sd^2,data$s^2,FUN="+")
-  left = stats::pnorm(A*m$b-t(t(B*C)*data$x))
-  right = stats::pnorm(A*m$a-t(t(B*C)*data$x))
-  denx = stats::dnorm(t(matrix(data$x,length(data$x),length(m$sd))),0,sqrt(varmat),log=TRUE)
-  result = log(left-right)+denx-log(matrix(D,length(m$sd),length(data$x)))
-  DD = stats::dnorm(m$b/m$sd)
-  lleft = stats::dnorm(A*m$b-t(t(B*C)*data$x))
-  result[m$a==m$b,] = (log(lleft/DD)+denx-log(varmat))[m$a==m$b,]
-  result[m$sd==0,] = denx[m$sd==0,]
+  D = pnorm(m$b/m$sd) - pnorm(m$a/m$sd)
+  varmat = outer(m$sd^2,data$s^2,FUN = "+")
+  left   = pnorm(A*m$b - t(t(B*C)*data$x))
+  right  = pnorm(A*m$a - t(t(B*C)*data$x))
+  denx   = dnorm(t(matrix(data$x,length(data$x),length(m$sd))),0,sqrt(varmat),
+                 log = TRUE)
+  result = log(left - right) + denx -
+           log(matrix(D,length(m$sd),length(data$x)))
+  DD     = dnorm(m$b/m$sd)
+  lleft  = dnorm(A*m$b - t(t(B*C)*data$x))
+  result[m$a  == m$b,] = (log(lleft/DD) + denx - log(varmat))[m$a == m$b,]
+  result[m$sd == 0,]   = denx[m$sd == 0,]
   return(result)
 }
 
+#' @importFrom stats pnorm
+#' 
 #' @export
-#vapply(1:10, pnorm, c(1,2,3), c(1,2,3),c(1,2,3))
-comp_cdf.tnormalmix = function(m,y,lower.tail=TRUE){
+#' 
+comp_cdf.tnormalmix = function (m, y, lower.tail = TRUE) {
   k = length(m$pi)
-  n=length(y)
-  tmp = matrix(1,nrow=k,ncol=n)
-  #tmp[m$a > y,] = 0
-  subset=outer(m$a,y,'>')
+  n = length(y)
+  tmp = matrix(1,nrow = k,ncol = n)
+  subset = outer(m$a,y,">")
   tmp[subset] = 0
-  #subset = m$a<=y & m$b>y
-  subset1 = outer(m$a,y,'<=')
-  subset2 = outer(m$b,y,'>=')
-  subset = subset1 & subset2
-  if(sum(subset)>0){
-    #pnc=vapply(y,stats::pnorm,m$mean[subset],m$mean[subset],m$sd[subset],lower.tail)
-    #pna=vapply(rep(m$a,n),stats::pnorm,m$mean[subset],m$mean[subset],m$sd[subset],lower.tail)
-    #pnb=vapply(rep(m$b,n),stats::pnorm,m$mean[subset],m$mean[subset],m$sd[subset],lower.tail)
-    YY = matrix(y,k,n,byrow=TRUE)
-    MM = matrix(m$mean,k,n)
-    SD = matrix(m$sd,k,n)
-    pnc = matrix(stats::pnorm(YY[subset],MM[subset],SD[subset]),k,n)
-    A=matrix(m$a,k,ncol=n)
-    pna=matrix(stats::pnorm(A[subset],MM[subset],SD[subset],lower.tail),k,n)
-    B=matrix(m$b,k,ncol=n)
-    pnb=matrix(stats::pnorm(B[subset],MM[subset],SD[subset],lower.tail),k,n)
+  subset1 = outer(m$a,y,"<=")
+  subset2 = outer(m$b,y,">=")
+  subset  = subset1 & subset2
+  if (sum(subset) > 0) {
+    YY  = matrix(y,k,n,byrow = TRUE)
+    MM  = matrix(m$mean,k,n)
+    SD  = matrix(m$sd,k,n)
+    pnc = matrix(pnorm(YY[subset],MM[subset],SD[subset]),k,n)
+    A   = matrix(m$a,k,ncol = n)
+    pna = matrix(pnorm(A[subset],MM[subset],SD[subset],lower.tail),k,n)
+    B   = matrix(m$b,k,ncol = n)
+    pnb = matrix(pnorm(B[subset],MM[subset],SD[subset],lower.tail),k,n)
   }
   tmp[subset] = (pnc-pna)/(pnb-pna)
-  #subset=(m$a==m$b)
-  #tmp[subset,]=rep(m$a[subset]<=c,n)
-  tmp
+  return(tmp)
 }
-  
+
+#' @importFrom stats pnorm
+#' 
 #' @export
-comp_cdf_post.tnormalmix = function(m,c,data){
-  if(!is_normal(data$lik)){
-    stop("Error: truncated normal mixture for non-normal likelihood is not yet implemented")
-  }  
+#' 
+comp_cdf_post.tnormalmix = function (m, c, data) {
+  if (!is_normal(data$lik)) 
+    stop("Error: truncated normal mixture for non-normal likelihood is ",
+         "not yet implemented")
   k = length(m$pi)
-  n=length(data$x)
-  tmp = matrix(1,nrow=k,ncol=n)
+  n = length(data$x)
+  tmp = matrix(1,nrow = k,ncol = n)
   tmp[m$a > c,] = 0
-  subset = m$a<=c & m$b>=c
-  if(sum(subset)>0){
-    X=1/(outer(data$s^2,m$sd[subset]^2,FUN="/")+1)
-    Y=1/outer(1/data$s^2,1/m$sd[subset]^2,FUN="+")
-    A=matrix(m$a[subset],nrow=sum(subset),ncol=n)
-    pna=stats::pnorm(t(A),X*data$x+t(t(1-X)*m$mean[subset]),sqrt(Y))
-    C=matrix(c,nrow=sum(subset),ncol=n)
-    pnc=stats::pnorm(t(C),X*data$x+t(t(1-X)*m$mean[subset]),sqrt(Y))
-    B=matrix(m$b[subset],nrow=sum(subset),ncol=n)
-    pnb=stats::pnorm(t(B),X*data$x+t(t(1-X)*m$mean[subset]),sqrt(Y))
+  subset = m$a <= c & m$b >= c
+  if (sum(subset)>0) {
+    X   = 1/(outer(data$s^2,m$sd[subset]^2,FUN = "/") + 1)
+    Y   = 1/outer(1/data$s^2,1/m$sd[subset]^2,FUN = "+")
+    A   = matrix(m$a[subset],nrow = sum(subset),ncol = n)
+    pna = pnorm(t(A),X*data$x + t(t(1-X) * m$mean[subset]),sqrt(Y))
+    C   = matrix(c,nrow = sum(subset),ncol = n)
+    pnc = pnorm(t(C),X*data$x + t(t(1-X) * m$mean[subset]),sqrt(Y))
+    B   = matrix(m$b[subset],nrow = sum(subset),ncol = n)
+    pnb = pnorm(t(B),X*data$x + t(t(1-X) * m$mean[subset]),sqrt(Y))
   }
-  tmp[subset,]=t((pnc-pna)/(pnb-pna))
-  subset=(m$a==m$b)
-  tmp[subset,]=rep(m$a[subset]<=c,n)
-  subset=B==C
-  tmp[subset] = 1
+  tmp[subset,] = t((pnc - pna)/(pnb - pna))
+  subset       = (m$a == m$b)
+  tmp[subset,] = rep(m$a[subset] <= c,n)
+  subset       = B == C
+  tmp[subset]  = 1
   ### ZMZ: in case of pnc = pnb, we make it 1 and other
   ### Nan 0 to eliminate the 0/0.
   ### use naive situation
-  #tmpnaive=matrix(rep((c-m$a)/(m$b-m$a),length(betahat)),nrow=k,ncol=n)
-  tmp[is.nan(tmp)]= 0
-  tmp
+  tmp[is.nan(tmp)] = 0
+  return(tmp)
 }
 
-comp_postmean.tnormalmix = function(m,data){
-  if(!is_normal(data$lik)){
-    stop("Error: truncated normal mixture for non-normal likelihood is not yet implemented")
-  }
-  k=length(m$pi)
-  n=length(data$x)
-  A=1/(outer(m$sd^2,data$s^2,FUN="/")+1)
-  B=1/outer(1/m$sd^2,1/data$s^2,FUN="+")
-  ## try my_etruncnorm(1:3,2:4,matrix(0,3,4),matrix(1,3,4))
-  result = my_etruncnorm(m$a,m$b,A*m$mean+t(t(1-A)*data$x),sqrt(B))
+#' @export
+comp_postmean.tnormalmix = function (m, data) {
+  if (!is_normal(data$lik))
+    stop("Error: truncated normal mixture for non-normal likelihood is not ",
+         "yet implemented")
+  k = length(m$pi)
+  n = length(data$x)
+  A = 1/(outer(m$sd^2,data$s^2,FUN = "/") + 1)
+  B = 1/outer(1/m$sd^2,1/data$s^2,FUN = "+")
+  result = my_etruncnorm(m$a,m$b,A*m$mean + t(t(1-A)*data$x),sqrt(B))
   ismissing = which(is.na(data$x) | is.na(data$s))
-  if(length(ismissing)>0){result[,ismissing]=m$mean} 
+  if (length(ismissing) > 0)
+    result[,ismissing] = m$mean
   return(result)
 }
 
-comp_postsd.tnormalmix = function(m,data){
-  if(!is_normal(data$lik)){
-    stop("Error: truncated normal mixture for non-normal likelihood is not yet implemented")
-  }
-  k=length(m$pi)
-  n=length(data$x)
-  A=1/(outer(m$sd^2,data$s^2,FUN="/")+1)
-  B=1/outer(1/m$sd^2,1/data$s^2,FUN="+")
-  result = sqrt(my_vtruncnorm(m$a,m$b,t(A*m$mean+t(t(1-A)*data$x)),t(sqrt(B))))
-  result = t(result)
-  return(result)
+#' @export
+comp_postsd.tnormalmix = function (m, data) {
+  if (!is_normal(data$lik))
+    stop("Error: truncated normal mixture for non-normal likelihood is not ",
+         "yet implemented")
+  k = length(m$pi)
+  n = length(data$x)
+  A = 1/(outer(m$sd^2,data$s^2,FUN = "/") + 1)
+  B = 1/outer(1/m$sd^2,1/data$s^2,FUN = "+")
+  result = sqrt(my_vtruncnorm(m$a,m$b,t(A*m$mean + t(t(1 - A)*data$x)),
+                              t(sqrt(B))))
+  return(t(result))
 }
 
-comp_postmean2.tnormalmix = function(m,data){
+#' @export
+comp_postmean2.tnormalmix = function (m, data)
   comp_postsd.tnormalmix(m,data)^2 + comp_postmean.tnormalmix(m,data)^2
-}
-
-
-
-
 
