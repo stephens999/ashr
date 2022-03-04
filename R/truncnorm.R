@@ -118,72 +118,167 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
 #'     
 #' @export
 #'
+# my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
+#   do_truncnorm_argchecks(a, b)
+# 
+#   alpha = (a - mean) / sd
+#   beta = (b - mean) / sd
+# 
+#   # Flip alpha and beta when both are positive (as above, but the mean is
+#   #   also recycled and flipped so that we don't have to flip back).
+#   flip = (alpha > 0 & beta > 0)
+#   flip[is.na(flip)] = FALSE
+#   orig.alpha = alpha
+#   alpha[flip] = -beta[flip]
+#   beta[flip] = -orig.alpha[flip]
+#   if (any(mean != 0)) {
+#     mean = rep(mean, length.out = length(alpha))
+#     mean[flip] = -mean[flip]
+#   }
+# 
+#   pnorm.diff = logscale_sub(pnorm(beta, log.p = TRUE), pnorm(alpha, log.p = TRUE))
+#   alpha.frac = alpha * exp(dnorm(alpha, log = TRUE) - pnorm.diff)
+#   beta.frac = beta * exp(dnorm(beta, log = TRUE) - pnorm.diff)
+# 
+#   # Create a vector or matrix of 1's with NA's in the correct places.
+#   if (is.matrix(alpha))
+#     scaled.res = array(1, dim = dim(alpha))
+#   else
+#     scaled.res = rep(1, length.out = length(alpha))
+#   is.na(scaled.res) = is.na(flip)
+# 
+#   alpha.idx = is.finite(alpha)
+#   scaled.res[alpha.idx] = 1 + alpha.frac[alpha.idx]
+#   beta.idx = is.finite(beta)
+#   scaled.res[beta.idx] = scaled.res[beta.idx] - beta.frac[beta.idx]
+# 
+#   # Handle approximately equal endpoints.
+#   endpts.equal = is.infinite(pnorm.diff)
+#   scaled.res[endpts.equal] = (alpha[endpts.equal] + beta[endpts.equal])^2 / 4
+# 
+#   # Check that the results make sense. When beta is negative,
+#   #   beta^2 + 2 * (1 + 1 / beta^2) is an upper bound for the expected squared
+#   #   value, and it is typically a good approximation as beta goes to -Inf. 
+#   #   When the endpoints are very close to one another, the expected squared 
+#   #   value of the uniform distribution on [alpha, beta] is a better upper 
+#   #   bound (and approximation).
+#   upper.bd1 = beta^2 + 2 * (1 + 1 / beta^2)
+#   upper.bd2 = (alpha^2 + alpha * beta + beta^2) / 3
+#   upper.bd = pmin(upper.bd1, upper.bd2)
+#   bad.idx = (!is.na(beta) & beta < 0 
+#              & (scaled.res < beta^2 | scaled.res > upper.bd))
+#   scaled.res[bad.idx] = upper.bd[bad.idx]
+# 
+#   res = mean^2 + 2 * mean * sd * my_etruncnorm(alpha, beta) + sd^2 * scaled.res
+#   # message(paste("μ^2 =",mean^2))
+#   # message(paste("σ^2 =",sd^2))
+#   # message(paste("tnmom2(α, β) =",scaled.res))
+#   # message(paste("2μ * σ =",2 * mean * sd))
+#   # message(paste("tnmean(α, β) =",my_etruncnorm(alpha, beta)))
+#   # 
+#   # message(paste("μ^2 + σ^2 * tnmom2(α, β) =",mean^2 + sd^2 * scaled.res))
+#   # message(paste("2μ * σ * tnmean(α, β) =",2 * mean * sd * my_etruncnorm(alpha, beta)))
+#   # 
+#   # message(paste("μ^2 + 2μ * σ * tnmean(α, β)=",mean^2 + 2 * mean * sd * my_etruncnorm(alpha, beta)))
+#   # message(paste("σ^2 * tnmom2(α, β)  =",sd^2 * scaled.res))
+# 
+#   # Handle zero sds.
+#   if (any(sd == 0)) {
+#     a = rep(a, length.out = length(res))
+#     b = rep(b, length.out = length(res))
+#     mean = rep(mean, length.out = length(res))
+# 
+#     sd.zero = (sd == 0)
+#     res[sd.zero & b <= mean] = b[sd.zero & b <= mean]^2
+#     res[sd.zero & a >= mean] = a[sd.zero & a >= mean]^2
+#     res[sd.zero & a < mean & b > mean] = mean[sd.zero & a < mean & b > mean]^2
+#   }
+# 
+#   return(res)
+# }
+
+library(RcppFaddeeva)
 my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
-  do_truncnorm_argchecks(a, b)
-  
-  alpha = (a - mean) / sd
-  beta = (b - mean) / sd
-  
-  # Flip alpha and beta when both are positive (as above, but the mean is
-  #   also recycled and flipped so that we don't have to flip back).
-  flip = (alpha > 0 & beta > 0)
-  flip[is.na(flip)] = FALSE
-  orig.alpha = alpha
-  alpha[flip] = -beta[flip]
-  beta[flip] = -orig.alpha[flip]
-  if (any(mean != 0)) {
-    mean = rep(mean, length.out = length(alpha))
-    mean[flip] = -mean[flip]
-  }
-  
-  pnorm.diff = logscale_sub(pnorm(beta, log.p = TRUE), pnorm(alpha, log.p = TRUE))
-  alpha.frac = alpha * exp(dnorm(alpha, log = TRUE) - pnorm.diff)
-  beta.frac = beta * exp(dnorm(beta, log = TRUE) - pnorm.diff)
-  
-  # Create a vector or matrix of 1's with NA's in the correct places.
-  if (is.matrix(alpha))
-    scaled.res = array(1, dim = dim(alpha))
-  else
-    scaled.res = rep(1, length.out = length(alpha))
-  is.na(scaled.res) = is.na(flip)
-  
-  alpha.idx = is.finite(alpha)
-  scaled.res[alpha.idx] = 1 + alpha.frac[alpha.idx]
-  beta.idx = is.finite(beta)
-  scaled.res[beta.idx] = scaled.res[beta.idx] - beta.frac[beta.idx]
-  
-  # Handle approximately equal endpoints.
-  endpts.equal = is.infinite(pnorm.diff)
-  scaled.res[endpts.equal] = (alpha[endpts.equal] + beta[endpts.equal])^2 / 4
-  
-  # Check that the results make sense. When beta is negative,
-  #   beta^2 + 2 * (1 + 1 / beta^2) is an upper bound for the expected squared
-  #   value, and it is typically a good approximation as beta goes to -Inf. 
-  #   When the endpoints are very close to one another, the expected squared 
-  #   value of the uniform distribution on [alpha, beta] is a better upper 
-  #   bound (and approximation).
-  upper.bd1 = beta^2 + 2 * (1 + 1 / beta^2)
-  upper.bd2 = (alpha^2 + alpha * beta + beta^2) / 3
-  upper.bd = pmin(upper.bd1, upper.bd2)
-  bad.idx = (!is.na(beta) & beta < 0 
-             & (scaled.res < beta^2 | scaled.res > upper.bd))
-  scaled.res[bad.idx] = upper.bd[bad.idx]
-  
-  res = mean^2 + 2 * mean * sd * my_etruncnorm(alpha, beta) + sd^2 * scaled.res
-  
-  # Handle zero sds.
-  if (any(sd == 0)) {
-    a = rep(a, length.out = length(res))
-    b = rep(b, length.out = length(res))
-    mean = rep(mean, length.out = length(res))
-    
-    sd.zero = (sd == 0)
-    res[sd.zero & b <= mean] = b[sd.zero & b <= mean]^2
-    res[sd.zero & a >= mean] = a[sd.zero & a >= mean]^2
-    res[sd.zero & a < mean & b > mean] = mean[sd.zero & a < mean & b > mean]^2
-  }
-  
-  return(res)
+    # based off of https://github.com/cossio/TruncatedNormal.jl/blob/3c16866c3afa3920e787513d492689e9e81192ca/src/tnmom2.jl
+    do_truncnorm_argchecks(a, b)
+
+    if ((mean == 0) && (sd ==1)){
+        #standard normal distribution
+        if (a == b){
+            # point mass 
+            # ⟹ 2nd moment is point-value squared
+            return(a^2)
+        } 
+        else if (abs(a) > abs(b)) {
+            # forces a and b to satisfy b ≥ 0, |a| ≤ |b|
+            return(my_e2truncnorm(-b, -a))
+        } 
+        else if (is.infinite(a) && is.infinite(b)){
+            # untruncated normal distribution
+            # ⟹ 2nd moment is 1
+            return(1.0)
+        } 
+        else if (is.infinite(b)) {
+            # truncated to [a,∞) 
+            # ⟹ 2nd moment simplifies to 1 + aϕ(a)/(1 - Φ(a))
+            m2 = 1 + sqrt(2 / pi) * a / Re(erfcx(a / sqrt(2)))
+            stopifnot(a^2 <= m2)
+            return(m2)
+        }
+             
+        #now everything is finite, b ≥ 0, and |a| ≤ |b|, so 
+        # either a ≤ 0 ≤ b or 0 ≤ a ≤ b
+        stopifnot(a < b, b < Inf, abs(a) <= abs(b))
+        stopifnot(((a <= 0) && (0 <= b)) || ((0 <= a) && (a <= b)))
+
+        if ((a <= 0) && (0 <= b)){ 
+            # a ≤ 0 ≤ b
+            #catestrophic cancellation is less of an issue
+            ea = sqrt(pi/2) * Re(erf(a / sqrt(2)))
+            eb = sqrt(pi/2) * Re(erf(b / sqrt(2)))
+            fa = ea - a * exp(-a^2 / 2)
+            fb = eb - b * exp(-b^2 / 2)
+            m2 = (fb - fa) / (eb - ea)
+            stopifnot(fb >= fa, eb >= ea)
+            stopifnot(0 <= m2, m2 <= 1)
+            return(m2)
+        }  
+        else { 
+            # 0 ≤ a ≤ b
+            #strategically avoid catestrophic cancellation as much as possible
+            exdiff = exp((a - b)*(a + b)/2)
+            ea = sqrt(pi/2) * Re(erfcx(a / sqrt(2)))
+            eb = sqrt(pi/2) * Re(erfcx(b / sqrt(2)))
+            fa = ea + a
+            fb = eb + b
+            m2 = (fa - fb * exdiff) / (ea - eb * exdiff)
+            stopifnot(a^2 <= m2, m2 <= b^2)
+            return(m2)
+        }
+    }
+    else if (sd > 0){
+        #nonstandard normal
+        alpha = (a - mean) / sd
+        beta = (b - mean) / sd
+        # TODO potential for catestrophic cancellation here... is there a better way?
+        return(mean^2 + sd^2 * my_e2truncnorm(alpha, beta) + 2 * mean * sd * my_etruncnorm(alpha, beta))
+    } 
+    else {
+        #point mass
+        # TODO potential error in original the julia code??
+        # i wrote what I think it should be, but that doesn't agree with 
+        # the original code
+        if ((a <= mean) && (a <= b)) {
+            # ⟹ if mean ∈ [a,b], 2nd moment is mean^2
+            return(mean^2)
+        } else if (mean < a){
+            # ⟹ if mean < a, 2nd moment is a^2
+            return(a^2)
+        } else if (mean > b){
+            # ⟹ if mean > a, 2nd moment is b^2
+            return(b^2)
+        }
+    }
 }
 
 #' @title Variance of Truncated Normal
