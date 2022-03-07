@@ -120,97 +120,111 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
 #'
 library(RcppFaddeeva)
 my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
-    # based off of https://github.com/cossio/TruncatedNormal.jl/blob/3c16866c3afa3920e787513d492689e9e81192ca/src/tnmom2.jl
-    do_truncnorm_argchecks(a, b)
+  # based off of https://github.com/cossio/TruncatedNormal.jl/blob/3c16866c3afa3920e787513d492689e9e81192ca/src/tnmom2.jl
+  do_truncnorm_argchecks(a, b)
 
-    # initialize array to store result of shape like a
-    if (is.matrix(a))
-        res = array(dim = dim(a))
-    else
-        res = rep(NA, length.out = length(a))
+  # initialize array to store result of shape like a
+  if (is.matrix(a))
+    res = array(dim = dim(a))
+  else
+    res = rep(NA, length.out = length(a))
 
-    #make sure input sizes all match 
-    a = rep(a, length.out = length(res))
-    b = rep(b, length.out = length(res))
-    mean = rep(mean, length.out = length(res))
-    sd = rep(sd, length.out = length(res))
+  #make sure input sizes all match 
+  a = rep(a, length.out = length(res))
+  b = rep(b, length.out = length(res))
+  mean = rep(mean, length.out = length(res))
+  sd = rep(sd, length.out = length(res))
 
-    # Handle zero sd point masses
-    sd.zero = (sd == 0)
-    # if mean ≥ b, 2nd moment is b^2
-    res[sd.zero & b <= mean] = b[sd.zero & b <= mean]^2
-    # if mean ≤ a, 2nd moment is a^2
-    res[sd.zero & a >= mean] = a[sd.zero & a >= mean]^2
-    # if mean ∈ (a,b), 2nd moment is mean^2
-    res[sd.zero & a < mean & mean < b] = mean[sd.zero & a < mean & mean < b]^2
-    
-    # Focus in on where sd is nonzero
-    a = a[!sd.zero]
-    b = b[!sd.zero]
-    mean = mean[!sd.zero]
-    sd = sd[!sd.zero]
+  # Handle zero sd point masses
+  sd.zero = (sd == 0)
+  # if mean ≥ b, 2nd moment is b^2
+  res[sd.zero & b <= mean] = b[sd.zero & b <= mean]^2
+  # if mean ≤ a, 2nd moment is a^2
+  res[sd.zero & a >= mean] = a[sd.zero & a >= mean]^2
+  # if mean ∈ (a,b), 2nd moment is mean^2
+  res[sd.zero & a < mean & mean < b] = mean[sd.zero & a < mean & mean < b]^2
 
-    # Rescale to standard normal distributions if sd is nonzero
-    alpha = (a - mean) / sd
-    beta = (b - mean) / sd
-    scaled.mean = my_etruncnorm(alpha, beta)
-    # initialize array for scaled 2nd moments
-    scaled.2mom = rep(NA, length.out = length(alpha))
+  # Focus in on where sd is nonzero
+  a = a[!sd.zero]
+  b = b[!sd.zero]
+  mean = mean[!sd.zero]
+  sd = sd[!sd.zero]
 
-    # point mass bc endpoints are equal
-    # 2nd moment is point-value squared
-    endpoints_equal = (alpha == beta)
-    scaled.2mom[endpoints_equal] = alpha[endpoints_equal] ^ 2
-    # keep track of which spots in scaled.2mom are already computed
-    computed = endpoints_equal
+  # Rescale to standard normal distributions if sd is nonzero
+  alpha = (a - mean) / sd
+  beta = (b - mean) / sd
+  scaled.mean = my_etruncnorm(alpha, beta)
+  # initialize array for scaled 2nd moments
+  scaled.2mom = rep(NA, length.out = length(alpha))
 
-    # force to satisfy β ≥ 0 and |α| ≤ |β|
-    # so either α ≤ 0 ≤ β or 0 < α ≤ β
-    flip = !computed & abs(alpha) > abs(beta)
-    flip[is.na(flip)] = FALSE
-    orig.alpha = alpha
-    alpha[flip] = -beta[flip]
-    beta[flip] = -orig.alpha[flip]
+  # point mass bc endpoints are equal
+  # 2nd moment is point-value squared
+  endpoints_equal = (alpha == beta)
+  scaled.2mom[endpoints_equal] = alpha[endpoints_equal] ^ 2
+  # keep track of which spots in scaled.2mom are already computed
+  computed = endpoints_equal
 
-    # both endpoints infinite/untruncated normal distribution
-    # 2nd moment is 1
-    both_inf = !computed & is.infinite(alpha) & is.infinite(beta)
-    scaled.2mom[both_inf] = 1
-    computed = computed | both_inf
+  # force to satisfy β ≥ 0 and |α| ≤ |β|
+  # so either α ≤ 0 ≤ β or 0 < α ≤ β
+  flip = !computed & abs(alpha) > abs(beta)
+  flip[is.na(flip)] = FALSE
+  orig.alpha = alpha
+  alpha[flip] = -beta[flip]
+  beta[flip] = -orig.alpha[flip]
 
-    # truncated to [α,∞) 
-    # 2nd moment simplifies to 1 + αϕ(α)/(1 - Φ(α))
-    beta_inf = !computed & is.infinite(beta)
-    scaled.2mom[beta_inf] = 1 + sqrt(2 / pi) * alpha[beta_inf] / Re(erfcx(alpha[beta_inf] / sqrt(2)))
-    computed = computed | beta_inf
+  # both endpoints infinite/untruncated normal distribution
+  # 2nd moment is 1
+  both_inf = !computed & is.infinite(alpha) & is.infinite(beta)
+  scaled.2mom[both_inf] = 1
+  computed = computed | both_inf
 
-    # a ≤ 0 ≤ b
-    #catestrophic cancellation is less of an issue
-    alpha_negative = !computed & alpha <= 0
-    ea = sqrt(pi/2) * Re(erf(alpha[alpha_negative] / sqrt(2)))
-    eb = sqrt(pi/2) * Re(erf(beta[alpha_negative] / sqrt(2)))
-    fa = ea - alpha[alpha_negative] * exp(-alpha[alpha_negative]^2 / 2)
-    fb = eb - beta[alpha_negative] * exp(-beta[alpha_negative]^2 / 2)
-    scaled.2mom[alpha_negative] = (fb - fa) / (eb - ea)
-    computed = computed | alpha_negative
-    
-    # 0 < a ≤ b
-    #strategically avoid catestrophic cancellation as much as possible
-    exdiff = exp((alpha[!computed] - beta[!computed])*(alpha[!computed] + beta[!computed])/2)
-    ea = sqrt(pi/2) * Re(erfcx(alpha[!computed] / sqrt(2)))
-    eb = sqrt(pi/2) * Re(erfcx(beta[!computed] / sqrt(2)))
-    fa = ea + alpha[!computed]
-    fb = eb + beta[!computed]
-    scaled.2mom[!computed] = (fa - fb * exdiff) / (ea - eb * exdiff)
+  # truncated to [α,∞) 
+  # 2nd moment simplifies to 1 + αϕ(α)/(1 - Φ(α))
+  beta_inf = !computed & is.infinite(beta)
+  scaled.2mom[beta_inf] = 1 + sqrt(2 / pi) * alpha[beta_inf] / Re(erfcx(alpha[beta_inf] / sqrt(2)))
+  computed = computed | beta_inf
 
-    # transform results back to nonstandard normal case
-    # μ(μ + 2σ * tn_mean(α, β)) + σ^2 tn_2nd_mom(α, β)
-    # TODO potential for catestrophic cancellation here... is there a better way?
-    # multiplying by mean outside is definitely better, but maybe an even better way?
-    res[!sd.zero] = mean*(mean + 2 * sd * scaled.mean)
-    res[!sd.zero] = res[!sd.zero] + sd^2 * scaled.2mom
+  # a ≤ 0 ≤ b
+  #catestrophic cancellation is less of an issue
+  alpha_negative = !computed & alpha <= 0
+  ea = sqrt(pi/2) * Re(erf(alpha[alpha_negative] / sqrt(2)))
+  eb = sqrt(pi/2) * Re(erf(beta[alpha_negative] / sqrt(2)))
+  fa = ea - alpha[alpha_negative] * exp(-alpha[alpha_negative]^2 / 2)
+  fb = eb - beta[alpha_negative] * exp(-beta[alpha_negative]^2 / 2)
+  scaled.2mom[alpha_negative] = (fb - fa) / (eb - ea)
+  computed = computed | alpha_negative
 
-    return(res)
+  # 0 < a ≤ b
+  #strategically avoid catestrophic cancellation as much as possible
+  exdiff = exp((alpha[!computed] - beta[!computed])*(alpha[!computed] + beta[!computed])/2)
+  ea = sqrt(pi/2) * Re(erfcx(alpha[!computed] / sqrt(2)))
+  eb = sqrt(pi/2) * Re(erfcx(beta[!computed] / sqrt(2)))
+  fa = ea + alpha[!computed]
+  fb = eb + beta[!computed]
+  scaled.2mom[!computed] = (fa - fb * exdiff) / (ea - eb * exdiff)
+
+  # transform results back to nonstandard normal case
+  # μ(μ + 2σ * tn_mean(α, β)) + σ^2 tn_2nd_mom(α, β)
+  # TODO potential for catestrophic cancellation here... is there a better way?
+  # multiplying by mean outside is definitely better, but maybe an even better way?
+  res[!sd.zero] = mean*(mean + 2 * sd * scaled.mean)
+  res[!sd.zero] = res[!sd.zero] + sd^2 * scaled.2mom
+
+  # TODO ADD IN ERROR CHECKING
+  # Check that the results make sense. When beta is negative,
+  # #   beta^2 + 2 * (1 + 1 / beta^2) is an upper bound for the expected squared
+  # #   value, and it is typically a good approximation as beta goes to -Inf. 
+  # #   When the endpoints are very close to one another, the expected squared 
+  # #   value of the uniform distribution on [alpha, beta] is a better upper 
+  # #   bound (and approximation).
+  # upper.bd1 = beta^2 + 2 * (1 + 1 / beta^2)
+  # upper.bd2 = (alpha^2 + alpha * beta + beta^2) / 3
+  # upper.bd = pmin(upper.bd1, upper.bd2)
+  # bad.idx = (!is.na(beta) & beta < 0 
+  #            & (scaled.res < beta^2 | scaled.res > upper.bd))
+  # scaled.res[bad.idx] = upper.bd[bad.idx]
+
+  return(res)
 }
 
 #' @title Variance of Truncated Normal
