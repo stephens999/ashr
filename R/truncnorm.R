@@ -165,7 +165,7 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
             return(m2)
         }  
         else { 
-            # 0 ≤ a ≤ b
+            # 0 < a ≤ b
             #strategically avoid catestrophic cancellation as much as possible
             exdiff = exp((a - b)*(a + b)/2)
             ea = sqrt(pi/2) * Re(erfcx(a / sqrt(2)))
@@ -182,13 +182,10 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
         alpha = (a - mean) / sd
         beta = (b - mean) / sd
         # TODO potential for catestrophic cancellation here... is there a better way?
-        return(mean^2 + sd^2 * my_e2truncnorm(alpha, beta) + 2 * mean * sd * my_etruncnorm(alpha, beta))
+        return(mean*(mean + 2 * sd * my_etruncnorm(alpha, beta)) + sd^2 * my_e2truncnorm(alpha, beta))
     } 
     else {
         #point mass
-        # TODO potential error in original the julia code??
-        # i wrote what I think it should be, but that doesn't agree with 
-        # the original code
         if ((a <= mean) && (a <= b)) {
             # ⟹ if mean ∈ [a,b], 2nd moment is mean^2
             return(mean^2)
