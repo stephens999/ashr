@@ -143,10 +143,16 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
     res[sd.zero & a >= mean] = a[sd.zero & a >= mean]^2
     # if mean ∈ (a,b), 2nd moment is mean^2
     res[sd.zero & a < mean & mean < b] = mean[sd.zero & a < mean & mean < b]^2
+    
+    # Focus in on where sd is nonzero
+    a = a[!sd.zero]
+    b = b[!sd.zero]
+    mean = mean[!sd.zero]
+    sd = sd[!sd.zero]
 
     # Rescale to standard normal distributions if sd is nonzero
-    alpha = (a[!sd.zero] - mean[!sd.zero]) / sd[!sd.zero]
-    beta = (b[!sd.zero] - mean[!sd.zero]) / sd[!sd.zero]
+    alpha = (a - mean) / sd
+    beta = (b - mean) / sd
     scaled.mean = my_etruncnorm(alpha, beta)
     # initialize array for scaled 2nd moments
     scaled.2mom = rep(NA, length.out = length(alpha))
