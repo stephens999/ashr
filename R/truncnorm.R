@@ -94,7 +94,7 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   diff = (alpha[alpha_negative] - beta[alpha_negative]) * (alpha[alpha_negative] + beta[alpha_negative]) / 2
   #√(2/π) * expm1(-Δ) * exp(-α^2 / 2) / erf(β/√2, α/√2)
   scaled.mean[alpha_negative] = sqrt(2/pi) * expm1(-diff) * exp(-alpha[alpha_negative]^2 / 2) 
-  denom = Re(erf(alpha[alpha_negative]/√2)) - Re(erf(beta[alpha_negative]/√2))
+  denom = Re(erf(alpha[alpha_negative] / sqrt(2))) - Re(erf(beta[alpha_negative] / sqrt(2)))
   scaled.mean[alpha_negative] = scaled.mean[alpha_negative] / denom
   computed = computed | alpha_negative
   
@@ -109,10 +109,10 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   scaled.mean[scaled.mean < alpha] = alpha[scaled.mean < alpha]
   
   # Flip back.
-  scaled.res[flip] = -scaled.res[flip]
+  scaled.mean[flip] = -scaled.mean[flip]
   
   #transform back to nonstandard normal case
-  res[!sd.zero] = mean + sd * scaled.res
+  res[!sd.zero] = mean + sd * scaled.mean
   
   return(res)
 }
