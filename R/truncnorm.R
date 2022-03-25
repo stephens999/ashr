@@ -33,14 +33,12 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   # based off of https://github.com/cossio/TruncatedNormal.jl
   do_truncnorm_argchecks(a, b)
   
-  # force a to have the correct shape
-  a = a + 0 * mean + 0 * sd
   # initialize array to store result
   if (is.matrix(a)){
-    res = array(dim = dim(a))
+    res = array(dim = dim(0 * (a + b + mean + sd)))
   }
   else{
-    res = rep(NA, length.out = length(a))
+    res = rep(NA, length.out = length(0 * (a + b + mean + sd)))
   }
     
   #make sure input sizes all match 
@@ -160,14 +158,12 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
   # based off of https://github.com/cossio/TruncatedNormal.jl
   do_truncnorm_argchecks(a, b)
 
-  # force a to have the correct shape
-  a = a + 0 * mean + 0 * sd
   # initialize array to store result
   if (is.matrix(a)){
-    res = array(dim = dim(a))
+    res = array(dim = dim(0 * (a + b + mean + sd)))
   }
   else{
-    res = rep(NA, length.out = length(a))
+    res = rep(NA, length.out = length(0 * (a + b + mean + sd)))
   }
 
   #make sure input sizes all match 
