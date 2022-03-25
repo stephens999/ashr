@@ -33,7 +33,9 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   # based off of https://github.com/cossio/TruncatedNormal.jl
   do_truncnorm_argchecks(a, b)
   
-  # initialize array to store result of shape like a
+  # force a to have the correct shape
+  a = a + 0 * mean + 0 * sd
+  # initialize array to store result
   if (is.matrix(a)){
     res = array(dim = dim(a))
   }
@@ -97,7 +99,7 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   # a ≤ 0 ≤ b
   #catestrophic cancellation is less of an issue
   alpha_negative = !computed & alpha <= 0
-  diff = (alpha[alpha_negative] - beta[alpha_negative]) * (alpha[alpha_negative] + beta[alpha_negative]) / 2
+  diff = (beta[alpha_negative] - alpha[alpha_negative]) * (alpha[alpha_negative] + beta[alpha_negative]) / 2
   #√(2/π) * expm1(-Δ) * exp(-α^2 / 2) / erf(β/√2, α/√2)
   scaled.mean[alpha_negative] = sqrt(2/pi) * expm1(-diff) * exp(-alpha[alpha_negative]^2 / 2) 
   denom = Re(erf(alpha[alpha_negative] / sqrt(2))) - Re(erf(beta[alpha_negative] / sqrt(2)))
@@ -106,7 +108,7 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   
   # 0 < a < b
   #strategically avoid catestrophic cancellation as much as possible
-  diff = (alpha[!computed] - beta[!computed]) * (alpha[!computed] + beta[!computed]) / 2
+  diff = (beta[!computed] - alpha[!computed]) * (alpha[!computed] + beta[!computed]) / 2
   denom = exp(-diff) * Re(erfcx(beta[!computed] / sqrt(2))) - Re(erfcx(alpha[!computed] / sqrt(2)))
   scaled.mean[!computed] = sqrt(2/pi) * expm1(-diff) / denom
   
@@ -154,7 +156,9 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
   # based off of https://github.com/cossio/TruncatedNormal.jl
   do_truncnorm_argchecks(a, b)
 
-  # initialize array to store result of shape like a
+  # force a to have the correct shape
+  a = a + 0 * mean + 0 * sd
+  # initialize array to store result
   if (is.matrix(a)){
     res = array(dim = dim(a))
   }
