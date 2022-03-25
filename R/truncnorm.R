@@ -249,10 +249,10 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
   # μ^2 + σ^2 E(Z^2) + 2 μ σ E(Z)
   # possible catestropic cancellation because μ^2 + σ^2 E(Z^2) ≧ 0 while 2μσE(Z) has unknown sign
   # If |μ| < σ , compute as μ^2 + σ(σ E(Z^2) + 2 μ E(Z))
-  mean_smaller = abs(mean) < sd
-  res[!sd.zero & !isna & mean_smaller] = mean^2 + sd*(sd * scaled.2mom + 2 * mean * scaled.mean)
+  m_sd = abs(mean) < sd
+  res[!sd.zero & !isna][m_sd] = mean[m_sd]^2 + sd[m_sd]*(sd[m_sd] * scaled.2mom[m_sd] + 2 * mean[m_sd] * scaled.mean[m_sd])
   # If  σ ≦ |μ| , compute as μ(μ +  2 σ E(Z)) + σ^2 E(Z^2)
-  res[!sd.zero & !isna & !mean_smaller] = mean*(mean + 2 * sd * scaled.mean) + sd^2 * scaled.2mom
+  res[!sd.zero & !isna][!m_sd] = mean[!m_sd]*(mean[!m_sd] + 2 * sd[!m_sd] * scaled.mean[!m_sd]) + sd[!m_sd]^2 * scaled.2mom[!m_sd]
 
   # Check that the results make sense -- should never be negative
   stopifnot(all(res >= 0 | is.na(res)))  
