@@ -33,14 +33,13 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   # based off of https://github.com/cossio/TruncatedNormal.jl
   do_truncnorm_argchecks(a, b)
   
-  # force a to have the correct shape
-  a = a + 0 * mean + 0 * sd
   # initialize array to store result
-  if (is.matrix(a)){
-    res = array(dim = dim(a))
+  common_shape = 0 * (a + b + mean + sd)
+  if (is.matrix(common_shape)){
+    res = array(dim = dim(common_shape))
   }
   else{
-    res = rep(NA, length.out = length(a))
+    res = rep(NA, length.out = length(common_shape))
   }
     
   #make sure input sizes all match 
@@ -57,11 +56,15 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   res[sd.zero & a >= mean] = a[sd.zero & a >= mean]
   res[sd.zero & a < mean & b > mean] = mean[sd.zero & a < mean & b > mean]
   
-  # Focus in on where sd is nonzero
-  a = a[!sd.zero]
-  b = b[!sd.zero]
-  mean = mean[!sd.zero]
-  sd = sd[!sd.zero]
+  # Handle NAN inputs
+  isna = is.na(a) | is.na(b) | is.na(mean) | is.na(sd)
+  res[isna] = NA
+  
+  # Focus in on where sd is nonzero and nothing is nan
+  a = a[!sd.zero & !isna]
+  b = b[!sd.zero & !isna]
+  mean = mean[!sd.zero & !isna]
+  sd = sd[!sd.zero & !isna]
   
   # Rescale to standard normal distributions
   alpha = (a - mean) / sd
@@ -120,7 +123,7 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   scaled.mean[flip] = -scaled.mean[flip]
   
   #transform back to nonstandard normal case
-  res[!sd.zero] = mean + sd * scaled.mean
+  res[!sd.zero & !isna] = mean + sd * scaled.mean
   
   return(res)
 }
@@ -156,14 +159,13 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
   # based off of https://github.com/cossio/TruncatedNormal.jl
   do_truncnorm_argchecks(a, b)
 
-  # force a to have the correct shape
-  a = a + 0 * mean + 0 * sd
   # initialize array to store result
-  if (is.matrix(a)){
-    res = array(dim = dim(a))
+  common_shape = 0 * (a + b + mean + sd)
+  if (is.matrix(common_shape)){
+    res = array(dim = dim(common_shape))
   }
   else{
-    res = rep(NA, length.out = length(a))
+    res = rep(NA, length.out = length(common_shape))
   }
 
   #make sure input sizes all match 
@@ -180,12 +182,16 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
   res[sd.zero & a >= mean] = a[sd.zero & a >= mean]^2
   # if mean ∈ (a,b), 2nd moment is mean^2
   res[sd.zero & a < mean & mean < b] = mean[sd.zero & a < mean & mean < b]^2
-
-  # Focus in on where sd is nonzero
-  a = a[!sd.zero]
-  b = b[!sd.zero]
-  mean = mean[!sd.zero]
-  sd = sd[!sd.zero]
+  
+  # Handle NAN inputs
+  isna = is.na(a) | is.na(b) | is.na(mean) | is.na(sd)
+  res[isna] = NA
+  
+  # Focus in on where sd is nonzero and nothing is nan
+  a = a[!sd.zero & !isna]
+  b = b[!sd.zero & !isna]
+  mean = mean[!sd.zero & !isna]
+  sd = sd[!sd.zero & !isna]
 
   # Rescale to standard normal distributions if sd is nonzero
   alpha = (a - mean) / sd
@@ -245,12 +251,12 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
   # possible catestropic cancellation because μ^2 + σ^2 E(Z^2) ≧ 0 while 2μσE(Z) has unknown sign
   # If |μ| < σ , compute as μ^2 + σ(σ E(Z^2) + 2 μ E(Z))
   mean_smaller = abs(mean) < sd
-  res[!sd.zero & mean_smaller] = mean^2 + sd*(sd * scaled.2mom + 2 * mean * scaled.mean)
+  res[!sd.zero & !isna & mean_smaller] = mean^2 + sd*(sd * scaled.2mom + 2 * mean * scaled.mean)
   # If  σ ≦ |μ| , compute as μ(μ +  2 σ E(Z)) + σ^2 E(Z^2)
-  res[!sd.zero & !mean_smaller] = mean*(mean + 2 * sd * scaled.mean) + sd^2 * scaled.2mom
+  res[!sd.zero & !isna & !mean_smaller] = mean*(mean + 2 * sd * scaled.mean) + sd^2 * scaled.2mom
 
   # Check that the results make sense -- should never be negative
-  stopifnot(all(res >= 0))  
+  stopifnot(all(res >= 0 | is.na(res)))  
 
   return(res)
 }
@@ -285,7 +291,7 @@ my_vtruncnorm = function(a, b, mean = 0, sd = 1) {
   scaled.res = (m2 - m1) * (m1 + m2)
   
   # Handle endpoints equal
-  scaled.res[alpha == beta] = alpha[alpha == beta]
+  scaled.res[(alpha == beta) & sd != 0] = alpha[(alpha == beta) & sd != 0]
   
   #transform back to unscaled
   res = sd^2 * scaled.res
