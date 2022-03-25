@@ -88,6 +88,12 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   scaled.mean[both_inf] = 0
   computed = computed | both_inf
   
+  # truncated to [α,∞) 
+  # 2nd moment simplifies to ϕ(α)/(1 - Φ(α))
+  beta_inf = !computed & is.infinite(beta)
+  scaled.mean[beta_inf] = sqrt(2/pi) / Re(erfcx(alpha[beta_inf] / sqrt(2)))
+  computed = computed | beta_inf
+  
   # a ≤ 0 ≤ b
   #catestrophic cancellation is less of an issue
   alpha_negative = !computed & alpha <= 0
