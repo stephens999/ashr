@@ -48,17 +48,17 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   mean = rep(mean, length.out = length(res))
   sd = rep(sd, length.out = length(res))
   
+  # Handle NAN inputs
+  isna = is.na(a) | is.na(b) | is.na(mean) | is.na(sd)
+  res[isna] = NA
+  
   # Handle zero sds. Return the mean of the untruncated normal when it is 
   #   located inside of the interval [alpha, beta]. Otherwise, return the 
   #   endpoint that is closer to the mean.
   sd.zero = (sd == 0)
-  res[sd.zero & b <= mean] = b[sd.zero & b <= mean]
-  res[sd.zero & a >= mean] = a[sd.zero & a >= mean]
-  res[sd.zero & a < mean & b > mean] = mean[sd.zero & a < mean & b > mean]
-  
-  # Handle NAN inputs
-  isna = is.na(a) | is.na(b) | is.na(mean) | is.na(sd)
-  res[isna] = NA
+  res[!isna & sd.zero & b <= mean] = b[!isna & sd.zero & b <= mean]
+  res[!isna & sd.zero & a >= mean] = a[!isna & sd.zero & a >= mean]
+  res[!isna & sd.zero & a < mean & b > mean] = mean[!isna & sd.zero & a < mean & b > mean]
   
   # Focus in on where sd is nonzero and nothing is nan
   a = a[!sd.zero & !isna]
@@ -174,18 +174,17 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
   mean = rep(mean, length.out = length(res))
   sd = rep(sd, length.out = length(res))
 
-  # Handle zero sd point masses
-  sd.zero = (sd == 0)
-  # if mean ≥ b, 2nd moment is b^2
-  res[sd.zero & b <= mean] = b[sd.zero & b <= mean]^2
-  # if mean ≤ a, 2nd moment is a^2
-  res[sd.zero & a >= mean] = a[sd.zero & a >= mean]^2
-  # if mean ∈ (a,b), 2nd moment is mean^2
-  res[sd.zero & a < mean & mean < b] = mean[sd.zero & a < mean & mean < b]^2
-  
   # Handle NAN inputs
   isna = is.na(a) | is.na(b) | is.na(mean) | is.na(sd)
   res[isna] = NA
+  
+  # Handle zero sds. Return the mean of the untruncated normal when it is 
+  #   located inside of the interval [alpha, beta]. Otherwise, return the 
+  #   endpoint that is closer to the mean.
+  sd.zero = (sd == 0)
+  res[!isna & sd.zero & b <= mean] = b[!isna & sd.zero & b <= mean]^2
+  res[!isna & sd.zero & a >= mean] = a[!isna & sd.zero & a >= mean]^2
+  res[!isna & sd.zero & a < mean & b > mean] = mean[!isna & sd.zero & a < mean & b > mean]^2
   
   # Focus in on where sd is nonzero and nothing is nan
   a = a[!sd.zero & !isna]
@@ -291,7 +290,8 @@ my_vtruncnorm = function(a, b, mean = 0, sd = 1) {
   scaled.res = (m2 - m1) * (m1 + m2)
   
   # Handle endpoints equal
-  scaled.res[(alpha == beta) & sd != 0] = alpha[(alpha == beta) & sd != 0]
+  isna = is.na(a) | is.na(b) | is.na(mean) | is.na(sd)
+  scaled.res[(alpha == beta) & sd != 0 & !isna] = alpha[(alpha == beta) & sd != 0 & !isna]
   
   #transform back to unscaled
   res = sd^2 * scaled.res
