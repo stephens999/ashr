@@ -57,11 +57,15 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   res[sd.zero & a >= mean] = a[sd.zero & a >= mean]
   res[sd.zero & a < mean & b > mean] = mean[sd.zero & a < mean & b > mean]
   
-  # Focus in on where sd is nonzero
-  a = a[!sd.zero]
-  b = b[!sd.zero]
-  mean = mean[!sd.zero]
-  sd = sd[!sd.zero]
+  # Handle NAN inputs
+  isna = is.na(a) | is.na(b) | is.na(mean) | is.na(sd)
+  res[isna] = NA
+  
+  # Focus in on where sd is nonzero and nothing is nan
+  a = a[!sd.zero & !isna]
+  b = b[!sd.zero & !isna]
+  mean = mean[!sd.zero & !isna]
+  sd = sd[!sd.zero & !isna]
   
   # Rescale to standard normal distributions
   alpha = (a - mean) / sd
@@ -180,12 +184,16 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
   res[sd.zero & a >= mean] = a[sd.zero & a >= mean]^2
   # if mean ∈ (a,b), 2nd moment is mean^2
   res[sd.zero & a < mean & mean < b] = mean[sd.zero & a < mean & mean < b]^2
-
-  # Focus in on where sd is nonzero
-  a = a[!sd.zero]
-  b = b[!sd.zero]
-  mean = mean[!sd.zero]
-  sd = sd[!sd.zero]
+  
+  # Handle NAN inputs
+  isna = is.na(a) | is.na(b) | is.na(mean) | is.na(sd)
+  res[isna] = NA
+  
+  # Focus in on where sd is nonzero and nothing is nan
+  a = a[!sd.zero & !isna]
+  b = b[!sd.zero & !isna]
+  mean = mean[!sd.zero & !isna]
+  sd = sd[!sd.zero & !isna]
 
   # Rescale to standard normal distributions if sd is nonzero
   alpha = (a - mean) / sd
@@ -250,7 +258,7 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
   res[!sd.zero & !mean_smaller] = mean*(mean + 2 * sd * scaled.mean) + sd^2 * scaled.2mom
 
   # Check that the results make sense -- should never be negative
-  stopifnot(all(res >= 0))  
+  stopifnot(all(res >= 0 | is.na(res)))  
 
   return(res)
 }
@@ -285,7 +293,7 @@ my_vtruncnorm = function(a, b, mean = 0, sd = 1) {
   scaled.res = (m2 - m1) * (m1 + m2)
   
   # Handle endpoints equal
-  scaled.res[alpha == beta] = alpha[alpha == beta]
+  scaled.res[(alpha == beta) & sd != 0] = alpha[(alpha == beta) & sd != 0]
   
   #transform back to unscaled
   res = sd^2 * scaled.res
