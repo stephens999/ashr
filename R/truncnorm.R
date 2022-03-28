@@ -125,6 +125,14 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   #transform back to nonstandard normal case
   res[!sd.zero & !isna] = mean + sd * scaled.mean
   
+  #throw error if results are far outside the plausible range
+  error_tol = 1
+  stopifnot(all(res > a-error_tol | is.na(res)))  
+  stopifnot(all(res < b+error_tol | is.na(res)))  
+  #silently correct small errors
+  res[res < a & !isna] = a
+  res[res > b & !isna] = b
+  
   return(res)
 }
 
@@ -253,9 +261,15 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
   res[!sd.zero & !isna][m_sd] = mean[m_sd]^2 + sd[m_sd]*(sd[m_sd] * scaled.2mom[m_sd] + 2 * mean[m_sd] * scaled.mean[m_sd])
   # If  σ ≦ |μ| , compute as μ(μ +  2 σ E(Z)) + σ^2 E(Z^2)
   res[!sd.zero & !isna][!m_sd] = mean[!m_sd]*(mean[!m_sd] + 2 * sd[!m_sd] * scaled.mean[!m_sd]) + sd[!m_sd]^2 * scaled.2mom[!m_sd]
-
-  # Check that the results make sense -- should never be negative
-  stopifnot(all(res >= 0 | is.na(res)))  
+  # TODO experiment with whether the above is a good idea or not...
+  
+  #throw error if results are far outside the plausible range
+  error_tol = 1
+  stopifnot(all(res > a^2-error_tol | is.na(res)))  
+  stopifnot(all(res < b^2+error_tol | is.na(res)))  
+  #silently correct small errors
+  res[res < a^2 & !isna] = a^2
+  res[res > b^2 & !isna] = b^2
 
   return(res)
 }
@@ -298,6 +312,12 @@ my_vtruncnorm = function(a, b, mean = 0, sd = 1) {
   
   # Handle zero sds.
   res[sd == 0] = 0
+  
+  #throw error if results are far outside the plausible range
+  error_tol = 1
+  stopifnot(all(res > -error_tol | is.na(res)))  
+  #silently correct small errors
+  res[res < 0 & !isna] = 0
   
   return(res)
 }
