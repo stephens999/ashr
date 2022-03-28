@@ -127,8 +127,9 @@ my_etruncnorm = function(a, b, mean = 0, sd = 1) {
   
   #throw error if results are far outside the plausible range
   error_tol = 1
-  stopifnot(all(res > a-error_tol | is.na(res)))  
-  stopifnot(all(res < b+error_tol | is.na(res)))  
+  if (any(res < a-error_tol & !isna) | any(res > b+error_tol & !isna)) {
+    stop("Computed expected value of truncated normal is outside plausible range")
+  }
   #silently correct small errors
   res[res < a & !isna] = a
   res[res > b & !isna] = b
@@ -265,8 +266,9 @@ my_e2truncnorm = function(a, b, mean = 0, sd = 1) {
   
   #throw error if results are far outside the plausible range
   error_tol = 1
-  stopifnot(all(res > a^2-error_tol | is.na(res)))  
-  stopifnot(all(res < b^2+error_tol | is.na(res)))  
+  if (any(res < a^2-error_tol & !isna) | any(res > b^2+error_tol & !isna)) {
+    stop("Computed second moment of truncated normal is outside plausible range")
+  }
   #silently correct small errors
   res[res < a^2 & !isna] = a^2
   res[res > b^2 & !isna] = b^2
@@ -315,7 +317,9 @@ my_vtruncnorm = function(a, b, mean = 0, sd = 1) {
   
   #throw error if results are far outside the plausible range
   error_tol = 1
-  stopifnot(all(res > -error_tol | is.na(res)))  
+  if (any(res < -error_tol & !isna)) {
+    stop("Computed variance of truncated normal is outside plausible range")
+  }
   #silently correct small errors
   res[res < 0 & !isna] = 0
   
