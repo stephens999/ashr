@@ -65,7 +65,7 @@ ashci = function (a,level=0.95,betaindex,lfsr_threshold=1,tol=1e-3,trace=FALSE){
 
   if(trace==TRUE){
       cat("Computation time will be linear w.r.t sample size, progress will be printed to the screen \n")
-      tic()
+      tic <- proc.time()["elapsed"]
   }
   for(i in betaindex){
     data_i = extract_data(data,i)
@@ -93,7 +93,7 @@ ashci = function (a,level=0.95,betaindex,lfsr_threshold=1,tol=1e-3,trace=FALSE){
       currentpercentage=round(i*100/length(betaindex))
       if(currentpercentage == percentage){
         cat("Current computation progress", percentage,"%, seconds ")
-        toc()
+        print(proc.time()["elapsed"] - tic)
         percentage = percentage + 1}
     }
   }
