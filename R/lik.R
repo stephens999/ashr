@@ -58,7 +58,7 @@ lik_logF = function(df1,df2){
 #' @details Suppose we have Poisson observations \code{y} where \eqn{y_i\sim Poisson(c_i\lambda_i)}. 
 #'    We either put an unimodal prior g on the (scaled) intensities \eqn{\lambda_i\sim g} 
 #'    (by specifying \code{link="identity"}) or on the log intensities 
-#'    \eqn{logit(\lambda_i)\sim g} (by specifying \code{link="log"}). Either way, 
+#'    \eqn{log(\lambda_i)\sim g} (by specifying \code{link="log"}). Either way, 
 #'    ASH with this Poisson likelihood function will compute the posterior mean of the 
 #'    intensities \eqn{\lambda_i}.
 #' @param y Poisson observations.
