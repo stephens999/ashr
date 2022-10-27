@@ -74,9 +74,9 @@
 #' zero as one of components for a mixture distribution.
 #'
 #' @param prior string, or numeric vector indicating Dirichlet prior
-#' on mixture proportions (defaults to "uniform", or (1,1...,1); also
-#' can be "nullbiased" (nullweight,1,...,1) to put more weight on
-#' first component), or "unit" (1/K,...,1/K) [for optmethod=mixVBEM
+#' on mixture proportions (defaults to "nullbiased" (nullweight,1,...,1) 
+#' to put more weight on first component, can also be "uniform" (1,1...,1)), 
+#' or "unit" (1/K,...,1/K) [for optmethod=mixVBEM
 #' version only].
 #'
 #' @param mixsd Vector of standard deviations for underlying mixture components.
