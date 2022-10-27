@@ -74,10 +74,10 @@
 #' zero as one of components for a mixture distribution.
 #'
 #' @param prior string, or numeric vector indicating Dirichlet prior
-#' on mixture proportions (defaults to "nullbiased" (nullweight,1,...,1) 
-#' to put more weight on first component, can also be "uniform" (1,1...,1)), 
-#' or "unit" (1/K,...,1/K) [for optmethod=mixVBEM
-#' version only].
+#'   on mixture proportions: \dQuote{nullbiased},
+#'   \code{c(nullweight,1,...,1)}, puts more weight on first component;
+#'   \dQuote{uniform} is \code{c(1,1...,1)}; \dQuote{unit} is
+#'    (1/K,...,1/K), for \code{optmethod = mixVBEM} version only.
 #'
 #' @param mixsd Vector of standard deviations for underlying mixture components.
 #'
