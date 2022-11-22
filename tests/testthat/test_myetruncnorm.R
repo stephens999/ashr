@@ -1,18 +1,19 @@
 context("my_etruncnorm")
 
 test_that("my_etruncnorm returns expected results", {
-  expect_equal(-100,my_etruncnorm(-Inf,-100,0,1),tolerance=0.01)
-  expect_equal(-100,my_etruncnorm(-Inf,-100,0,0))
-  expect_equal(30,my_etruncnorm(30,100,0,0))
-  real = c(-100,-100,30)
-  a=c(-Inf,-Inf,30)
-  b=c(-100,-100,100)
-  m=c(0,0,0)
-  sd=c(1,0,0)
+  a    = c(-Inf,-Inf, 30,NA, 1, 1, 1,1,100,100,-100,-Inf,   0,-1,   1,  -2, -2)
+  b    = c(-100,-100,100, 1,NA, 1, 1,1,Inf,Inf, -30, Inf, Inf, 1,   2,   2,  3)
+  m    = c(   0,   0,  0, 1, 1,NA, 1,1,  0,  0,   0,   5,   0, 0,   0,-5e9,  0)
+  sd   = c(   1,   0,  0, 1, 1, 1,NA,1,  1,  0,   0,   2,   1, 1,   1,   2,1e4)
+  real = c(-100,-100, 30,NA,NA,NA,NA,1,100,100, -30,   5,0.80, 0,1.38,  -2,0.5)
+  N = length(real)
+  for (idx in 1:N){
+    expect_equal(real[idx],my_etruncnorm(a[idx],b[idx],m[idx],sd[idx]),tolerance=0.01)
+  }
   expect_equal(real,my_etruncnorm(a,b,m,sd),tolerance=0.01)
-  real = matrix(real,3,4)
-  m = matrix(m,3,4)
-  sd = matrix(sd,3,4)
+  real = matrix(real,N,4)
+  m = matrix(m,N,4)
+  sd = matrix(sd,N,4)
   expect_equal(real,my_etruncnorm(a,b,m,sd),tolerance=0.01)
   a=c(0,0)
   b=c(1,2)
@@ -25,23 +26,26 @@ test_that("my_etruncnorm returns expected results", {
   expect_equal(my_etruncnorm(0,9999,-2,3),my_etruncnorm(0,Inf,-2,3),tol=1e-3)
   expect_error(my_etruncnorm(0, 1:2, mean = 0, sd = 1))
   expect_error(my_etruncnorm(1, 0, mean = 0, sd = 1))
+  
+  #TODO add test cases from pull request
 })
 
 context("my_vtruncnorm")
 
 test_that("my_vtruncnorm returns expected results", {
-  expect_equal(0, my_vtruncnorm(-Inf, -100), tolerance = 0.01)
-  expect_equal(0, my_vtruncnorm(-Inf, -100, sd = 0))
-  expect_equal(0, my_vtruncnorm(30, 100, sd = 0))
-  real = c(0, 0, 0)
-  a = c(-Inf, -Inf, 30)
-  b = c(-100, -100, 100)
-  m = c(0, 0, 0)
-  sd = c(1, 0, 0)
+  a    = c(-Inf,-Inf, 30,NA, 1, 1, 1,1,100,100,-100,-Inf,   0,  -1,   1,  -2,  -2)
+  b    = c(-100,-100,100, 1,NA, 1, 1,1,Inf,Inf, -30, Inf, Inf,   1,   2,   2,   3)
+  m    = c(   0,   0,  0, 1, 1,NA, 1,1,  0,  0,   0,   5,   0,   0,   0,-5e9,   0)
+  sd   = c(   1,   0,  0, 1, 1, 1,NA,1,  1,  0,   0,   2,   2,   1,   1,   2, 1e4)
+  real = c(   0,   0,  0,NA,NA,NA,NA,0,  0,  0,   0,   4,1.45,0.29,0.07,   0,2.08)
+  N = length(real)
+  for (idx in 1:N){
+    expect_equal(real[idx],my_vtruncnorm(a[idx],b[idx],m[idx],sd[idx]),tolerance=0.01)
+  }
   expect_equal(real, my_vtruncnorm(a, b, m, sd), tolerance = 0.01)
-  real = matrix(real, 3, 4)
-  m = matrix(m, 3, 4)
-  sd = matrix(sd, 3, 4)
+  real = matrix(real, N, 4)
+  m = matrix(m, N, 4)
+  sd = matrix(sd, N, 4)
   expect_equal(real, my_vtruncnorm(a, b, m, sd), tolerance = 0.01)
   a = c(0, 0)
   b = c(1, 2)
