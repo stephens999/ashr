@@ -22,6 +22,7 @@ igmix = function(pi,alpha,beta){
   structure(data.frame(pi,alpha,beta),class="igmix")
 }
 
+#' @export
 comp_sd.igmix = function(m){
   m$beta/(m$alpha-1)/sqrt(m$alpha-2)
 }

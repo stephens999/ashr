@@ -27,6 +27,7 @@ comp_cdf.unimix = function(m,y,lower.tail=TRUE){
   vapply(y,stats::punif,m$a,min=m$a,max=m$b,lower.tail)
 }
 
+#' @export
 comp_sd.unimix = function(m){
   (m$b-m$a)/sqrt(12)
 }
@@ -36,8 +37,7 @@ comp_mean.unimix = function(m){
   (m$a+m$b)/2
 }
 
-
-
+#' @export
 comp_dens.unimix = function(m,y,log=FALSE){
   k=ncomp(m)
   n=length(y)
