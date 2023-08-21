@@ -4,12 +4,14 @@
 \alias{comp_dens_conv.unimix}
 \title{density of convolution of each component of a unif mixture}
 \usage{
-\method{comp_dens_conv}{unimix}(m, data)
+\method{comp_dens_conv}{unimix}(m, data, ...)
 }
 \arguments{
 \item{m}{a mixture of class unimix}
 
 \item{data, }{see set_data()}
+
+\item{other}{arguments (unused)}
 }
 \value{
 a k by n matrix

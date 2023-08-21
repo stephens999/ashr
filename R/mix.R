@@ -7,10 +7,9 @@
 #'     unimix() or igmix()
 #' @param y is an n-vector of location
 #' @param log whether to use log-scale on densities
-#' @param \dots other arguments
 #' @return A k by n matrix of densities
 #' @export
-comp_dens = function(m,y,log=FALSE,...){
+comp_dens = function(m,y,log=FALSE){
   UseMethod("comp_dens")
 }
 #' @export
@@ -246,7 +245,7 @@ loglik_conv.default = function(m,data){
 comp_dens_conv = function(m,data,...){
   UseMethod("comp_dens_conv")
 }
-comp_dens_conv.default = function(m,data){
+comp_dens_conv.default = function(m,data,...){
   stop(paste("Invalid class", class(m), "for first argument in",  match.call()))
 }
 

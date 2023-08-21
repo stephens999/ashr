@@ -4,12 +4,14 @@
 \alias{comp_dens_conv.normalmix}
 \title{comp_dens_conv.normalmix}
 \usage{
-\method{comp_dens_conv}{normalmix}(m, data)
+\method{comp_dens_conv}{normalmix}(m, data, ...)
 }
 \arguments{
 \item{m}{mixture distribution with k components}
 
 \item{data}{a list with components x and s to be interpreted as a normally-distributed observation and its standard error}
+
+\item{other}{arguments (unused)}
 }
 \value{
 a k by n matrix

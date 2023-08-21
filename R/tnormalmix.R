@@ -66,7 +66,7 @@ comp_dens.tnormalmix = function (m, y, log = FALSE) {
 #' 
 #' @export
 #' 
-comp_dens_conv.tnormalmix = function (m, data) {
+comp_dens_conv.tnormalmix = function (m, data, ...) {
   if (!is_normal(data$lik))
     stop("Error: truncated normal mixture for non-normal likelihood is not ",
          "yet implemented")
