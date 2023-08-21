@@ -48,7 +48,7 @@ comp_dens.unimix = function(m,y,log=FALSE){
 #' density of convolution of each component of a unif mixture 
 #' @param m a mixture of class unimix
 #' @param data, see set_data()
-#' @param other arguments (unused)
+#' @param \dots other arguments (unused)
 #'
 #' @return a k by n matrix
 #'

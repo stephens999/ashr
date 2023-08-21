@@ -60,7 +60,7 @@ comp_cdf.normalmix = function (m, y, lower.tail = TRUE)
 #'     convolution of two normals is normal, so it works that way
 #' @param m mixture distribution with k components
 #' @param data a list with components x and s to be interpreted as a normally-distributed observation and its standard error
-#' @param other arguments (unused)
+#' @param \dots other arguments (unused)
 #' @return a k by n matrix
 comp_dens_conv.normalmix = function(m,data,...){
   if(!is_normal(data$lik)){

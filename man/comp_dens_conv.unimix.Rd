@@ -11,7 +11,7 @@
 
 \item{data, }{see set_data()}
 
-\item{other}{arguments (unused)}
+\item{\dots}{other arguments (unused)}
 }
 \value{
 a k by n matrix

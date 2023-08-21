@@ -11,7 +11,7 @@
 
 \item{data}{a list with components x and s to be interpreted as a normally-distributed observation and its standard error}
 
-\item{other}{arguments (unused)}
+\item{\dots}{other arguments (unused)}
 }
 \value{
 a k by n matrix
