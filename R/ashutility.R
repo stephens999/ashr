@@ -212,11 +212,12 @@ calc_logLR = function(g,data){
 #' @export
 #'
 calc_vloglik = function(g,data){
-  if(class(g)=="ash"){
-    if(g$data$alpha != data$alpha){
-      warning("Model (alpha value) used to fit ash does not match alpha in data! Probably you have made a mistake!")
-    }
-    if(class(g)=="ash"){g = g$fitted_g} #extract g object from ash object if ash object passed
+  if (inherits(g,"ash")) {
+    if (g$data$alpha != data$alpha)
+      warning("Model (alpha value) used to fit ash does not match alpha in ",
+              "data! Probably you have made a mistake!")
+    if (inherits(g,"ash"))
+      g <- g$fitted_g # Extract g object from ash object if ash object passed.
   }
   
   # compute log(dens_conv(g,data))

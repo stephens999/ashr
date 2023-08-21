@@ -4,12 +4,14 @@
 \alias{comp_dens_conv}
 \title{comp_dens_conv}
 \usage{
-comp_dens_conv(m, data)
+comp_dens_conv(m, data, ...)
 }
 \arguments{
 \item{m}{mixture distribution with k components}
 
 \item{data}{details depend on the model}
+
+\item{\dots}{other arguments}
 }
 \value{
 a k by n matrix of densities

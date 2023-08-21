@@ -19,6 +19,8 @@ gen_etruncFUN = function(lcdfFUN,lpdfFUN){
 
 # compute expectation of truncated error distribution
 # for scalars a and b
+#
+# @importFrom stats integrate
 gen_etruncFUN_single = function(lcdfFUN,lpdfFUN){
   return(function(a,b){
     if(a == b){
@@ -32,7 +34,7 @@ gen_etruncFUN_single = function(lcdfFUN,lpdfFUN){
           x*exp(lpdfFUN(x))
         }
         tmp = try(stats::integrate(xpdf,a,b)$value,silent=TRUE)
-        if (class(tmp)!="try-error") 
+        if (!inherits(tmp,"try-error"))
           return(tmp/denom)
       }
     }

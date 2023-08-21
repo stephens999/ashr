@@ -44,14 +44,11 @@ my_etrunclogf= function(a,b,df1,df2){
     tmp = a
   }else{
     tmp = try(etrunclogf(df1=df1, df2=df2, a=a, b=b, adj=FALSE),silent=TRUE)
-    if (class(tmp)=="try-error"){
-      tmp = try(etrunclogf(df1=df1, df2=df2, a=a, b=b, adj=TRUE),silent=TRUE)
-    }
+    if (inherits(tmp,"try-error"))
+      tmp <- try(etrunclogf(df1=df1, df2=df2, a=a, b=b, adj=TRUE),silent=TRUE)
     
-    if (class(tmp)=="try-error"){
-      #tmp = NA
+    if (inherits(tmp,"try-error"))
       tmp = (a+b)/2
-    }
   }
   return(tmp) #deal with extreme case a=b
 }

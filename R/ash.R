@@ -672,9 +672,8 @@ estimate_mixprop = function (data, g, prior,
 #'
 #'
 posterior_dist = function(g,betahat,sebetahat){
-  if(class(g)!="normalmix"){
+  if (!inherits(g,"normalmix"))
     stop("Error: posterior_dist implemented only for g of class normalmix")
-  }
   pi0 = g$pi
   mu0 = g$mean
   sigma0 = g$sd

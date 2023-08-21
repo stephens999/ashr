@@ -51,7 +51,10 @@ ashci = function (a,level=0.95,betaindex,lfsr_threshold=1,tol=1e-3,trace=FALSE){
   m=get_fitted_g(a)
   percentage=1
   
-  if( class(m) != "normalmix" && class(m) != "unimix" && class(m) != "tnormalmix"){stop(paste("Invalid class",class(m)))}
+  if (!inherits(m,"normalmix") &&
+      !inherits(m,"unimix") &&
+      !inherits(m,"tnormalmix"))
+    stop(paste("Invalid class",class(m)))
 
   CImatrix=matrix(NA,nrow=length(PosteriorMean),ncol=2)
   colnames(CImatrix)=c((1-level)/2,(1+level)/2)
