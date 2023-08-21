@@ -13,6 +13,7 @@ test_that("optimization with weights matches expectations", {
                  g = get_fitted_g(z.ash))
   expect_equal(get_fitted_g(z.ash.w2)$pi, get_fitted_g(z.ash.w)$pi,tol = 1e-4)
 
+  skip_on_cran()
   skip_if_mixkwdual_doesnt_work()
   z.ash.w3 = ash(z,1,optmethod="mixIP",weights = c(rep(1,50),rep(0,50)),
                  g = get_fitted_g(z.ash))

@@ -1,6 +1,7 @@
 context("ashr optimization algorithms")
 
 test_that("control is passed to optmethod correctly when method is mixIP", {
+  skip_on_cran()
   skip_if_mixkwdual_doesnt_work()
   set.seed(1)
   z     <- rnorm(10,0,2) 
