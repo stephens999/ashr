@@ -66,9 +66,10 @@
 #'   include the interior-point method implemented in the REBayes
 #'   package (\code{optmethod = "mixIP"}), and a simple Expectation
 #'   Maximization (EM) algorithm (\code{optmethod = "mixEM"}). For more
-#'   details, see the documentation for \code{\link{estimate_mixprop}},
-#'   \code{\link{mixSQP}}, \code{\link{mixIP}}, \code{\link{mixEM}},
-#'   \code{\link{w_mixEM}} and \code{\link{mixVBEM}}.
+#'   details on the different options, see the help for functions
+#'   \code{\link{estimate_mixprop}}, \code{\link{mixSQP}},
+#'   \code{\link{mixIP}}, \code{\link{mixEM}}, \code{\link{w_mixEM}} and
+#'   \code{\link{mixVBEM}}.
 #'
 #' @param nullweight scalar, the weight put on the prior under
 #' "nullbiased" specification, see \code{prior}
