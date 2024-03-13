@@ -8,3 +8,31 @@
 \description{
 The main function in the ashr package is \code{\link{ash}}, which should be examined for more details. For simplicity only the most commonly-used options are documented under \code{\link{ash}}. For expert or interested users the documentation for function \code{\link{ash.workhorse}} provides documentation on all implemented options.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/stephens999/ashr}
+  \item Report bugs at \url{https://github.com/stephens999/ashr/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Peter Carbonetto \email{pcarbo@uchicago.edu}
+
+Authors:
+\itemize{
+  \item Matthew Stephens \email{mstephens@uchicago.edu}
+  \item David Gerard
+  \item Mengyin Lu
+  \item Lei Sun
+  \item Jason Willwerscheid
+  \item Nan Xiao
+}
+
+Other contributors:
+\itemize{
+  \item Chaoxing Dai [contributor]
+  \item Mazon Zeng [contributor]
+}
+
+}

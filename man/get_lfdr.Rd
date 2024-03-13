@@ -57,28 +57,28 @@ rather than directly from the ash object will help ensure compatability moving f
 }
 \section{Functions}{
 \itemize{
-\item \code{get_lfsr}: local false sign rate
+\item \code{get_lfsr()}: local false sign rate
 
-\item \code{get_lfdr}: local false discovery rate
+\item \code{get_lfdr()}: local false discovery rate
 
-\item \code{get_svalue}: svalue
+\item \code{get_svalue()}: svalue
 
-\item \code{get_qvalue}: qvalue
+\item \code{get_qvalue()}: qvalue
 
-\item \code{get_pm}: posterior mean
+\item \code{get_pm()}: posterior mean
 
-\item \code{get_psd}: posterior standard deviation
+\item \code{get_psd()}: posterior standard deviation
 
-\item \code{get_pp}: positive probability
+\item \code{get_pp()}: positive probability
 
-\item \code{get_np}: negative probability
+\item \code{get_np()}: negative probability
 
-\item \code{get_loglik}: log-likelihood
+\item \code{get_loglik()}: log-likelihood
 
-\item \code{get_logLR}: log-likelihood ratio
+\item \code{get_logLR()}: log-likelihood ratio
 
-\item \code{get_fitted_g}: fitted g mixture
+\item \code{get_fitted_g()}: fitted g mixture
 
-\item \code{get_pi0}: pi0, the proportion of nulls
+\item \code{get_pi0()}: pi0, the proportion of nulls
+
 }}
-

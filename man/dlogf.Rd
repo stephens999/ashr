@@ -9,9 +9,7 @@ dlogf(x, df1, df2, ncp, log = FALSE)
 \arguments{
 \item{x}{vector of quantiles}
 
-\item{df1}{degrees of freedom}
-
-\item{df2}{degrees of freedom}
+\item{df1, df2}{degrees of freedom}
 
 \item{ncp}{non-centrality parameter. If omitted the central F is assumed.}
 

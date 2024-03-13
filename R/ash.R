@@ -59,8 +59,16 @@
 #' combinations of parameters: "shrinkage" sets pointmass=FALSE and
 #' prior="uniform"; "fdr" sets pointmass=TRUE and prior="nullbiased".
 #'
-#' @param optmethod specifies the function implementing an
-#' optimization method.
+#' @param optmethod The method used to compute maximum-likelihood
+#'   estimates of the mixture weights. The default setting,
+#'   \dQuote{mixSQP}, uses the fast sequential quadratric programming
+#'   (SQP) method implemented in the mixsqp package. Alternative methods
+#'   include the interior-point method implemented in the REBayes
+#'   package (\code{optmethod = "mixIP"}), and a simple Expectation
+#'   Maximization (EM) algorithm (\code{optmethod = "mixEM"}). For more
+#'   details, see the documentation for \code{\link{estimate_mixprop}},
+#'   \code{\link{mixSQP}}, \code{\link{mixIP}}, \code{\link{mixEM}},
+#'   \code{\link{w_mixEM}} and \code{\link{mixVBEM}}.
 #'
 #' @param nullweight scalar, the weight put on the prior under
 #' "nullbiased" specification, see \code{prior}
@@ -220,6 +228,7 @@
 #' fit.em   <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixEM")
 #' fit.sqp  <- ash(betahat,sebeta,mixcompdist = "normal",optmethod = "mixSQP")
 #' range(fit.em$fitted$pi - fit.sqp$fitted$pi)
+#' 
 ash <- function (betahat, sebetahat,
                  mixcompdist = c("uniform","halfuniform","normal","+uniform",
                                  "-uniform","halfnormal"),

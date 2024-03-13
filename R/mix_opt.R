@@ -148,7 +148,6 @@ mixSQP <- function (matrix_lik, prior, pi_init = NULL,
 #'  
 #' @export
 #' 
-#' 
 mixEM = function(matrix_lik,prior,pi_init=NULL,control=list()){
   control = set_control_squarem(control,nrow(matrix_lik))
   k=dim(matrix_lik)[2]
