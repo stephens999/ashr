@@ -53,7 +53,7 @@ Options are:\cr
 \item{halfuniform}{G is (approximately) any unimodal distribution}
 \item{+uniform}{G is (approximately) any unimodal distribution with support constrained to be greater than the mode.}
 \item{-uniform}{G is (approximately) any unimodal distribution with support constrained to be less than the mode.}
-\item{halfnormal}{G is (approximately) any scale mixture of truncated normals where the normals are truncated at the mode}
+\item{halfnormal}{G is (approximately) any scale mixture of truncated normals where the normals are truncated at zero}
 }
 If you are happy to assume a symmetric distribution for effects, you can use
 "uniform" or "normal". If you believe your effects
