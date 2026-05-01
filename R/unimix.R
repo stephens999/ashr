@@ -1,5 +1,25 @@
 
 
+# Stable computation of log(1 - exp(z)) for z <= 0.
+# Uses log1p(-exp(z)) when z < -log(2), and log(-expm1(z)) otherwise.
+# This keeps precision when z is close to 0, where the naive form
+# log(1 - exp(z)) underflows to log(0) = -Inf because exp(z) rounds
+# to 1. Used in log_comp_dens_conv.unimix where z = lpb - lpa can
+# be very close to 0 (narrow uniform component, or two log-CDF
+# values nearly equal in the tail).
+# Reference: Maechler (2012), "Accurately Computing log(1 - exp(-|a|))",
+# https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
+log1mexp = function(z) {
+  # Default branch handles every value, including NaN / NA (which
+  # propagate naturally through expm1 and log). We deliberately avoid
+  # ifelse() because comparisons on NaN evaluate to NA, which would
+  # turn NaN inputs into NA outputs.
+  out = log(-expm1(z))
+  small = !is.na(z) & z < -log(2)
+  out[small] = log1p(-exp(z[small]))
+  out
+}
+
 ############################### METHODS FOR unimix class ###########################
 
 #' @title Constructor for unimix class
@@ -74,7 +94,7 @@ log_comp_dens_conv.unimix = function(m,data){
     lpb = tmp
   }
    
-  lcomp_dens = t(lpa + log(1-exp(lpb-lpa))) - log(b-a)
+  lcomp_dens = t(lpa + log1mexp(lpb-lpa)) - log(b-a)
   lcomp_dens[a==b,] = t(do.call(lik$lpdfFUN, list(outer(data$x,b,FUN="-")/data$s))
                        -log(data$s))[a==b,]
   return(lcomp_dens)
