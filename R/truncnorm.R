@@ -239,8 +239,12 @@ do_truncnorm_argchecks = function(a, b) {
 }
 
 logscale_sub = function(logx, logy) {
-  # In rare cases, logx can become numerically less than logy. When this
-  #   occurs, logx is adjusted and a warning is issued.
+  # Stable computation of log(exp(logx) - exp(logy)) for logx >= logy.
+  # Equivalent to logx + log(1 - exp(logy - logx)); we use log1mexp
+  # (defined in R/unimix.R) on the inner term to avoid underflow when
+  # logy is very close to logx.
+  # In rare cases, logx can become numerically less than logy. When
+  # this occurs, logx is adjusted and a warning is issued.
   diff = logx - logy
   if (any(diff < 0, na.rm = TRUE)) {
     bad.idx = (diff < 0)
@@ -249,8 +253,12 @@ logscale_sub = function(logx, logy) {
     warning("logscale_sub encountered negative value(s) of logx - logy (min: ",
             formatC(min(diff[bad.idx]), format = "e", digits = 2), ")")
   }
-  
-  scale.by = logx
-  scale.by[is.infinite(scale.by)] = 0
-  return(log(exp(logx - scale.by) - exp(logy - scale.by)) + scale.by)
+
+  out = logx + log1mexp(logy - logx)
+  # Handle the both-equal-(-Inf) case: exp(-Inf) - exp(-Inf) = 0, so
+  # the answer is log(0) = -Inf. The expression above gives NaN here
+  # because (-Inf) - (-Inf) = NaN propagates through log1mexp.
+  both_neg_inf = is.infinite(logx) & is.infinite(logy) & logx < 0 & logy < 0
+  out[both_neg_inf] = -Inf
+  return(out)
 }
