@@ -58,7 +58,10 @@ comp_dens.tnormalmix = function (m, y, log = FALSE) {
   n = length(y)
   d = matrix(rep(y,rep(k,n)),nrow = k)
   # No cases of b = a.
-  return(matrix(dnorm(d,m$mean,m$sd))/(pnorm(m$b) - pnorm(m$a)))
+  comp_dens = dnorm(d,m$mean,m$sd)/(pnorm(m$b) - pnorm(m$a))
+  comp_dens_mask = sapply(1:k, function(comp) { as.numeric((y >= m$a[comp]) & (y <= m$b[comp])) })
+
+  return(comp_dens * t(comp_dens_mask))
 }
 
 #' @importFrom stats pnorm
